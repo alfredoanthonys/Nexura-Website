@@ -1,0 +1,1019 @@
+/* ==========================================================================
+   Nexura — home page
+   Mobile first. Breakpoints: 600px (tablet), 1024px (desktop).
+   ========================================================================== */
+
+:root {
+  /* Neutrals — violet-tinted, sampled to sit under the hero and product art */
+  --ink-950: #0C0716;   /* page */
+  --ink-900: #130C20;   /* cards, drawers, footer */
+  --ink-800: #1C1330;   /* raised, hover */
+  --ink-700: #261A3D;   /* pressed, track */
+  --line: #2A2040;      /* dividers, card borders */
+  --line-strong: #3E3158;
+
+  /* Brand violet */
+  --plum-800: #24093F;
+  --violet-700: #6511B0; /* primary pressed */
+  --violet-600: #7715CC; /* primary */
+  --violet-500: #8A2BE2; /* primary hover, badge */
+  --violet-400: #9B4DFF; /* focus, active dots — never under small text */
+  --lilac-300: #CDB6F0;  /* small labels */
+
+  /* Text */
+  --text: #FFFFFF;
+  --text-soft: #E6DFF0;
+  --mute: #BDB1D1;
+  --faint: #8F84A3;
+
+  /* Accent — scarcity only */
+  --amber-400: #FFB020;
+  --on-amber: #1A0624;
+
+  /* Destructive */
+  --err: #FF8A9E;
+  --err-hover: #FFB3C0;
+  --err-wash: rgba(255, 138, 158, .12);
+
+  --disabled-bg: #2A2236;
+  --disabled-fg: #8F84A3;
+
+  /* Type */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-display: clamp(2.125rem, .9rem + 3vw, 3.75rem);
+  --fs-h2: clamp(1.625rem, 1.15rem + 1.5vw, 2.5rem);
+  --fs-h3: clamp(1.125rem, 1rem + .4vw, 1.375rem);
+  --fs-lead: clamp(1rem, .95rem + .25vw, 1.125rem);
+  --fs-body: 1rem;
+  --fs-sm: .875rem;
+  --fs-xs: .8125rem;
+  --fs-2xs: .75rem;
+
+  /* Space (4px base) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px;
+  --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
+
+  --gutter: 16px;
+  --gutter-wide: 16px;
+  --footer-x: 24px;   /* footer breathes wider than the nav */
+  --section-y: 48px;
+  --container: 1200px;
+  --header-h: 56px;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-nav: cubic-bezier(.65, .05, .36, 1);
+  --ease-out: cubic-bezier(0, 0, .2, 1);
+  --t-fast: 150ms;
+  --t-drawer: 250ms;
+}
+
+@media (min-width: 600px) {
+  :root { --gutter: 24px; --gutter-wide: 24px; --footer-x: 40px; --section-y: 64px; --header-h: 64px; }
+}
+@media (min-width: 1024px) {
+  :root { --gutter: 32px; --gutter-wide: 40px; --footer-x: 64px; --section-y: 96px; --header-h: 72px; }
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--header-h);
+  background: var(--ink-950);
+}
+body {
+  margin: 0;
+  background: var(--ink-950);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+img, picture, svg { display: block; max-width: 100%; }
+img { height: auto; }
+h1, h2, h3, p, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+s { text-decoration-thickness: 1px; }
+[hidden] { display: none !important; }
+
+:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute; left: var(--s-4); top: -100px; z-index: 100;
+  background: var(--violet-600); color: #fff; padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-sm); font-weight: 600;
+}
+.skip-link:focus { top: var(--s-3); }
+.anchor-top { position: absolute; top: 0; }
+
+.icon {
+  width: 24px; height: 24px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.75;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.icon--sm { width: 18px; height: 18px; }
+
+.container { width: min(100% - 2 * var(--gutter), var(--container)); margin-inline: auto; }
+
+.price { font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.price-was { color: var(--faint); font-variant-numeric: tabular-nums; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  --btn-h: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  min-height: var(--btn-h); padding: 0 var(--s-5);
+  border-radius: var(--r-sm); border: 1px solid transparent;
+  font-size: .9375rem; font-weight: 600; line-height: 1.2; white-space: nowrap;
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out,
+              color var(--t-fast) ease-out, transform var(--t-fast) ease-out,
+              box-shadow var(--t-fast) ease-out, translate var(--t-fast) ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active:not(:disabled) { transform: scale(.98); }
+.btn--lg { --btn-h: 52px; padding: 0 var(--s-6); font-size: 1rem; }
+.btn--wide { min-width: 240px; }
+.btn--block { width: 100%; }
+
+/* Gradient sweep plus a soft same-hue halo. The bright end stops at --violet-500 (5.96:1
+   with white): carrying it on to --violet-400 would drop the label to 4.3:1 wherever the
+   text crosses the lighter end, and label width varies per button. Hover deepens the halo
+   and lift rather than recolouring, so there is no gradient-to-gradient snap. */
+.btn--primary {
+  background: linear-gradient(100deg, var(--violet-700) 0%, var(--violet-500) 100%);
+  color: #fff;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, .3),
+    0 6px 18px -8px rgba(0, 0, 0, .55),
+    0 0 24px -6px rgba(138, 43, 226, .6);
+}
+.btn--primary:hover {
+  translate: 0 -1px;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, .3),
+    0 12px 26px -10px rgba(0, 0, 0, .6),
+    0 0 32px -4px rgba(138, 43, 226, .85);
+}
+.btn--primary:active {
+  background: linear-gradient(100deg, var(--violet-700) 0%, var(--violet-600) 100%);
+  translate: 0 0;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .4);
+}
+
+.btn--secondary { background: transparent; color: var(--text); border-color: var(--line-strong); }
+.btn--secondary:hover { background: var(--ink-800); border-color: #5A4A78; }
+
+.btn--add { --btn-h: 44px; padding: 0 var(--s-3); font-size: var(--fs-sm); background: transparent; border-color: var(--line-strong); }
+.btn--add:hover { background: var(--violet-600); border-color: var(--violet-600); }
+.btn--add.is-added { background: var(--ink-800); border-color: var(--violet-400); color: var(--text); }
+
+.btn:disabled, .btn[aria-disabled="true"] {
+  background: var(--disabled-bg); border-color: transparent; color: var(--disabled-fg); cursor: not-allowed;
+  box-shadow: none; translate: 0 0;
+}
+
+.link-btn {
+  color: var(--lilac-300); font-weight: 600; text-decoration: underline;
+  text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.link-btn:hover { color: var(--text); }
+
+.icon-btn {
+  position: relative; display: inline-grid; place-items: center;
+  width: 44px; height: 44px; border-radius: var(--r-sm); color: var(--text);
+  transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.icon-btn:hover { background: var(--ink-800); }
+.icon-btn--round { border-radius: 50%; background: var(--ink-800); }
+.icon-btn--round:hover { background: var(--ink-700); }
+
+/* ---------- Navbar ---------- */
+.site-header {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(12, 7, 22, .94);
+  -webkit-backdrop-filter: saturate(150%) blur(32px);
+  backdrop-filter: saturate(150%) blur(32px);
+  border-bottom: 1px solid var(--line);
+  transition: transform 440ms var(--ease-nav);
+}
+/* Retracts on the way down, returns on the way up, so the bar never covers the art. */
+.site-header.is-hidden { transform: translateY(-100%); }
+.nav {
+  position: relative;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  height: var(--header-h); max-width: 1600px; margin-inline: auto;
+  padding-inline: calc(var(--gutter-wide) - 10px);
+}
+.nav__logo { justify-self: center; display: block; padding: var(--s-2) 0; }
+.nav__logo img { height: 24px; width: auto; }
+.nav__links { display: none; }
+.nav__actions { justify-self: end; display: flex; align-items: center; gap: 0; }
+/* Phones keep search + cart only; account lives in the drawer, where there is room to label it. */
+.nav__divider, .nav__account { display: none; }
+
+.cart-badge {
+  position: absolute; top: 5px; right: 3px;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  display: grid; place-items: center;
+  background: var(--violet-500); color: #fff; font-size: 11px; font-weight: 700; line-height: 1;
+  box-shadow: 0 0 0 2px var(--ink-950);
+  font-variant-numeric: tabular-nums;
+}
+.cart-badge.is-bump { animation: bump 300ms var(--ease); }
+@keyframes bump { 40% { transform: scale(1.25); } }
+
+/* Search: inline on desktop, a panel under the bar on mobile/tablet */
+.search {
+  position: absolute; left: 0; right: 0; top: 100%;
+  padding: var(--s-3) var(--gutter); background: var(--ink-950);
+  border-bottom: 1px solid var(--line);
+  display: none;
+}
+.site-header.is-search-open .search { display: block; }
+.search__icon { position: absolute; left: calc(var(--gutter) + 12px); top: 50%; translate: 0 -50%; color: var(--faint); width: 20px; height: 20px; pointer-events: none; }
+.search__input {
+  width: 100%; height: 44px; padding: 0 var(--s-4) 0 42px;
+  background: var(--ink-900); border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  font-size: var(--fs-body); color: var(--text);
+  transition: border-color var(--t-fast) ease-out, background-color var(--t-fast) ease-out;
+}
+.search__input::placeholder { color: var(--faint); }
+.search__input:hover { border-color: #4C3E68; }
+.search__input:focus { outline: none; border-color: var(--violet-400); background: var(--ink-800); }
+.search__input::-webkit-search-cancel-button { filter: invert(.7); }
+.search__results {
+  position: absolute; left: var(--gutter); right: var(--gutter); top: calc(100% - 4px);
+  background: var(--ink-900); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  padding: var(--s-2); box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+  max-height: min(420px, 70vh); overflow-y: auto;
+}
+.search__option {
+  display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: var(--s-3);
+  padding: var(--s-2); border-radius: var(--r-sm); cursor: pointer;
+}
+.search__option img { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: var(--ink-800); }
+.search__option-name { font-size: var(--fs-sm); font-weight: 600; }
+.search__option-cat { font-size: var(--fs-2xs); color: var(--faint); }
+.search__option .price { font-size: var(--fs-sm); }
+.search__option[aria-selected="true"], .search__option:hover { background: var(--ink-800); }
+.search__empty { padding: var(--s-4); font-size: var(--fs-sm); color: var(--mute); text-align: center; }
+
+@media (min-width: 600px) {
+  .nav { grid-template-columns: auto auto 1fr; gap: var(--s-2); }
+  .nav__logo { justify-self: start; }
+  .nav__logo img { height: 26px; }
+}
+
+@media (min-width: 768px) {
+  .nav { grid-template-columns: auto 1fr auto; gap: var(--s-7); padding-inline: var(--gutter-wide); }
+  .nav__burger { display: none; }
+  .nav__logo img { height: 32px; }
+  .nav__links { display: block; }
+  .nav__links > ul { display: flex; align-items: center; gap: var(--s-2); }
+  .nav__link {
+    position: relative; display: inline-flex; align-items: center; gap: var(--s-1);
+    height: var(--header-h); padding: 0 var(--s-3); white-space: nowrap;
+    font-size: .9375rem; font-weight: 500; color: var(--text-soft);
+    transition: color var(--t-fast) ease-out;
+  }
+  /* Rule sits just under the text rather than at the foot of the bar, and only on hover —
+     there is no resting state, so the bar reads as plain type until you reach for it. */
+  .nav__link::after {
+    content: ""; position: absolute; left: var(--s-3); right: var(--s-3);
+    top: calc(50% + .8em); height: 2px;
+    background: currentColor; border-radius: 2px; transform: scaleX(0);
+    transition: transform var(--t-fast) ease-out;
+  }
+  .nav__link:hover, .nav__dropdown.is-open > .nav__link { color: var(--violet-400); }
+  .nav__link:hover::after, .nav__dropdown.is-open > .nav__link::after { transform: scaleX(1); }
+  /* Chevron stays pointing down whether the dropdown is open or not. */
+
+  .nav__dropdown { position: relative; }
+  .dropdown {
+    position: absolute; left: 0; top: calc(100% - 6px); min-width: 220px;
+    padding: var(--s-2); background: var(--ink-900);
+    border: 1px solid var(--line-strong); border-radius: var(--r-md);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+    opacity: 0; visibility: hidden; translate: 0 -4px;
+    transition: opacity var(--t-fast) ease-out, translate var(--t-fast) ease-out, visibility 0s linear var(--t-fast);
+  }
+  .nav__dropdown.is-open .dropdown { opacity: 1; visibility: visible; translate: 0 0; transition-delay: 0s; }
+  .dropdown a {
+    display: flex; align-items: center; min-height: 44px; padding: 0 var(--s-3);
+    border-radius: var(--r-sm); font-size: var(--fs-sm); font-weight: 500; color: var(--text-soft);
+  }
+  .dropdown a:hover { background: var(--ink-800); color: var(--text); }
+  .dropdown__all { margin-top: var(--s-1); border-top: 1px solid var(--line); border-radius: 0 0 var(--r-sm) var(--r-sm) !important; color: var(--lilac-300) !important; }
+
+  .nav__actions { gap: var(--s-2); }
+  .nav__divider { display: block; width: 1px; height: 24px; background: var(--line-strong); margin-right: var(--s-2); }
+  .nav__account { display: inline-grid; }
+}
+
+/* The inline search bar needs room it does not have on tablet, so below 1024 the toggle
+   button stays and .search keeps its default full-width dropdown-panel form. */
+@media (min-width: 1024px) {
+  .nav__search-toggle { display: none; }
+  .search {
+    position: relative; display: block; inset: auto; padding: 0; background: none; border: 0;
+    width: clamp(220px, 22vw, 340px); margin-right: var(--s-3);
+  }
+  .search__icon { left: 12px; }
+  .search__input { height: 40px; font-size: var(--fs-sm); background: var(--ink-900); border-color: var(--line); }
+  .search__results { left: 0; right: auto; width: max(100%, 360px); top: calc(100% + 8px); }
+}
+
+/* ---------- Hero ---------- */
+.hero { position: relative; container-type: inline-size; background: var(--ink-950); }
+.hero__track {
+  display: flex; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+.hero__track::-webkit-scrollbar { display: none; }
+.hero__slide { position: relative; flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; }
+
+.hero__media { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; } /* explicit width: with max-height capped, aspect-ratio would otherwise shrink the width */
+.hero__media img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos-m, 86% 50%); }
+.hero__media::after {
+  content: ""; position: absolute; inset: auto 0 0; height: 32%;
+  background: linear-gradient(to top, var(--ink-950), rgba(12, 7, 22, 0));
+  pointer-events: none;
+}
+.hero__slide--creator { --pos-m: 88% 40%; }
+
+.hero__content { padding: var(--s-5) var(--gutter) var(--s-7); }
+
+.hero__text { display: grid; gap: var(--s-3); max-width: 560px; }
+.hero__title {
+  font-size: var(--fs-display); font-weight: 600; line-height: 1.08; letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.hero__lead { font-size: var(--fs-lead); color: var(--text-soft); line-height: 1.5; max-width: 46ch; }
+.hero__actions { margin-top: var(--s-2); }
+.hero__actions .btn { width: 100%; }
+
+.hero__arrow {
+  display: none; position: absolute; z-index: 2;
+  width: 48px; height: 48px; border-radius: 50%;
+  place-items: center; color: #fff;
+  background: rgba(12, 7, 22, .5); border: 1px solid rgba(255, 255, 255, .22);
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out;
+}
+.hero__arrow:hover { background: var(--violet-600); border-color: var(--violet-600); }
+.hero__arrow--prev { left: var(--s-4); }
+.hero__arrow--next { right: var(--s-4); }
+
+/* Centred under the banner. The active dot is a track that fills across the autoplay
+   interval, so the next slide is never a surprise. */
+.hero__dots {
+  position: absolute; z-index: 2; left: 50%; translate: -50% 0;
+  top: calc(75vw - 28px); top: calc(75cqw - 28px);
+  display: flex; align-items: center; gap: var(--s-1);
+}
+.hero__dots button {
+  position: relative; width: 22px; height: 24px; display: grid; place-items: center;
+  transition: width var(--t-drawer) var(--ease);
+}
+.hero__dots button[aria-current="true"] { width: 46px; }
+.hero__dot-track {
+  display: block; width: 7px; height: 7px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .4);
+  transition: width var(--t-drawer) var(--ease), background-color var(--t-fast) ease-out;
+}
+.hero__dots button:hover .hero__dot-track { background: rgba(255, 255, 255, .75); }
+.hero__dots button[aria-current="true"] .hero__dot-track { width: 32px; background: rgba(255, 255, 255, .3); }
+/* No radius here on purpose: the track is already rounded with overflow:hidden, so it
+   clips the caps. Giving the fill its own 999px radius would scale it into an ellipse.
+   Must stay a transform — animating width over 6s across 32px advances <0.1px per frame,
+   which pixel-snaps into a visible stutter. */
+.hero__dot-fill {
+  display: block; width: 100%; height: 100%; background: #fff;
+  transform: scaleX(0); transform-origin: left center;
+}
+.hero__dots button[aria-current="true"] .hero__dot-fill {
+  animation: dot-progress var(--autoplay, 6000ms) linear forwards;
+}
+/* Paused whenever the carousel is: pointer over it, focus inside, or an overlay open.
+   Must out-specify the rule above — its `animation` shorthand resets play-state to running. */
+.hero.is-paused .hero__dots button[aria-current="true"] .hero__dot-fill,
+body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { animation-play-state: paused; }
+@keyframes dot-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__dots button[aria-current="true"] .hero__dot-fill { animation: none; transform: scaleX(1); }
+}
+
+/* Phones overlay the copy on the banner like every wider breakpoint does: subject up top,
+   copy beneath it. The art is 16/9, so a portrait box can never crop it vertically — cover
+   would pin the subject to the middle, behind the copy. So the image is laid across the top
+   of a taller box at its own ratio and the space below is carried by the banner's own
+   background, with the fade dissolving the image's bottom edge into it. */
+@media (max-width: 599px) {
+  /* The banner carries its own plum floor rather than page black, so the hero ends on a visible
+     edge instead of bleeding into Produk Andalan. The art is masked out at its bottom instead of
+     being covered by a fade, so it dissolves into that floor whatever colour the floor is. */
+  /* Taller than 3/4 on purpose: both subjects sit about 72% across their 16/9 art, and the only
+     way to bring them to the middle of a portrait frame is to zoom until the visible window is
+     narrow enough to centre on them — which needs the extra height to keep room for the copy. */
+  .hero__media {
+    aspect-ratio: 2 / 3;
+    background: linear-gradient(180deg, var(--ink-950) 38%, #170A29 68%, var(--plum-800) 100%);
+  }
+  .hero__media img {
+    position: absolute; inset: 0 0 auto; height: var(--img-h-sm, 67%);
+    object-position: var(--pos-m-sm, 100% 50%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 97%);
+    mask-image: linear-gradient(to bottom, #000 68%, transparent 97%);
+  }
+  .hero__media::after { display: none; }
+  /* bottom padding clears the dots, which now sit under the copy */
+  .hero__content { position: absolute; inset: auto 0 0; z-index: 1; padding: 0 var(--gutter) var(--s-7); }
+  .hero__text { gap: var(--s-2); justify-items: center; text-align: center; }
+  /* 34px display type is a desktop size; at 375 the title wraps three times and crowds the art.
+     28/15 matches the step the platform scales use for a phone headline over secondary copy. */
+  .hero__title { font-size: 1.75rem; line-height: 1.15; }
+  .hero__lead { font-size: var(--fs-sm); }
+  .hero__actions { margin-top: var(--s-1); }
+  .hero__actions .btn { --btn-h: 46px; width: auto; padding: 0 var(--s-5); font-size: .9375rem; }
+  /* his copy runs a line longer, so his slide trades a little of that zoom back for room */
+  .hero__slide--creator { --img-h-sm: 60%; }
+  .hero__dots { top: auto; bottom: var(--s-3); }
+}
+
+@media (min-width: 600px) {
+  .hero__media { aspect-ratio: 16 / 9; }
+  .hero__media img { object-position: 50% 50%; }
+  .hero__dots { top: calc(56.25vw - 32px); top: calc(56.25cqw - 32px); }
+  .hero__arrow { display: grid; top: 28.125cqw; translate: 0 -50%; }
+  .hero__content { padding: var(--s-6) var(--gutter) var(--s-7); }
+  .hero__actions .btn { width: auto; }
+}
+
+@media (min-width: 768px) {
+  .hero__media { aspect-ratio: 16 / 9; max-height: max(560px, calc(100svh - var(--header-h))); }
+  .hero__media::after { display: none; }
+  .hero__slide--iceglow .hero__media img { object-position: 50% 38%; }
+  .hero__slide--creator .hero__media img { object-position: 50% 30%; }
+  .hero__slide--creator .hero__media::before {
+    /* the room behind the creator is brighter than slide 1; a soft left fade keeps the copy legible */
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(90deg, rgba(12, 7, 22, .62) 0%, rgba(12, 7, 22, .35) 34%, rgba(12, 7, 22, 0) 52%);
+  }
+  /* Copy column. --hero-left is the indent; --hero-copy-end is a hard right boundary the text
+     can never cross. Slide 1's first feature callout starts about 45% across and slide 2's
+     creator about 52%, so 44% clears both. Pairing the two means a bigger indent narrows the
+     column instead of pushing the copy into the artwork. */
+  .hero { --hero-left: max(var(--gutter), min(calc((100% - var(--container)) / 2), 10%)); --hero-copy-end: 44%; }
+  /* Zero top/bottom is deliberate: padding there shrinks the box align-items centres against,
+     which lifts the copy off the true middle. */
+  .hero__content {
+    position: absolute; inset: 0; z-index: 1; display: flex; align-items: center;
+    padding: 0 calc(100% - var(--hero-copy-end)) 0 var(--hero-left);
+  }
+  /* Fills whatever the column allows, so it shrinks rather than overflowing the boundary. */
+  .hero__text { gap: var(--s-4); width: 100%; max-width: 540px; }
+  .hero__lead { color: var(--text-soft); }
+  .hero__actions { margin-top: var(--s-3); }
+  /* Arrows centred on each edge, dots centred along the bottom. */
+  .hero__arrow { display: grid; top: 50%; bottom: auto; translate: 0 -50%; width: 48px; height: 48px; }
+  .hero__arrow--prev { left: clamp(16px, 2.2vw, 40px); right: auto; }
+  .hero__arrow--next { right: clamp(16px, 2.2vw, 40px); left: auto; }
+  .hero__dots { top: auto; left: 50%; translate: -50% 0; bottom: clamp(20px, 3cqw, 36px); }
+}
+/* Tablet overlays the copy on the banner too, but 12% of 834px would eat a third of an
+   already narrow column, so the indent drops back to the gutter and the type steps down. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero { --hero-left: clamp(56px, 11%, 120px); }
+  .hero__title { font-size: clamp(1.75rem, .4rem + 3.4vw, 2.25rem); }
+  .hero__lead { font-size: var(--fs-body); }
+  .hero__text { gap: var(--s-3); }
+  .hero__arrow { width: 40px; height: 40px; }
+}
+@media (min-width: 768px) and (max-width: 1199px) {
+  .nav { gap: var(--s-5); }
+  .nav__link { padding: 0 10px; }
+}
+/* Narrow desktop still carries the inline bar, so it has to give up width. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .search { width: 190px; margin-right: var(--s-1); }
+}
+
+/* ---------- Sections ---------- */
+.section { padding-block: var(--section-y); }
+.section--tight-top { padding-top: 0; }
+
+/* "Apa Kata Streamers" and "Clip dari Live Mereka" share this one section. A dimmed copy of
+   the brand texture marks it as its own surface, while the mask dissolves the top and bottom
+   edges into --ink-950 so it reads as a shift in depth rather than a pasted-in band.
+   Stretched rather than cover-cropped: cover would centre on the flat middle of the art and
+   throw away the violet corner glows that do the differentiating. */
+#streamers, .section--textured { position: relative; isolation: isolate; }
+#streamers::before, .section--textured::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(rgba(12, 7, 22, .42), rgba(12, 7, 22, .42)),
+    url("../img/bg-streamers.jpg") center / 100% 100% no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+}
+.section-head { text-align: center; margin-bottom: var(--s-5); display: grid; gap: var(--s-2); justify-items: center; }
+/* Matches .section-head's own margin-bottom at every breakpoint, so the space above this
+   sub-head equals the space below it (the gap before Clips starts). */
+.section-head--sub { margin-top: var(--s-5); }
+/* Display sizes carry their own emphasis, so they sit at 600; small titles stay at 700. */
+.section-title {
+  font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance;
+}
+.section-sub { font-size: var(--fs-lead); color: var(--mute); max-width: 32ch; text-wrap: balance; }
+/* Every section's supporting line sits one step under body on a phone, so the headline carries
+   the section on its own and the rail or grid below starts sooner. */
+@media (max-width: 599px) { .section-sub { font-size: var(--fs-sm); } }
+.section-actions { display: flex; justify-content: center; margin-top: var(--s-6); }
+.filter-status { font-size: var(--fs-sm); color: var(--mute); display: flex; gap: var(--s-2); align-items: baseline; margin-top: var(--s-2); }
+.filter-status strong { color: var(--text); font-weight: 600; }
+
+@media (min-width: 600px) {
+  .section-head { margin-bottom: var(--s-6); }
+  .section-sub { max-width: 52ch; }
+  .section-head--sub { margin-top: var(--s-6); }
+}
+@media (min-width: 1024px) {
+  .section-head { margin-bottom: var(--s-7); gap: var(--s-3); }
+  .section-head--sub { margin-top: var(--s-7); }
+  .section-actions { margin-top: var(--s-7); }
+}
+
+/* ---------- Product cards ---------- */
+.product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+@media (min-width: 600px) { .product-grid { gap: var(--s-4); } }
+@media (min-width: 900px) { .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-5); } }
+
+.product-card {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md);
+  overflow: hidden; scroll-margin-top: calc(var(--header-h) + 24px);
+  transition: border-color var(--t-fast) ease-out, box-shadow var(--t-fast) ease-out;
+}
+.product-card.is-entering { animation: card-in 300ms var(--ease) both; }
+@keyframes card-in { from { opacity: 0; translate: 0 8px; } }
+.product-card.is-highlight { border-color: var(--violet-400); box-shadow: 0 0 0 1px var(--violet-400); }
+.product-card__media { position: relative; aspect-ratio: 1; background: var(--ink-800); overflow: hidden; }
+/* Scaled up so the product fills more of the tile; this also crops the artwork's outer edge,
+   which is where the old border sat. Pushing much past 1.08 starts clipping the baked-in
+   captions ("NEXURA COOLER ICE SERIES") that sit close to the bottom of each image. */
+.product-card__media img {
+  width: 100%; height: 100%; object-fit: cover; transform: scale(1.08);
+  transition: transform 400ms var(--ease), opacity var(--t-fast) ease-out;
+}
+.product-card__media img.is-swapping { opacity: .4; }
+.product-card.is-out .product-card__media img { filter: saturate(.55) brightness(.8); }
+
+.badge {
+  align-self: center;
+  padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+  font-size: 11px; font-weight: 700; line-height: 1.3; letter-spacing: .02em;
+}
+.badge--out { background: #3A3148; color: var(--lilac-300); }
+
+.product-card__body { display: flex; flex-direction: column; gap: var(--s-2); flex: 1; padding: var(--s-3); }
+.product-card__name {
+  font-size: var(--fs-sm); font-weight: 500; line-height: 1.4; color: var(--text-soft);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  min-height: calc(2 * 1.4em);
+}
+.product-card__price { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-2); }
+.product-card__price .price { font-size: 1.0625rem; }
+.product-card__price .price-was { font-size: var(--fs-xs); }
+
+.swatches { display: flex; align-items: center; gap: 2px; min-height: 28px; margin-left: -6px; }
+.swatch { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; }
+.swatch::before {
+  content: ""; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--swatch); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
+  transition: box-shadow var(--t-fast) ease-out;
+}
+.swatch:hover::before { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 0 0 2px var(--ink-900), 0 0 0 3px var(--line-strong); }
+.swatch[aria-pressed="true"]::before { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 0 0 2px var(--ink-900), 0 0 0 4px var(--violet-400); }
+.swatch:focus-visible { outline-offset: 0; }
+.swatches__label { font-size: var(--fs-xs); color: var(--mute); margin-left: var(--s-2); }
+.product-card__note { font-size: var(--fs-xs); color: var(--mute); min-height: 28px; display: flex; align-items: center; }
+.product-card__body .swatches, .product-card__body .product-card__note { margin-bottom: var(--s-1); }
+.product-card__body .btn { margin-top: auto; } /* buttons line up across a row whatever sits above them */
+.btn--add .label-short, .btn--add .icon--short { display: none; }
+
+/* Narrow phones drop to "+ Keranjang": the cart glyph gives way to a plus, which reads as the
+   action on its own once the verb is gone. */
+@media (max-width: 420px) {
+  .btn--add .label-long, .btn--add .icon--long { display: none; }
+  .btn--add .label-short { display: inline; }
+  .btn--add .icon--short { display: block; }
+}
+@media (min-width: 600px) {
+  .product-card__body { padding: var(--s-4); gap: var(--s-2); }
+  .product-card__name { font-size: .9375rem; }
+  .product-card__price .price { font-size: 1.125rem; }
+  .product-card__price .price-was { font-size: var(--fs-sm); }
+  .product-card__price .badge { margin-left: auto; }
+}
+@media (hover: hover) {
+  .product-card:hover { border-color: #4A3B66; }
+  .product-card:hover .product-card__media img { transform: scale(1.12); }
+}
+
+/* ---------- Video ---------- */
+.video {
+  position: relative; aspect-ratio: 16 / 9; border-radius: var(--r-lg); overflow: hidden;
+  background: var(--ink-900); border: 1px solid var(--line);
+}
+/* Stream still standing in until the compilation video is published. main.js replaces the
+   whole box with the YouTube poster the moment video.youtubeId is set, so this is only ever
+   the empty state. */
+.video__still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease); }
+/* Scrim stays after losing the caption: the still's left half is a pale wall, and the white
+   play button plus its white ring would disappear against it. */
+.video__empty {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center;
+  background:
+    linear-gradient(to top, rgba(12, 7, 22, .94) 0%, rgba(12, 7, 22, .6) 26%, rgba(12, 7, 22, 0) 54%),
+    rgba(12, 7, 22, .38);
+}
+/* Same bottom-left caption as a clip tile; sits above the scrim that makes it readable.
+   Type is scaled up from the shared clip sizes: this box is several times a clip tile, so
+   the tile's 1.0625rem name reads as an afterthought at this scale. */
+.video__meta {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 0;
+  padding: clamp(var(--s-4), 2.2vw, var(--s-6)); display: grid; gap: var(--s-1);
+}
+.video__meta .clip__name { font-size: clamp(1.25rem, 1rem + 1vw, 1.875rem); }
+.video__meta .clip__role { font-size: clamp(.875rem, .8rem + .3vw, 1.0625rem); }
+/* Same hover as a clip tile: button goes violet, still pushes in 4%. */
+@media (hover: hover) {
+  .video:hover .video__empty .play-btn { background: var(--violet-600); color: #fff; }
+  .video:hover .video__still { transform: scale(1.04); }
+}
+.video__poster { position: absolute; inset: 0; width: 100%; height: 100%; display: grid; place-items: center; }
+.video__poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.video__poster .play-btn { position: relative; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+.play-btn {
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(255, 255, 255, .94); color: var(--ink-950);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, .14);
+  transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out, transform var(--t-fast) ease-out;
+}
+.play-btn .icon { width: 20px; height: 20px; fill: currentColor; stroke: none; translate: 1px 0; }
+.play-btn--lg { width: 72px; height: 72px; }
+.play-btn--lg .icon { width: 28px; height: 28px; }
+.video__poster:hover .play-btn { background: var(--violet-600); color: #fff; transform: scale(1.05); }
+
+/* ---------- Clips ---------- */
+.clips {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 62%; gap: var(--s-3);
+  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
+  overscroll-behavior-x: contain;
+}
+.clips::-webkit-scrollbar { display: none; }
+.clip { scroll-snap-align: start; }
+.clip__link {
+  position: relative; display: block; aspect-ratio: 9 / 16; border-radius: var(--r-md); overflow: hidden;
+  background: var(--ink-800); border: 1px solid var(--line); isolation: isolate;
+}
+.clip__link img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease); }
+.clip__link::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(to top, rgba(12, 7, 22, .94) 0%, rgba(12, 7, 22, .7) 22%, rgba(12, 7, 22, 0) 48%);
+}
+.clip__link .play-btn { position: absolute; z-index: 2; left: 50%; top: 50%; translate: -50% -50%; }
+.clip__meta { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; padding: var(--s-4); display: grid; gap: 2px; }
+.clip__name { font-size: 1.0625rem; font-weight: 700; letter-spacing: -.01em; }
+.clip__role { font-size: var(--fs-xs); color: var(--text-soft); line-height: 1.4; }
+.clip__link:hover .play-btn { background: var(--violet-600); color: #fff; }
+@media (hover: hover) { .clip__link:hover img { transform: scale(1.04); } }
+
+@media (min-width: 600px) { .clips { grid-auto-columns: 38%; gap: var(--s-4); } }
+@media (min-width: 1024px) {
+  .clips { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-5); overflow: visible; margin: 0; padding: 0; }
+  .clip__meta { padding: var(--s-5); }
+  .clip__name { font-size: 1.125rem; }
+}
+
+/* ---------- Technology ---------- */
+.tech-grid { display: grid; gap: var(--s-3); }
+.tech-card {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden;
+  isolation: isolate;
+}
+.tech-card__media { display: block; aspect-ratio: 16 / 10; overflow: hidden; }
+.tech-card__media img {
+  width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%);
+  transform: scale(var(--zoom, 1)); transform-origin: var(--origin, var(--pos, 50% 50%));
+}
+.tech-card__body { display: grid; gap: var(--s-2); padding: var(--s-4); }
+.tech-card__title { font-size: var(--fs-h3); font-weight: 700; line-height: 1.2; letter-spacing: -.015em; }
+.tech-card__text { font-size: var(--fs-sm); color: var(--mute); line-height: 1.55; max-width: 52ch; }
+
+/* Phones swipe through these the same way they swipe the clips: same snap rail, same bleed out
+   to the screen edge. The copy sits on the art here too, as it does from 600 up. */
+@media (max-width: 599px) {
+  .tech-grid {
+    grid-auto-flow: column; grid-auto-columns: 72%;
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter); overscroll-behavior-x: contain;
+  }
+  .tech-grid::-webkit-scrollbar { display: none; }
+  .tech-card { scroll-snap-align: start; min-height: 340px; justify-content: flex-end; }
+  .tech-card__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
+  .tech-card__media::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(12, 7, 22, .95) 0%, rgba(12, 7, 22, .72) 30%, rgba(12, 7, 22, 0) 62%);
+  }
+  .tech-card__text { color: var(--text-soft); }
+}
+
+@media (min-width: 600px) {
+  .tech-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
+  .tech-card { min-height: 300px; justify-content: flex-end; }
+  .tech-card--wide { grid-column: span 2; }
+  .tech-card__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
+  .tech-card__media::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(12, 7, 22, .95) 0%, rgba(12, 7, 22, .72) 30%, rgba(12, 7, 22, 0) 62%);
+  }
+  .tech-card__body { padding: var(--s-5); }
+  .tech-card__text { color: var(--text-soft); }
+}
+
+@media (min-width: 1024px) {
+  .tech-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--s-5); }
+  .tech-card { grid-column: span 4; min-height: 320px; }
+  .tech-card--wide { grid-column: span 8; }
+  .tech-card__body { padding: var(--s-6); }
+}
+
+/* With a mouse, the photograph carries the card on its own and the copy stays out of the way
+   until you point at it. Touch devices get no hover, so there the copy is simply always there. */
+@media (min-width: 600px) and (hover: hover) and (pointer: fine) {
+  .tech-card__body {
+    opacity: 0; translate: 0 16px;
+    transition: opacity 500ms var(--ease-out), translate 500ms var(--ease-out);
+  }
+  .tech-card__media::after { opacity: 0; transition: opacity 500ms var(--ease-out); }
+  .tech-card__media img { transition: transform 700ms var(--ease-out); }
+
+  .tech-card:hover .tech-card__body,
+  .tech-card:focus-visible .tech-card__body { opacity: 1; translate: 0 0; }
+  .tech-card:hover .tech-card__media::after,
+  .tech-card:focus-visible .tech-card__media::after { opacity: 1; }
+  /* multiplied, because each card already carries its own framing zoom */
+  .tech-card:hover .tech-card__media img,
+  .tech-card:focus-visible .tech-card__media img { transform: scale(calc(var(--zoom, 1) * 1.06)); }
+}
+
+/* ---------- CTA ---------- */
+.cta {
+  position: relative; display: grid; border-radius: var(--r-lg); overflow: hidden;
+  background: #170828; border: 1px solid var(--line); isolation: isolate;
+}
+.cta__content { display: grid; gap: var(--s-3); justify-items: start; padding: var(--s-6) var(--s-5) var(--s-5); }
+.cta__title { font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance; }
+.cta__text { color: var(--text-soft); font-size: var(--fs-body); max-width: 46ch; }
+.cta__content .btn { margin-top: var(--s-3); width: 100%; }
+.cta__media { order: 2; position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+.cta__media img { width: 100%; height: 100%; object-fit: cover; object-position: 48% 100%; } /* keeps the whole sensi panel in frame */
+.cta__media::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 40%; z-index: 1;
+  background: linear-gradient(to bottom, #170828, rgba(23, 8, 40, 0));
+}
+
+/* Phones get the same overlay the wider breakpoints get — one banner with the copy on the art,
+   just scaled down: the box is squarer, the art is anchored on the fan, and the type and button
+   step down with it. A scrim carries the copy, since at this width it sits over the artwork. */
+@media (max-width: 599px) {
+  /* the art keeps its own 2400x758 proportions and is simply scaled to the card width, so the
+     whole composition reads at phone size instead of a cover crop into one corner of the fan */
+  /* inset to the same 16px as the copy on the other three sides, so the card reads as one
+     evenly padded box rather than art bleeding off the bottom edge */
+  /* the art moves behind the copy, so the card is only as tall as the type and button —
+     no stacked image block, and no empty run under the button */
+  .cta__media { position: absolute; inset: 0; aspect-ratio: auto; margin: 0; z-index: -1; }
+  /* contained rather than cropped, so the whole composition reads at phone width; the card's own
+     background fills the space above the band and the copy sits over it */
+  .cta__media img { object-fit: contain; object-position: 50% 100%; }
+  .cta__media::before {
+    inset: 0; height: auto;
+    background: linear-gradient(to bottom, rgba(23, 8, 40, .92) 30%, rgba(23, 8, 40, .72) 60%, rgba(23, 8, 40, .3) 100%);
+  }
+  .cta__content { padding: var(--s-6) var(--s-5); gap: var(--s-2); }
+  .cta__title { font-size: 1.5rem; }
+  .cta__text { font-size: var(--fs-sm); }
+  .cta__content .btn { --btn-h: 46px; width: auto; font-size: .9375rem; margin-top: var(--s-2); }
+}
+
+@media (min-width: 600px) {
+  .cta__content { padding: var(--s-7) var(--s-7) var(--s-5); }
+  .cta__content .btn { width: auto; }
+  .cta__media { aspect-ratio: 3 / 1; }
+  .cta__media img { object-position: 50% 100%; }
+}
+/* tablet: same overlay treatment as desktop, cropped so the fan stays right and the copy sits in the open space */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cta { aspect-ratio: 2.9 / 1; align-items: center; }
+  .cta__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
+  .cta__media img { object-position: 20% 50%; }
+  .cta__media::before {
+    inset: 0; height: auto;
+    background: linear-gradient(to right, #170828 18%, rgba(23, 8, 40, .72) 46%, rgba(23, 8, 40, 0) 70%);
+  }
+  .cta__content { max-width: 60%; padding: var(--s-6); gap: var(--s-4); }
+  .cta__content .btn { margin-top: var(--s-4); }
+}
+@media (min-width: 1024px) {
+  .cta { aspect-ratio: 3648 / 1152; align-items: center; }
+  .cta__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
+  .cta__media::before { display: none; }
+  .cta__media img { object-position: 50% 50%; }
+  .cta__content { padding: var(--s-7) var(--s-8); max-width: 600px; gap: var(--s-4); align-self: start; padding-top: clamp(40px, 5vw, 64px); }
+  .cta__content .btn { margin-top: var(--s-4); }
+}
+
+/* ---------- Footer ---------- */
+.site-footer { background: var(--ink-900); border-top: 1px solid var(--line); }
+.footer {
+  max-width: 1600px; margin-inline: auto; padding: var(--s-7) var(--footer-x) var(--s-6);
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-6) var(--s-5);
+}
+.footer__brand { grid-column: 1 / -1; display: grid; gap: var(--s-4); align-content: start; }
+.footer__brand img { height: 32px; width: auto; }
+.footer__brand p { font-size: var(--fs-sm); color: var(--mute); max-width: 30ch; }
+.footer__title { font-size: var(--fs-sm); font-weight: 600; color: var(--text); margin-bottom: var(--s-2); }
+.footer__col ul { display: grid; }
+.footer__col a {
+  display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px;
+  font-size: var(--fs-sm); color: var(--mute); transition: color var(--t-fast) ease-out;
+}
+.footer__col a:hover { color: var(--text); }
+.footer__col a .icon { color: var(--faint); }
+.footer__col--pay { grid-column: 1 / -1; }
+/* Equal tiles on a 3-up grid, as the wireframe has them. The marks differ in proportion —
+   some are stacked, some are wordmarks — so each one is contained rather than stretched. */
+.pay-grid {
+  display: grid !important; grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-2); margin-top: var(--s-2); max-width: 300px;
+}
+.pay-grid li {
+  display: grid; place-items: center; height: 48px; padding: 7px 10px;
+  border-radius: 6px; background: #fff;
+}
+/* Explicit px: a percentage max-height does not resolve against the grid area here,
+   which let the taller stacked marks spill out of their tile. */
+.pay-grid img { max-width: 100%; max-height: 34px; width: auto; height: auto; }
+.footer__bottom {
+  position: relative; max-width: 1600px; margin-inline: auto; padding: var(--s-5) var(--footer-x) var(--s-6);
+  display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); justify-content: space-between; align-items: center;
+  font-size: var(--fs-xs); color: var(--faint);
+}
+.footer__bottom::before { content: ""; position: absolute; top: 0; left: var(--footer-x); right: var(--footer-x); height: 1px; background: var(--line); }
+
+@media (min-width: 600px) {
+  .footer { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .footer__col--pay { grid-column: auto / span 3; }
+}
+@media (min-width: 1024px) {
+  .footer { grid-template-columns: minmax(200px, 2fr) 1fr 1fr 1.35fr auto; padding-top: var(--s-8); padding-bottom: var(--s-7); gap: var(--s-6); }
+  .footer__brand { grid-column: auto; }
+  .footer__col--pay { grid-column: auto; }
+}
+
+/* ---------- Drawers ---------- */
+.backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(12, 7, 22, .6);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  opacity: 0; transition: opacity var(--t-drawer) var(--ease);
+}
+.backdrop.is-visible { opacity: 1; }
+
+.drawer {
+  position: fixed; top: 0; bottom: 0; z-index: 60;
+  width: 100%; display: flex; flex-direction: column;
+  background: var(--ink-900);
+  visibility: hidden;
+  transition: transform var(--t-drawer) var(--ease), visibility 0s linear var(--t-drawer);
+}
+.drawer.is-open { visibility: visible; transform: none; transition-delay: 0s; }
+.drawer--right { right: 0; transform: translateX(100%); border-left: 1px solid var(--line); }
+.drawer--left { left: 0; transform: translateX(-100%); border-right: 1px solid var(--line); width: min(88vw, 360px); }
+.drawer.is-open { box-shadow: 0 0 40px rgba(0, 0, 0, .6); }
+@media (min-width: 600px) { .drawer--right { width: 420px; } }
+@media (min-width: 1280px) { .drawer--right { width: 440px; } }
+
+.drawer__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  min-height: 64px; padding: var(--s-3) var(--s-4) var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+/* The filled disc is there to read against a cart line item scrolled up under it; on a phone
+   the drawer is the whole screen, so the close reads fine as a bare glyph at a smaller size. */
+@media (max-width: 599px) {
+  .drawer__head .icon-btn--round { width: 36px; height: 36px; background: none; }
+  .drawer__head .icon-btn--round .icon { width: 20px; height: 20px; }
+}
+.drawer__title { font-size: 1.125rem; font-weight: 700; }
+.drawer__logo { height: 24px; width: auto; }
+.drawer__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+.drawer__foot { border-top: 1px solid var(--line); padding: var(--s-4) var(--s-5) calc(var(--s-5) + env(safe-area-inset-bottom)); display: grid; gap: var(--s-4); }
+
+/* menu drawer */
+.menu-list { padding: var(--s-3) var(--s-3); display: grid; align-content: start; }
+.menu-list__item {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  min-height: 52px; padding: 0 var(--s-3); border-radius: var(--r-sm);
+  font-size: 1.0625rem; font-weight: 600; text-align: left; color: var(--text-soft);
+}
+.menu-list__item:hover { background: var(--ink-800); color: var(--text); }
+.menu-list__item .icon { transition: rotate var(--t-fast) ease-out; color: var(--faint); }
+.menu-list__item[aria-expanded="true"] .icon { rotate: 180deg; }
+.menu-list__sub { display: grid; padding: 0 0 var(--s-2) var(--s-3); margin-left: var(--s-3); border-left: 1px solid var(--line); }
+.menu-list__sub a { display: flex; align-items: center; min-height: 44px; padding: 0 var(--s-3); border-radius: var(--r-sm); color: var(--mute); font-weight: 500; }
+.menu-list__sub a:hover { background: var(--ink-800); color: var(--text); }
+
+/* cart */
+.cart-list { padding: 0 var(--s-5); }
+.cart-item {
+  position: relative; display: grid; grid-template-columns: auto 64px 1fr; gap: var(--s-3);
+  align-items: stretch; padding: var(--s-4) 0; border-bottom: 1px solid var(--line);
+}
+.cart-item:last-child { border-bottom: 0; }
+.cart-item__check { display: grid; place-items: center; width: 28px; margin-left: -4px; cursor: pointer; }
+.cart-item__check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.cart-item__box {
+  width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--line-strong);
+  display: grid; place-items: center; color: transparent;
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out;
+}
+.cart-item__box .icon { width: 14px; height: 14px; stroke-width: 3; }
+.cart-item__check input:checked + .cart-item__box { background: var(--violet-600); border-color: var(--violet-600); color: #fff; }
+.cart-item__check input:focus-visible + .cart-item__box { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+/* Thumbnail stretches to the text column so the two always share exactly one height,
+   with name pinned to the top edge and the price row to the bottom. */
+.cart-item__thumb { width: 64px; height: 100%; min-height: 64px; border-radius: var(--r-sm); object-fit: cover; background: var(--ink-800); }
+.cart-item__info { min-width: 0; min-height: 64px; display: grid; align-content: space-between; gap: 2px; padding-right: 36px; }
+.cart-item__name { font-size: var(--fs-sm); font-weight: 500; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-item__variant { font-size: var(--fs-xs); color: var(--faint); line-height: 1.3; }
+.cart-item__row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-right: -36px; }
+.cart-item__row .price { font-size: .9375rem; }
+.cart-item.is-unchecked .cart-item__thumb, .cart-item.is-unchecked .cart-item__info { opacity: .55; }
+.cart-item__remove { position: absolute; top: var(--s-2); right: -10px; color: var(--err); }
+.cart-item__remove:hover { background: var(--err-wash); color: var(--err-hover); }
+.cart-item__remove .icon { width: 20px; height: 20px; }
+
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
+.stepper button {
+  position: relative; width: 32px; height: 32px; display: grid; place-items: center; color: var(--text);
+  transition: background-color var(--t-fast) ease-out;
+}
+/* Keeps a 44px tap target without adding height; the number between them stops the two overlapping. */
+.stepper button::after { content: ""; position: absolute; inset: -6px; }
+.stepper button:hover:not(:disabled) { background: var(--ink-800); }
+.stepper button:disabled { color: var(--line-strong); cursor: not-allowed; }
+.stepper button:first-child { border-radius: 7px 0 0 7px; }
+.stepper button:last-child { border-radius: 0 7px 7px 0; }
+.stepper .icon { width: 16px; height: 16px; }
+.stepper output { min-width: 32px; text-align: center; font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.cart-total { display: flex; align-items: baseline; justify-content: space-between; }
+.cart-total span { color: var(--mute); font-size: var(--fs-sm); }
+.cart-total .price { font-size: 1.25rem; }
+.cart-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.cart-actions .btn { padding: 0 var(--s-3); font-size: var(--fs-sm); }
+
+.cart-empty { display: grid; justify-items: center; text-align: center; gap: var(--s-2); padding: var(--s-9) var(--s-5); }
+.cart-empty__icon { width: 48px; height: 48px; color: var(--mute); stroke-width: 1.5; margin-bottom: var(--s-2); }
+.cart-empty__title { font-size: 1.125rem; font-weight: 700; }
+.cart-empty__text { font-size: var(--fs-sm); color: var(--mute); margin-bottom: var(--s-4); }
+
+/* ---------- Motion preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}

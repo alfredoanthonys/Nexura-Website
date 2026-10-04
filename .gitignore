@@ -1,0 +1,9 @@
+.DS_Store
+
+# Design sources: original banners, wireframes and screenshots. The optimised
+# versions the site actually serves are committed under assets/img/.
+/Nexura/
+
+# Working documents
+/Nexura_PRD.md
+/Nexura_Design.md
