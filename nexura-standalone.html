@@ -456,13 +456,26 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      Both slides share the ratio: the track is a flex row, so a taller slide would stretch the
      shorter one and leave dead space under its button. */
   .hero__media { aspect-ratio: 2 / 1; }
-  .hero__media img { object-position: var(--pos-m-sm, 50% 20%); }
-  .hero__media::after {
-    inset: auto 0 0; height: 24%;
-    background: linear-gradient(to bottom, rgba(23, 10, 41, 0), #170A29 78%);
+  /* Cropped on both axes so the banner shows the subject and little else, centred in the frame.
+     object-fit alone only ever crops one axis - whichever the box is tighter on - so the image
+     is laid out wider than its box and offset by hand: --zoom sets how much of the picture's
+     width stays (100/zoom), --left slides that window across it, and object-position Y picks
+     the vertical slice. Values are read off the art: the fans sit at x 50-87%, y 22-68%; Jeje
+     at x 44-82% from y 8% down. */
+  .hero__media img {
+    position: absolute; top: 0; height: 100%;
+    /* the base reset caps images at 100%, which would clamp the zoom straight back out */
+    width: var(--zoom-sm, 100%); max-width: none; left: var(--left-sm, 0%);
+    object-position: 50% var(--posy-sm, 40%);
   }
-  .hero__slide--iceglow { --pos-m-sm: 50% 16%; }
-  .hero__slide--creator { --pos-m-sm: 50% 12%; }
+  /* shallow, because the crop leaves little dead picture at the bottom for it to cover and a
+     deeper one would start dimming the product itself */
+  .hero__media::after {
+    inset: auto 0 0; height: 13%;
+    background: linear-gradient(to bottom, rgba(23, 10, 41, 0), #170A29 86%);
+  }
+  .hero__slide--iceglow { --zoom-sm: 161.5%; --left-sm: -59.8%; --posy-sm: 39%; }
+  .hero__slide--creator { --zoom-sm: 122%; --left-sm: -22%; --posy-sm: 41%; }
   /* sits straight under the art; bottom padding clears the dots */
   .hero__content { position: static; padding: var(--s-2) var(--gutter) var(--s-7); }
   .hero__text { gap: var(--s-2); justify-items: center; text-align: center; }
