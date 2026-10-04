@@ -455,7 +455,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      product stays in frame and object-position trims the floor instead.
      Both slides share the ratio: the track is a flex row, so a taller slide would stretch the
      shorter one and leave dead space under its button. */
-  .hero__media { aspect-ratio: 5 / 4; }
+  .hero__media { aspect-ratio: 1 / 1; }
   /* Cropped on both axes so the banner shows the subject and little else, centred in the frame.
      object-fit alone only ever crops one axis - whichever the box is tighter on - so the image
      is laid out wider than its box and offset by hand: --zoom sets how much of the picture's
@@ -463,7 +463,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      the vertical slice. Measured off the rendered page rather than guessed: the fans occupy
      x 54-90%, y 25-72% of their art, Jeje x 52-87% from y 8% down. Both subjects sit right of
      centre in their frames, so centring them needs enough zoom that the window can slide right
-     without running past the picture's edge - x 1.78 for the fans, x 1.65 for Jeje. */
+     without running past the picture's edge - x 1.78 for the fans, x 1.65 for Jeje; both run above that so the square box still frames them tightly. */
   .hero__media img {
     position: absolute; top: 0; height: 100%;
     /* the base reset caps images at 100%, which would clamp the zoom straight back out */
@@ -476,8 +476,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     inset: auto 0 0; height: 11%;
     background: linear-gradient(to bottom, rgba(23, 10, 41, 0), #170A29 86%);
   }
-  .hero__slide--iceglow { --zoom-sm: 182%; --left-sm: -80.9%; --posy-sm: 43%; }
-  .hero__slide--creator { --zoom-sm: 170%; --left-sm: -68.5%; --posy-sm: 37%; }
+  .hero__slide--iceglow { --zoom-sm: 200%; --left-sm: -93.8%; --posy-sm: 37%; }
+  .hero__slide--creator { --zoom-sm: 190%; --left-sm: -82.4%; --posy-sm: 15%; }
   /* sits straight under the art; bottom padding clears the dots */
   .hero__content { position: static; padding: var(--s-2) var(--gutter) var(--s-7); }
   /* margin-inline centres the 560px-capped column itself; justify-items only centres its
