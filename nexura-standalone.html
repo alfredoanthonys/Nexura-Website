@@ -455,13 +455,15 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      product stays in frame and object-position trims the floor instead.
      Both slides share the ratio: the track is a flex row, so a taller slide would stretch the
      shorter one and leave dead space under its button. */
-  .hero__media { aspect-ratio: 2 / 1; }
+  .hero__media { aspect-ratio: 29 / 20; }
   /* Cropped on both axes so the banner shows the subject and little else, centred in the frame.
      object-fit alone only ever crops one axis - whichever the box is tighter on - so the image
      is laid out wider than its box and offset by hand: --zoom sets how much of the picture's
      width stays (100/zoom), --left slides that window across it, and object-position Y picks
-     the vertical slice. Values are read off the art: the fans sit at x 50-87%, y 22-68%; Jeje
-     at x 44-82% from y 8% down. */
+     the vertical slice. Measured off the rendered page rather than guessed: the fans occupy
+     x 54-90%, y 25-72% of their art, Jeje x 52-87% from y 8% down. Both subjects sit right of
+     centre in their frames, so centring them needs enough zoom that the window can slide right
+     without running past the picture's edge - x 1.78 for the fans, x 1.65 for Jeje. */
   .hero__media img {
     position: absolute; top: 0; height: 100%;
     /* the base reset caps images at 100%, which would clamp the zoom straight back out */
@@ -474,11 +476,14 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     inset: auto 0 0; height: 13%;
     background: linear-gradient(to bottom, rgba(23, 10, 41, 0), #170A29 86%);
   }
-  .hero__slide--iceglow { --zoom-sm: 161.5%; --left-sm: -59.8%; --posy-sm: 39%; }
-  .hero__slide--creator { --zoom-sm: 122%; --left-sm: -22%; --posy-sm: 41%; }
+  .hero__slide--iceglow { --zoom-sm: 182%; --left-sm: -80.9%; --posy-sm: 46%; }
+  .hero__slide--creator { --zoom-sm: 170%; --left-sm: -68.5%; --posy-sm: 30%; }
   /* sits straight under the art; bottom padding clears the dots */
   .hero__content { position: static; padding: var(--s-2) var(--gutter) var(--s-7); }
-  .hero__text { gap: var(--s-2); justify-items: center; text-align: center; }
+  /* margin-inline centres the 560px-capped column itself; justify-items only centres its
+     contents inside it, which left the whole block sitting left of centre once the content box
+     grew past 560px (roughly 610px up) */
+  .hero__text { gap: var(--s-2); justify-items: center; text-align: center; margin-inline: auto; }
   .hero__actions { margin-top: var(--s-1); }
   .hero__actions .btn { width: auto; padding: 0 var(--s-5); }
   .hero__dots { top: auto; bottom: var(--s-3); }
@@ -653,7 +658,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 /* Narrow phones drop to "+ Keranjang": the cart glyph gives way to a plus, which reads as the
    action on its own once the verb is gone. */
-@media (max-width: 420px) {
+@media (max-width: 500px) {
   .btn--add .label-long, .btn--add .icon--long { display: none; }
   .btn--add .label-short { display: inline; }
   .btn--add .icon--short { display: block; }
