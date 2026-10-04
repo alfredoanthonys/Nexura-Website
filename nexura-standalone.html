@@ -455,7 +455,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      product stays in frame and object-position trims the floor instead.
      Both slides share the ratio: the track is a flex row, so a taller slide would stretch the
      shorter one and leave dead space under its button. */
-  .hero__media { aspect-ratio: 29 / 20; }
+  .hero__media { aspect-ratio: 5 / 4; }
   /* Cropped on both axes so the banner shows the subject and little else, centred in the frame.
      object-fit alone only ever crops one axis - whichever the box is tighter on - so the image
      is laid out wider than its box and offset by hand: --zoom sets how much of the picture's
@@ -473,11 +473,11 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   /* shallow, because the crop leaves little dead picture at the bottom for it to cover and a
      deeper one would start dimming the product itself */
   .hero__media::after {
-    inset: auto 0 0; height: 13%;
+    inset: auto 0 0; height: 11%;
     background: linear-gradient(to bottom, rgba(23, 10, 41, 0), #170A29 86%);
   }
-  .hero__slide--iceglow { --zoom-sm: 182%; --left-sm: -80.9%; --posy-sm: 46%; }
-  .hero__slide--creator { --zoom-sm: 170%; --left-sm: -68.5%; --posy-sm: 30%; }
+  .hero__slide--iceglow { --zoom-sm: 182%; --left-sm: -80.9%; --posy-sm: 43%; }
+  .hero__slide--creator { --zoom-sm: 170%; --left-sm: -68.5%; --posy-sm: 37%; }
   /* sits straight under the art; bottom padding clears the dots */
   .hero__content { position: static; padding: var(--s-2) var(--gutter) var(--s-7); }
   /* margin-inline centres the 560px-capped column itself; justify-items only centres its
