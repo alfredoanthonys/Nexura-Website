@@ -419,55 +419,55 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .hero__dots button[aria-current="true"] .hero__dot-fill { animation: none; transform: scaleX(1); }
 }
 
-/* Phones overlay the copy on the banner like every wider breakpoint does: subject up top,
-   copy beneath it. The art is 16/9, so a portrait box can never crop it vertically — cover
-   would pin the subject to the middle, behind the copy. So the image is laid across the top
-   of a taller box at its own ratio and the space below is carried by the banner's own
-   background, with the fade dissolving the image's bottom edge into it. */
-@media (max-width: 599px) {
-  /* The banner carries its own plum floor rather than page black, so the hero ends on a visible
-     edge instead of bleeding into Produk Andalan. The art is masked out at its bottom instead of
-     being covered by a fade, so it dissolves into that floor whatever colour the floor is. */
-  /* Taller than 3/4 on purpose: both subjects sit about 72% across their 16/9 art, and the only
-     way to bring them to the middle of a portrait frame is to zoom until the visible window is
-     narrow enough to centre on them — which needs the extra height to keep room for the copy. */
-  .hero__media {
-    aspect-ratio: 2 / 3;
-    background: linear-gradient(180deg, var(--ink-950) 38%, #170A29 68%, var(--plum-800) 100%);
+/* Below 768 the copy sits on the art exactly as it does above it — just centred along the
+   bottom instead of set in a side column, because there is no room for a column here. The art
+   fills the whole box rather than being laid across the top of a taller one, so the banner is
+   a single picture at every width and stays short. Cover crops a wide 16/9 frame horizontally,
+   so the per-slide X value is what picks the subject; the scrim carries the copy over the
+   quieter lower part of the picture. */
+@media (max-width: 767px) {
+  .hero__media img { object-fit: cover; object-position: var(--pos-m-sm, 70% 40%); }
+  /* Deeper than the default 32% band: the copy sits inside this gradient, not merely above it. */
+  .hero__media::after {
+    inset: 0; height: auto;
+    background: linear-gradient(to top,
+      var(--ink-950) 4%, rgba(12, 7, 22, .9) 38%, rgba(12, 7, 22, .45) 62%, rgba(12, 7, 22, 0) 82%);
   }
-  .hero__media img {
-    position: absolute; inset: 0 0 auto; height: var(--img-h-sm, 67%);
-    object-position: var(--pos-m-sm, 100% 50%);
-    -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 97%);
-    mask-image: linear-gradient(to bottom, #000 68%, transparent 97%);
-  }
-  .hero__media::after { display: none; }
-  /* bottom padding clears the dots, which now sit under the copy */
+  .hero__slide--iceglow { --pos-m-sm: 62% 42%; }
+  .hero__slide--creator { --pos-m-sm: 76% 34%; }
+
+  /* bottom padding clears the dots, which sit under the copy */
   .hero__content { position: absolute; inset: auto 0 0; z-index: 1; padding: 0 var(--gutter) var(--s-7); }
   .hero__text { gap: var(--s-2); justify-items: center; text-align: center; }
+  .hero__actions { margin-top: var(--s-1); }
+  .hero__actions .btn { width: auto; padding: 0 var(--s-5); }
+  .hero__dots { top: auto; bottom: var(--s-3); }
+}
+
+@media (max-width: 599px) {
+  /* 4/5 rather than the old 2/3: the copy rides on the picture now, so the box no longer needs
+     the extra height that carried it underneath. It cannot go square, though — a box narrower
+     than the art's 16/9 crops horizontally, which pins the subject to the vertical middle, and
+     only this much height keeps it clear of the copy sitting along the bottom. */
+  .hero__media { aspect-ratio: 4 / 5; }
   /* 34px display type is a desktop size; at 375 the title wraps three times and crowds the art.
      28/15 matches the step the platform scales use for a phone headline over secondary copy. */
   .hero__title { font-size: 1.75rem; line-height: 1.15; }
   .hero__lead { font-size: var(--fs-sm); }
-  .hero__actions { margin-top: var(--s-1); }
-  .hero__actions .btn { --btn-h: 46px; width: auto; padding: 0 var(--s-5); font-size: .9375rem; }
-  /* his copy runs a line longer, so his slide trades a little of that zoom back for room */
-  .hero__slide--creator { --img-h-sm: 60%; }
-  .hero__dots { top: auto; bottom: var(--s-3); }
+  .hero__actions .btn { --btn-h: 46px; font-size: .9375rem; }
 }
 
-@media (min-width: 600px) {
-  .hero__media { aspect-ratio: 16 / 9; }
-  .hero__media img { object-position: 50% 50%; }
-  .hero__dots { top: calc(56.25vw - 32px); top: calc(56.25cqw - 32px); }
-  .hero__arrow { display: grid; top: 28.125cqw; translate: 0 -50%; }
-  .hero__content { padding: var(--s-6) var(--gutter) var(--s-7); }
-  .hero__actions .btn { width: auto; }
+/* Small tablets have the width to show more of the frame, so the box widens out. */
+@media (min-width: 600px) and (max-width: 767px) {
+  .hero__media { aspect-ratio: 3 / 2; }
+  .hero__title { font-size: 2rem; }
+  .hero__arrow { display: grid; top: 50%; translate: 0 -50%; }
 }
 
 @media (min-width: 768px) {
   .hero__media { aspect-ratio: 16 / 9; max-height: max(560px, calc(100svh - var(--header-h))); }
   .hero__media::after { display: none; }
+  .hero__actions .btn { width: auto; } /* the base rule blocks it out full-width for phones */
   .hero__slide--iceglow .hero__media img { object-position: 50% 38%; }
   .hero__slide--creator .hero__media img { object-position: 50% 30%; }
   .hero__slide--creator .hero__media::before {
@@ -808,11 +808,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* Phones get the same overlay the wider breakpoints get — one banner with the copy on the art,
    just scaled down: the box is squarer, the art is anchored on the fan, and the type and button
    step down with it. A scrim carries the copy, since at this width it sits over the artwork. */
-@media (max-width: 599px) {
-  /* the art keeps its own 2400x758 proportions and is simply scaled to the card width, so the
-     whole composition reads at phone size instead of a cover crop into one corner of the fan */
-  /* inset to the same 16px as the copy on the other three sides, so the card reads as one
-     evenly padded box rather than art bleeding off the bottom edge */
+@media (max-width: 767px) {
   /* the art moves behind the copy, so the card is only as tall as the type and button —
      no stacked image block, and no empty run under the button */
   .cta__media { position: absolute; inset: 0; aspect-ratio: auto; margin: 0; z-index: -1; }
@@ -824,16 +820,18 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     background: linear-gradient(to bottom, rgba(23, 8, 40, .92) 30%, rgba(23, 8, 40, .72) 60%, rgba(23, 8, 40, .3) 100%);
   }
   .cta__content { padding: var(--s-6) var(--s-5); gap: var(--s-2); }
-  .cta__title { font-size: 1.5rem; }
-  .cta__text { font-size: var(--fs-sm); }
-  .cta__content .btn { --btn-h: 46px; width: auto; font-size: .9375rem; margin-top: var(--s-2); }
+  .cta__content .btn { width: auto; margin-top: var(--s-2); }
 }
 
-@media (min-width: 600px) {
-  .cta__content { padding: var(--s-7) var(--s-7) var(--s-5); }
-  .cta__content .btn { width: auto; }
-  .cta__media { aspect-ratio: 3 / 1; }
-  .cta__media img { object-position: 50% 100%; }
+@media (max-width: 599px) {
+  .cta__title { font-size: 1.5rem; }
+  .cta__text { font-size: var(--fs-sm); }
+  .cta__content .btn { --btn-h: 46px; font-size: .9375rem; }
+}
+
+/* Small tablets: more room, so the copy and the padding step up, but the art stays behind it. */
+@media (min-width: 600px) and (max-width: 767px) {
+  .cta__content { padding: var(--s-7) var(--s-6); gap: var(--s-3); }
 }
 /* tablet: same overlay treatment as desktop, cropped so the fan stays right and the copy sits in the open space */
 @media (min-width: 768px) and (max-width: 1023px) {
