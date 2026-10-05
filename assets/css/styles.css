@@ -40,7 +40,7 @@
 
   /* Type */
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --fs-display: clamp(2.125rem, .9rem + 3vw, 3.75rem);
+  --fs-display: clamp(3rem, 1rem + 4.5vw, 5.25rem);
   --fs-h2: clamp(1.625rem, 1.15rem + 1.5vw, 2.5rem);
   --fs-h3: clamp(1.125rem, 1rem + .4vw, 1.375rem);
   --fs-lead: clamp(1rem, .95rem + .25vw, 1.125rem);
@@ -361,7 +361,9 @@ s { text-decoration-thickness: 1px; }
 
 .hero__text { display: grid; gap: var(--s-3); max-width: 560px; }
 .hero__title {
-  font-size: var(--fs-display); font-weight: 600; line-height: 1.08; letter-spacing: -.02em;
+  font-family: "Antonio", "Arial Narrow", sans-serif;
+  font-size: var(--fs-display); font-weight: 700; line-height: 1.09; letter-spacing: -.05em;
+  text-transform: uppercase;
   text-wrap: balance;
 }
 .hero__lead { font-size: var(--fs-lead); color: var(--text-soft); line-height: 1.5; max-width: 46ch; }
@@ -469,13 +471,13 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 @media (max-width: 599px) {
   /* 34px display type is a desktop size; at 375 the title wraps three times and crowds the art.
      28/15 matches the step the platform scales use for a phone headline over secondary copy. */
-  .hero__title { font-size: 1.75rem; line-height: 1.15; }
+  .hero__title { font-size: 2.625rem; line-height: 1.12; }
   .hero__lead { font-size: var(--fs-sm); }
   .hero__actions .btn { --btn-h: 46px; font-size: .9375rem; }
 }
 
 @media (min-width: 600px) and (max-width: 767px) {
-  .hero__title { font-size: 2rem; }
+  .hero__title { font-size: 2.875rem; }
   /* half the 2/1 media's own height, so they centre on the picture rather than the whole banner */
   .hero__arrow { display: grid; top: 25cqw; translate: 0 -50%; }
 }
@@ -516,7 +518,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    already narrow column, so the indent drops back to the gutter and the type steps down. */
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero { --hero-left: clamp(56px, 11%, 120px); }
-  .hero__title { font-size: clamp(1.75rem, .4rem + 3.4vw, 2.25rem); }
+  .hero__title { font-size: clamp(2.5rem, .6rem + 4.8vw, 3.25rem); }
   .hero__lead { font-size: var(--fs-body); }
   .hero__text { gap: var(--s-3); }
   .hero__arrow { width: 40px; height: 40px; }
@@ -552,9 +554,10 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* Matches .section-head's own margin-bottom at every breakpoint, so the space above this
    sub-head equals the space below it (the gap before Clips starts). */
 .section-head--sub { margin-top: var(--s-5); }
-/* Display sizes carry their own emphasis, so they sit at 600; small titles stay at 700. */
 .section-title {
-  font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance;
+  font-family: "Antonio", "Arial Narrow", sans-serif;
+  font-size: var(--fs-h2); font-weight: 700; line-height: 1.09; letter-spacing: -.05em; text-transform: uppercase;
+  text-wrap: balance;
 }
 .section-sub { font-size: var(--fs-lead); color: var(--mute); max-width: 32ch; text-wrap: balance; }
 /* Every section's supporting line sits one step under body on a phone, so the headline carries
@@ -811,7 +814,11 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   background: #170828; border: 1px solid var(--line); isolation: isolate;
 }
 .cta__content { display: grid; gap: var(--s-3); justify-items: start; padding: var(--s-6) var(--s-5) var(--s-5); }
-.cta__title { font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance; }
+.cta__title {
+  font-family: "Antonio", "Arial Narrow", sans-serif;
+  font-size: var(--fs-h2); font-weight: 700; line-height: 1.09; letter-spacing: -.05em; text-transform: uppercase;
+  text-wrap: balance;
+}
 .cta__text { color: var(--text-soft); font-size: var(--fs-body); max-width: 46ch; }
 .cta__content .btn { margin-top: var(--s-3); width: 100%; }
 .cta__media { order: 2; position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
@@ -859,7 +866,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     background: linear-gradient(to right, #170828 18%, rgba(23, 8, 40, .72) 46%, rgba(23, 8, 40, 0) 70%);
   }
   .cta__content { max-width: 60%; padding: var(--s-6); gap: var(--s-4); }
-  .cta__content .btn { margin-top: var(--s-4); }
+  .cta__content .btn { width: auto; margin-top: var(--s-4); }
 }
 @media (min-width: 1024px) {
   .cta { aspect-ratio: 3648 / 1152; align-items: center; }
@@ -867,7 +874,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .cta__media::before { display: none; }
   .cta__media img { object-position: 50% 50%; }
   .cta__content { padding: var(--s-7) var(--s-8); max-width: 600px; gap: var(--s-4); align-self: start; padding-top: clamp(40px, 5vw, 64px); }
-  .cta__content .btn { margin-top: var(--s-4); }
+  .cta__content .btn { width: auto; margin-top: var(--s-4); }
 }
 
 /* ---------- Footer ---------- */
