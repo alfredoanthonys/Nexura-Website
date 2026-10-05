@@ -361,8 +361,7 @@ s { text-decoration-thickness: 1px; }
 
 .hero__text { display: grid; gap: var(--s-3); max-width: 560px; }
 .hero__title {
-  font-family: "Antonio", "Arial Narrow", sans-serif;
-  font-size: var(--fs-display); font-weight: 700; line-height: 1.09; letter-spacing: -.05em;
+  font-size: var(--fs-display); font-weight: 600; line-height: 1.08; letter-spacing: -.02em;
   text-transform: uppercase;
   text-wrap: balance;
 }
@@ -555,9 +554,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    sub-head equals the space below it (the gap before Clips starts). */
 .section-head--sub { margin-top: var(--s-5); }
 .section-title {
-  font-family: "Antonio", "Arial Narrow", sans-serif;
-  font-size: var(--fs-h2); font-weight: 700; line-height: 1.09; letter-spacing: -.05em; text-transform: uppercase;
-  text-wrap: balance;
+  font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance;
 }
 .section-sub { font-size: var(--fs-lead); color: var(--mute); max-width: 32ch; text-wrap: balance; }
 /* Every section's supporting line sits one step under body on a phone, so the headline carries
@@ -814,11 +811,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   background: #170828; border: 1px solid var(--line); isolation: isolate;
 }
 .cta__content { display: grid; gap: var(--s-3); justify-items: start; padding: var(--s-6) var(--s-5) var(--s-5); }
-.cta__title {
-  font-family: "Antonio", "Arial Narrow", sans-serif;
-  font-size: var(--fs-h2); font-weight: 700; line-height: 1.09; letter-spacing: -.05em; text-transform: uppercase;
-  text-wrap: balance;
-}
+.cta__title { font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance; }
 .cta__text { color: var(--text-soft); font-size: var(--fs-body); max-width: 46ch; }
 .cta__content .btn { margin-top: var(--s-3); width: 100%; }
 .cta__media { order: 2; position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
