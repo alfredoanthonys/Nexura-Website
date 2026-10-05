@@ -361,7 +361,7 @@ s { text-decoration-thickness: 1px; }
 
 .hero__text { display: grid; gap: var(--s-3); max-width: 560px; }
 .hero__title {
-  font-size: var(--fs-display); font-weight: 600; line-height: 1.08; letter-spacing: -.02em;
+  font-size: var(--fs-display); font-weight: 700; line-height: 1.08; letter-spacing: -.04em;
   text-transform: uppercase;
   text-wrap: balance;
 }
@@ -517,21 +517,19 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    already narrow column, so the indent drops back to the gutter and the type steps down. */
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero { --hero-left: clamp(56px, 11%, 120px); }
-  .hero__title { font-size: clamp(2.5rem, .6rem + 4.8vw, 3.25rem); }
+  .hero__title { font-size: clamp(2rem, 4.24vw, 2.6875rem); }
   .hero__lead { font-size: var(--fs-body); }
   .hero__text { gap: var(--s-3); }
   .hero__arrow { width: 40px; height: 40px; }
 }
-/* Each slide's headline gets the line breaks it was written for: "IceGlow NXI01" on one line,
-   and slide 2 broken at its comma. Slide 2 is 27 characters to slide 1's 13, so it needs a
-   wider column to hold that first line — which it can have, because the creator behind it
-   starts about 52% across where slide 1's first callout starts about 45%. The display size and
-   both boundaries are measured against the rendered text, so changing the copy means
-   re-checking that the breaks still land where they should. */
-@media (min-width: 1024px) {
+/* Both headlines sit on one line wherever the copy is laid over the art. Slide 2's is 19
+   characters to slide 1's 13, so it needs the wider column — which it can have, because the
+   creator behind it starts about 52% across where slide 1's first callout starts about 45%.
+   The display sizes and this boundary are measured against the rendered text, so changing
+   either headline means re-checking that it still fits on its line. */
+@media (min-width: 768px) {
   .hero__slide--creator { --hero-copy-end: 58%; }
   .hero__slide--creator .hero__text { max-width: 760px; }
-  .hero__slide--creator .hero__title span { display: block; }
   /* the copy now reaches past where the 52% fade died, so the scrim carries further right */
   .hero__slide--creator .hero__media::before {
     background: linear-gradient(90deg, rgba(12, 7, 22, .62) 0%, rgba(12, 7, 22, .4) 42%, rgba(12, 7, 22, 0) 68%);
