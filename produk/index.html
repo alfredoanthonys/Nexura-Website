@@ -173,21 +173,12 @@
 
   <main id="konten">
     <!-- ============ PAGE HEAD ============ -->
-    <!-- The trail and the headline both follow the category, so a chip reads as arriving at
+    <!-- The headline and the trail (under the banner) both follow the category, so a chip reads as arriving at
          Fan Cooler rather than as hiding cards. main.js rewrites them from the URL and on every
          change; the markup below is the unfiltered state. -->
     <header class="page-head">
       <div class="container">
         <div class="page-head__text">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <ol>
-            <li><a href="../">Beranda</a></li>
-            <li class="breadcrumb__sep" role="presentation" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></li>
-            <li data-crumb-produk><span aria-current="page">Produk</span></li>
-            <li class="breadcrumb__sep" role="presentation" aria-hidden="true" data-crumb-cat hidden><svg class="icon"><use href="#i-chevron-right"/></svg></li>
-            <li data-crumb-cat hidden><span aria-current="page"></span></li>
-          </ol>
-        </nav>
         <h1 class="section-title page-title" data-page-title>Semua Produk</h1>
         <p class="page-head__lead" data-page-lead>Fan cooler, sarung jempol, dan hydrogel buat kamu yang serius push rank.</p>
         </div>
@@ -197,6 +188,16 @@
     <!-- ============ CATALOG ============ -->
     <section class="catalog" aria-label="Daftar produk" data-catalog>
       <div class="container">
+        <!-- Under the banner, so the banner opens on the headline alone. -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <ol>
+            <li><a href="../">Beranda</a></li>
+            <li class="breadcrumb__sep" role="presentation" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></li>
+            <li data-crumb-produk><span aria-current="page">Produk</span></li>
+            <li class="breadcrumb__sep" role="presentation" aria-hidden="true" data-crumb-cat hidden><svg class="icon"><use href="#i-chevron-right"/></svg></li>
+            <li data-crumb-cat hidden><span aria-current="page"></span></li>
+          </ol>
+        </nav>
         <!-- One line at every width: Filter leads, then a divider, then the chips, which scroll
              sideways on a phone while Filter stays put, so neither ever wraps under the other. -->
         <div class="catalog-bar">

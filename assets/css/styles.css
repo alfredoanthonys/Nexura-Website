@@ -928,13 +928,13 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 
 /* ---------- Products page ---------- */
-/* The page's opening band: trail and headline on the left of a banner scene — smoke, streaks
+/* The page's opening band: headline on the left of a banner scene — smoke, streaks
    and a neon floor — so the page opens on Nexura's own surface before the plain catalogue below
    it. Every category shares the scene and the band's height, so switching categories never
    makes the band jump; a category with its products adds them on the right (see below). No top
    rule — the nav's violet line is already there — just the hairline underneath. Covered and
    anchored on the horizon (78% down the artwork), which keeps the floor in view at any shape.
-   A wash on the left keeps the trail readable over the smoke. */
+   A wash on the left keeps the copy readable over the smoke. The trail sits under the band. */
 .page-head {
   position: relative; isolation: isolate;
   display: grid; align-content: center; min-height: 200px;
@@ -960,6 +960,10 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* Doubled class so it outranks the padding .page-head takes on at 600px and 1024px. */
 .page-head.page-head--plain { display: block; min-height: 0; border-bottom: 0; padding-bottom: 0; }
 .page-head--plain::before { content: none; }
+/* Here the trail still sits above the headline, so the headline keeps its space under it. */
+.page-head--plain .page-title { margin-top: var(--s-4); }
+@media (min-width: 600px) { .page-head--plain .page-title { margin-top: var(--s-5); } }
+@media (min-width: 1024px) { .page-head--plain .page-title { margin-top: var(--s-6); } }
 
 /* Trail, headline and the line under it on the left; a category's products sit on the right
    of the banner itself (below). */
@@ -972,8 +976,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    (1.4875 × --ph) and offsets (.219 × --ph across, 1.1875 × --ph up from the floor at 86%).
    Semua Produk shows the scene alone. Per category: the image, its shape (--ar), how wide the products are for their height
    (--pw), and where the headline ends, on a phone (--gap-l, plus a little air) and within the
-   column wider (--title-w). Hydrogel's tall boxes reach up to the trail, so on a phone they
-   also start after it (it ends near 239px).
+   column wider (--title-w).
    On a phone the products fill the space after the headline (96–124px tall) and centre in it;
    where even 96px does not fit, they slide right until up to a fifth of them is past the edge.
    Wider, they are larger (76% of the band's height, standing a little further forward so they
@@ -990,7 +993,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 .page-head[data-cat="hydrogel"] {
   --banner-img: url("../img/banner-hydrogel.webp"); --ar: 1104 / 952; --pw: 1.29;
-  --gap-l: max(115px + 27.5vw, 247px); --title-w: calc(255px + 6.5vw);
+  --gap-l: calc(115px + 27.5vw); --title-w: calc(255px + 6.5vw);
 }
 .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"]) {
   --space: calc(100vw - 12px - var(--gap-l));
@@ -1007,16 +1010,31 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* Sarung Jempol's headline is long, so below 600px it breaks into SARUNG / JEMPOL, and its pair
    copies Hydrogel's boxes: the same height (Hydrogel's --ph, from its own --gap-l and --pw)
    and the same right edge, never past 8px from the window's. */
+/* Up to a tablet the products are centred in the band like the headline beside them, rather
+   than standing on the floor: their top is half their height (--ph) above the middle, and the
+   image's own top a further .1875 × --ph above that. */
+@media (max-width: 767px) {
+  .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"])::after {
+    top: calc(50% - .6875 * var(--ph));
+  }
+}
+/* Fan Cooler keeps its one-line headline on a phone, with the fans whole beside it: they start
+   20px after the headline (which ends near 116px + 31vw) and shrink to fit rather than run
+   past the edge, down to about 64px tall at 375px. */
+@media (max-width: 599px) {
+  .page-head[data-cat="fan-cooler"] {
+    --gap-l: calc(136px + 31.1vw); --space: calc(100vw - 16px - var(--gap-l));
+    --ph: clamp(56px, var(--space) / var(--pw), 124px); --keep: 1;
+  }
+}
 @media (max-width: 599px) {
   .page-head[data-cat="sarung-jempol"] {
-    --hy-space: calc(100vw - 12px - max(115px + 27.5vw, 247px));
-    /* Shorter where its taller sleeves would reach the trail, which ends near 287px; when they
-       are taller than 96px they also start after it. */
-    --ph: clamp(96px, min(var(--hy-space) / 1.29, (100vw - 8px - 287px) / 1.52), 124px);
+    --hy-space: calc(100vw - 12px - 115px - 27.5vw);
+    --ph: clamp(96px, var(--hy-space) / 1.29, 124px);
     --right: min(100vw - 8px, 100vw - 12px - var(--hy-space) + 1.29 * var(--ph) + max(0px, (var(--hy-space) - 1.29 * var(--ph)) / 2));
   }
   .page-head[data-cat="sarung-jempol"]::after {
-    left: calc(max(var(--right) - var(--pw) * var(--ph), min(287px, 100vw - 8px - var(--pw) * var(--ph))) - .219 * var(--ph));
+    left: calc(var(--right) - var(--pw) * var(--ph) - .219 * var(--ph));
   }
   .page-head[data-cat="sarung-jempol"] .page-title { max-width: calc(48vw / var(--squeeze)); }
 }
@@ -1053,8 +1071,9 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   }
 }
 
-/* The section headline, left-aligned under the trail. */
-.page-title { text-align: left; margin-top: var(--s-4); transform-origin: left; }
+/* The section headline, left-aligned. */
+.page-title { text-align: left; transform-origin: left; }
+.catalog .breadcrumb { margin-bottom: var(--s-3); }
 
 .catalog { padding-block: var(--s-4) var(--s-8); }
 
@@ -1172,13 +1191,11 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 @media (min-width: 600px) {
   .page-head { padding-block: var(--s-4) var(--s-6); }
-  .page-title { margin-top: var(--s-5); }
   .catalog { padding-top: var(--s-5); }
   .catalog-bar { margin-bottom: var(--s-5); }
 }
 @media (min-width: 1024px) {
   .page-head { padding-block: var(--s-5) var(--s-7); }
-  .page-title { margin-top: var(--s-6); }
   .catalog { padding-top: var(--s-6); }
   .catalog-bar { margin-bottom: var(--s-6); }
   .catalog-count { margin-top: var(--s-7); }
@@ -1470,7 +1487,6 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
   }
   /* room under the footer, so its last line is not stuck behind the dock */
   body:has(.pdp-dock:not([hidden])) { padding-bottom: calc(73px + env(safe-area-inset-bottom)); }
-  .buybar__btn { display: none; }
 
   /* The buy card as a sheet: off-screen below the edge until opened, then slides up over the
      backdrop. Same timing as the drawers, whose open/close code it shares. */
@@ -1543,6 +1559,9 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
   .pdp-trust li { flex: none; flex-direction: row; gap: 6px; white-space: nowrap; }
   .pdp-trust .icon { width: 16px; height: 16px; }
 }
+/* Dropped from the product page on a phone, where the buy panel is already long; the cart
+   keeps its copy. */
+@media (max-width: 599px) { .pdp .pdp-trust { display: none; } }
 
 /* Tabs: a hairline rail with a violet bar under the open tab, the nav's hover rule made
    permanent. The rail scrolls sideways on a phone rather than wrapping, and runs edge to edge

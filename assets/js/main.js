@@ -1613,7 +1613,17 @@
     // Phase 1 has no checkout page, so Beli Sekarang differs only in where it leaves focus: on
     // the drawer's Checkout button, one step from paying. TODO: go straight to checkout with
     // just this item once that page exists.
-    $$('[data-buy-now]', pdp).forEach((b) => b.addEventListener('click', (e) => addToCart(e.currentTarget, '[data-checkout]')));
+    // On a phone the top bar's button works like the dock's: it opens the sheet set to buy, so
+    // colour, quantity and phone model are picked first.
+    $$('[data-buy-now]', pdp).forEach((b) => b.addEventListener('click', (e) => {
+      if (phoneMq.matches && !buyBox.contains(b)) {
+        sheetTrigger = b;
+        buyBox.dataset.mode = 'buy';
+        showDrawer(buyBox, b);
+        return;
+      }
+      addToCart(e.currentTarget, '[data-checkout]');
+    }));
 
     const chat = $('[data-pdp-chat]', pdp);
     if (store && store.whatsapp) {
