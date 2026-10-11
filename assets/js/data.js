@@ -933,8 +933,8 @@ window.NEXURA = {
    * angkanya mau diganti jadi 4,9, reviewCount juga harus ikut diganti ke jumlah ulasan
    * listing tersebut — kalau tidak, dua angka ini saling bertentangan.
    *
-   * Soal label "Ulasan di semua platform": angka Shopee belum ikut dihitung di sini, dan
-   * labelnya tetap benar justru karena sold dan reviewCount ditulis sebagai batas bawah
+   * Soal label "Ulasan": angka Shopee belum ikut dihitung di sini, dan angkanya tetap benar
+   * justru karena sold dan reviewCount ditulis sebagai batas bawah
    * ("40rb+", "10rb+") — Tokopedia sendiri sudah 41.948 dan 10.505, jadi menambah Shopee
    * cuma bikin keduanya makin benar, nggak mungkin bikin salah.
    *
