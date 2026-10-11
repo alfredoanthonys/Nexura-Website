@@ -11,12 +11,14 @@
   const desktop = window.matchMedia('(min-width: 768px)');
   const rupiah = (n) => 'Rp' + new Intl.NumberFormat('id-ID').format(n);
   // Resolved from this script's own URL, so the same file draws product images on the home page
-  // at / and on the products page at /produk/ without either page passing a base path in.
+  // and on the products page without either page passing a base path in.
   const ASSETS = new URL('../', document.currentScript.src).href;
   const img = (name, size = 800) => `${ASSETS}img/${name}-${size}.webp`;
   const imgFallback = (name) => `${ASSETS}img/${name}.jpg`;
-  const PRODUCTS_PAGE = '/produk/';
-  const CHECKOUT_PAGE = '/checkout/';
+  // Pages too, so the site works under a sub-path (GitHub Pages serves it at /Nexura-Website/).
+  const SITE = new URL('../../', document.currentScript.src).href;
+  const PRODUCTS_PAGE = `${SITE}produk/`;
+  const CHECKOUT_PAGE = `${SITE}checkout/`;
   const colorOf = (p, colorId) => (p.colors || []).find((c) => c.id === colorId) || (p.colors || [])[0] || null;
   const priceOf = (p, colorId) => (colorOf(p, colorId) && colorOf(p, colorId).price) || p.price;
   // The crossed-out price, or 0 when there is no real one above what the buyer pays.

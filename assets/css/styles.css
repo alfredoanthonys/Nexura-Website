@@ -782,6 +782,12 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   width: max-content; max-width: calc(100% / var(--squeeze));
   transform: scaleX(var(--squeeze));
 }
+/* Kept to one line: on a phone it shrinks with the screen so the squeezed line (about 19 times
+   its font size wide) fits the column, instead of breaking at the hyphen. */
+#teknologi-title {
+  white-space: nowrap;
+  font-size: min(clamp(1.25rem, .55rem + 3vw, 2.5rem), calc(5.1vw - 3px));
+}
 .section-sub { font-size: var(--fs-lead); color: var(--mute); max-width: 32ch; text-wrap: balance; }
 /* Every section's supporting line sits one step under body on a phone, so the headline carries
    the section on its own and the rail or grid below starts sooner. */
