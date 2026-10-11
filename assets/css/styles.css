@@ -1,42 +1,58 @@
 /* ==========================================================================
-   Nexura — home page
+   Nexura — home page, products page (/produk/) and product detail page (/produk/detail/)
    Mobile first. Breakpoints: 600px (tablet), 1024px (desktop).
    ========================================================================== */
 
+/* Draco, the section headline face. One weight. block, not swap: it sets wider than Inter, so
+   swapping in late would reflow the section head rather than just recolour it. Small and local,
+   so the block period is short. */
+@font-face {
+  font-family: "Draco";
+  src: url("../fonts/draco.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
+  /* Every purple here is tuned to the Instagram feed (@nexuragear, sampled 9 Oct 2026), which
+     sits warmer than the original blue-violet: dark surfaces at hue 283 (feed bg #1B0723), main
+     violets at 279 (#551E77, #8F3BBB), light accents at 288 (#CE81E2). Lightness and saturation
+     kept from the original tokens, so every contrast pair still clears 4.5:1. */
   /* Neutrals — violet-tinted, sampled to sit under the hero and product art */
-  --ink-950: #0C0716;   /* page */
-  --ink-900: #130C20;   /* cards, drawers, footer */
-  --ink-800: #1C1330;   /* raised, hover */
-  --ink-700: #261A3D;   /* pressed, track */
-  --line: #2A2040;      /* dividers, card borders */
-  --line-strong: #3E3158;
+  --ink-950: #0C0310;   /* page */
+  --ink-900: #140719;   /* cards, drawers, footer */
+  --ink-800: #1E0D25;   /* raised, hover */
+  --ink-700: #281330;   /* pressed, track */
+  --line: #2C1933;      /* dividers, card borders */
+  --line-strong: #3B2646;
 
   /* Brand violet */
-  --plum-800: #24093F;
-  --violet-700: #6511B0; /* primary pressed */
-  --violet-600: #7715CC; /* primary */
-  --violet-500: #8A2BE2; /* primary hover, badge */
-  --violet-400: #9B4DFF; /* focus, active dots — never under small text */
-  --lilac-300: #CDB6F0;  /* small labels */
+  --plum-800: #22052E;
+  --violet-700: #5B0C86; /* primary pressed */
+  --violet-600: #6D0FA0; /* primary */
+  --violet-500: #841DBB; /* primary hover, badge */
+  --violet-400: #DB4DFF; /* focus, active dots — never under small text */
+  --lilac-300: #E4B6F0;  /* small labels */
+  --lilac-200: #F7D6FF;  /* on the promo band, where lilac-300 drops under 4.5:1 */
 
   /* Text */
   --text: #FFFFFF;
-  --text-soft: #E6DFF0;
-  --mute: #BDB1D1;
-  --faint: #8F84A3;
+  --text-soft: #EDDFF0;
+  --mute: #CBB1D1;
+  --faint: #9884A3;
 
   /* Accent — scarcity only */
   --amber-400: #FFB020;
-  --on-amber: #1A0624;
+  --on-amber: #1C0624;
 
   /* Destructive */
   --err: #FF8A9E;
   --err-hover: #FFB3C0;
   --err-wash: rgba(255, 138, 158, .12);
 
-  --disabled-bg: #2A2236;
-  --disabled-fg: #8F84A3;
+  --disabled-bg: #2F2236;
+  --disabled-fg: #9884A3;
 
   /* Type */
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -53,12 +69,20 @@
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px;
   --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
 
-  --gutter: 16px;
-  --gutter-wide: 16px;
-  --footer-x: 24px;   /* footer breathes wider than the nav */
-  --section-y: 48px;
+  --gutter: 24px;
+  --gutter-wide: 24px;
+  --footer-x: 32px;   /* footer breathes wider than the nav */
+  /* Tracks .section-head's margin-bottom at every breakpoint: one step for the space between
+     a section and its neighbours, another for the space inside it. */
+  --section-y: 24px;
+  /* Extra air above a section headline, inside .section-head. It pads the top only, so the
+     title is separated from the section before it and stays close to its own content. */
+  --head-y: 16px;
   --container: 1200px;
   --header-h: 56px;
+  /* The claim band's height. The hero subtracts it along with the header, so the banner still
+     ends at the fold with the band above it. */
+  --ticker-h: 46px;
 
   --r-sm: 8px;
   --r-md: 12px;
@@ -72,10 +96,10 @@
 }
 
 @media (min-width: 600px) {
-  :root { --gutter: 24px; --gutter-wide: 24px; --footer-x: 40px; --section-y: 64px; --header-h: 64px; }
+  :root { --gutter: 36px; --gutter-wide: 36px; --footer-x: 52px; --section-y: 32px; --head-y: 24px; --header-h: 64px; --ticker-h: 44px; }
 }
 @media (min-width: 1024px) {
-  :root { --gutter: 32px; --gutter-wide: 40px; --footer-x: 64px; --section-y: 96px; --header-h: 72px; }
+  :root { --gutter: 48px; --gutter-wide: 56px; --footer-x: 80px; --section-y: 48px; --head-y: 32px; --header-h: 72px; }
 }
 
 /* ---------- Base ---------- */
@@ -100,10 +124,10 @@ body {
 }
 img, picture, svg { display: block; max-width: 100%; }
 img { height: auto; }
-h1, h2, h3, p, ul { margin: 0; }
-ul { padding: 0; list-style: none; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
 a { color: inherit; text-decoration: none; }
-button, input { font: inherit; color: inherit; }
+button, input, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
 s { text-decoration-thickness: 1px; }
 [hidden] { display: none !important; }
@@ -139,7 +163,7 @@ s { text-decoration-thickness: 1px; }
   --btn-h: 48px;
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
   min-height: var(--btn-h); padding: 0 var(--s-5);
-  border-radius: var(--r-sm); border: 1px solid transparent;
+  border-radius: var(--r-sm); border: 1px solid transparent; background-clip: padding-box;
   font-size: .9375rem; font-weight: 600; line-height: 1.2; white-space: nowrap;
   transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out,
               color var(--t-fast) ease-out, transform var(--t-fast) ease-out,
@@ -148,40 +172,33 @@ s { text-decoration-thickness: 1px; }
 }
 .btn:active:not(:disabled) { transform: scale(.98); }
 .btn--lg { --btn-h: 52px; padding: 0 var(--s-6); font-size: 1rem; }
-.btn--wide { min-width: 240px; }
 .btn--block { width: 100%; }
 
-/* Gradient sweep plus a soft same-hue halo. The bright end stops at --violet-500 (5.96:1
-   with white): carrying it on to --violet-400 would drop the label to 4.3:1 wherever the
-   text crosses the lighter end, and label width varies per button. Hover deepens the halo
-   and lift rather than recolouring, so there is no gradient-to-gradient snap. */
+/* Gradient sweep, with the stops pushed past both ends so the ramp's extremes fall outside the
+   button: the visible edges land on mid-tones a few percent apart instead of on pure
+   --violet-500 and --violet-700, which is what read as a light rim against a dark one. The
+   resting state stays shadowless for the same reason — the old 1px dark hairline and the
+   same-hue halo were ringing the button. Both are hover affordances now.
+   Every stop in range clears 8:1 with white. */
 .btn--primary {
-  background: linear-gradient(100deg, var(--violet-700) 0%, var(--violet-500) 100%);
+  background: linear-gradient(170deg, var(--violet-500) -35%, var(--violet-700) 135%);
   color: #fff;
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, .3),
-    0 6px 18px -8px rgba(0, 0, 0, .55),
-    0 0 24px -6px rgba(138, 43, 226, .6);
 }
 .btn--primary:hover {
   translate: 0 -1px;
   box-shadow:
-    0 2px 3px rgba(0, 0, 0, .3),
     0 12px 26px -10px rgba(0, 0, 0, .6),
-    0 0 32px -4px rgba(138, 43, 226, .85);
+    0 0 32px -4px rgba(132, 29, 187, .85);
 }
 .btn--primary:active {
-  background: linear-gradient(100deg, var(--violet-700) 0%, var(--violet-600) 100%);
+  background: linear-gradient(170deg, var(--violet-600) -35%, var(--violet-700) 135%);
   translate: 0 0;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, .4);
 }
 
 .btn--secondary { background: transparent; color: var(--text); border-color: var(--line-strong); }
-.btn--secondary:hover { background: var(--ink-800); border-color: #5A4A78; }
+.btn--secondary:hover { background: var(--ink-800); border-color: #573C66; }
 
-.btn--add { --btn-h: 44px; padding: 0 var(--s-3); font-size: var(--fs-sm); background: transparent; border-color: var(--line-strong); }
-.btn--add:hover { background: var(--violet-600); border-color: var(--violet-600); }
-.btn--add.is-added { background: var(--ink-800); border-color: var(--violet-400); color: var(--text); }
 
 .btn:disabled, .btn[aria-disabled="true"] {
   background: var(--disabled-bg); border-color: transparent; color: var(--disabled-fg); cursor: not-allowed;
@@ -206,11 +223,15 @@ s { text-decoration-thickness: 1px; }
 /* ---------- Navbar ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 40;
-  background: rgba(12, 7, 22, .94);
+  background: rgba(12, 3, 16, .94);
   -webkit-backdrop-filter: saturate(150%) blur(32px);
   backdrop-filter: saturate(150%) blur(32px);
-  border-bottom: 1px solid var(--line);
   transition: transform 440ms var(--ease-nav);
+}
+/* A flat violet rule, no glow: the colour alone marks the bottom of the bar. */
+.site-header::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  pointer-events: none; background: #A83FE0;
 }
 /* Retracts on the way down, returns on the way up, so the bar never covers the art. */
 .site-header.is-hidden { transform: translateY(-100%); }
@@ -254,7 +275,7 @@ s { text-decoration-thickness: 1px; }
   transition: border-color var(--t-fast) ease-out, background-color var(--t-fast) ease-out;
 }
 .search__input::placeholder { color: var(--faint); }
-.search__input:hover { border-color: #4C3E68; }
+.search__input:hover { border-color: #4A3356; }
 .search__input:focus { outline: none; border-color: var(--violet-400); background: var(--ink-800); }
 .search__input::-webkit-search-cancel-button { filter: invert(.7); }
 .search__results {
@@ -305,8 +326,10 @@ s { text-decoration-thickness: 1px; }
   /* Chevron stays pointing down whether the dropdown is open or not. */
 
   .nav__dropdown { position: relative; }
+  /* z-index lifts the panel clear of the header's neon underline, which is a pseudo-element
+     later in the tree and would otherwise paint its glow across the top of the panel. */
   .dropdown {
-    position: absolute; left: 0; top: calc(100% - 6px); min-width: 220px;
+    position: absolute; left: 0; top: calc(100% - 6px); z-index: 1; width: 330px;
     padding: var(--s-2); background: var(--ink-900);
     border: 1px solid var(--line-strong); border-radius: var(--r-md);
     box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
@@ -319,6 +342,28 @@ s { text-decoration-thickness: 1px; }
     border-radius: var(--r-sm); font-size: var(--fs-sm); font-weight: 500; color: var(--text-soft);
   }
   .dropdown a:hover { background: var(--ink-800); color: var(--text); }
+  /* Picture, name, tagline, chevron — the category reads as a destination, not a filter. */
+  .dropdown .dropdown__item {
+    display: grid; grid-template-columns: 84px 1fr auto; align-items: center;
+    gap: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: 0;
+  }
+  .dropdown__item + .dropdown__item { border-top: 1px solid var(--line); }
+  /* Square, because the product shots are square cards with their own lockups baked in —
+     a landscape box would crop straight through the product or its name. The wrapper clips
+     the scale, which trims the pale rim baked into the edge of the source cards. */
+  .dropdown__thumb {
+    display: block; width: 84px; height: 84px; overflow: hidden;
+    border-radius: var(--r-sm); background: var(--ink-800);
+  }
+  .dropdown__thumb img { width: 100%; height: 100%; object-fit: cover; scale: 1.1; }
+  .dropdown__text { display: grid; gap: 2px; min-width: 0; }
+  .dropdown__name {
+    font-size: 1.0625rem; font-weight: 700; letter-spacing: -.01em;
+    color: var(--text);
+  }
+  .dropdown__chev { width: 20px; height: 20px; color: var(--faint); transition: transform var(--t-fast) ease-out, color var(--t-fast) ease-out; }
+  .dropdown__item:hover .dropdown__name { color: var(--violet-400); }
+  .dropdown__item:hover .dropdown__chev { color: var(--violet-400); transform: translateX(3px); }
   .dropdown__all { margin-top: var(--s-1); border-top: 1px solid var(--line); border-radius: 0 0 var(--r-sm) var(--r-sm) !important; color: var(--lilac-300) !important; }
 
   .nav__actions { gap: var(--s-2); }
@@ -339,6 +384,153 @@ s { text-decoration-thickness: 1px; }
   .search__results { left: 0; right: auto; width: max(100%, 360px); top: calc(100% + 8px); }
 }
 
+/* ---------- Ticker ---------- */
+/* Wears the brand texture the streamers section does, only lightly dimmed (the claims carry their own
+   text-shadow). Covered, not stretched as #streamers stretches it: on a band this shallow,
+   stretching flattens the diagonals into streaks — the same call .page-head makes. Full-bleed
+   and never in the container. */
+.ticker {
+  position: relative; z-index: 1; display: flex; align-items: stretch; overflow: hidden;
+  height: var(--ticker-h);
+  background:
+    linear-gradient(rgba(12, 3, 16, .15), rgba(12, 3, 16, .15)),
+    url("../img/bg-streamers.jpg") 100% 72% / cover no-repeat;
+  /* The same violet rule the nav draws along its bottom edge, so the band is bounded by the
+     page's own line rather than by a brighter one of its own. */
+  border-top: 1px solid rgba(168, 63, 224, .55);
+  border-bottom: 1px solid rgba(168, 63, 224, .55);
+}
+/* A faint centre lift. Paint only, so it never sits over the text's contrast enough to
+   matter — the claims are white 800 on a dark plum either way. Held low now that the field
+   underneath is near-black: the point of the darker band is the gap it opens to the tab. */
+.ticker::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(120% 180% at 50% 0%, rgba(219, 77, 255, .12), rgba(219, 77, 255, 0) 62%);
+}
+
+/* Pinned: this one never rotates away, so it is readable at any moment of the cycle. The
+   clipped right edge cuts it on the diagonal, which is what separates the tab from the field
+   behind it without a second border. */
+.ticker__lead {
+  position: relative; z-index: 1; flex: none; isolation: isolate;
+  display: flex; align-items: center;
+  padding-inline: var(--s-4) calc(var(--s-4) + 12px);
+  /* The edge colour. The surface below sits 2px short of the diagonal, so what shows through
+     along the cut is this — a rim rather than a border, which clip-path would have eaten
+     anyway. One step above the surface's lightest stop, which is all the separation the cut
+     needs now that both the tab and the band under it are dark. */
+  background: var(--violet-500);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; line-height: 1.15;
+  text-transform: uppercase;
+  /* One line at every width: the claim reads as a single label, never a stacked block. */
+  white-space: nowrap;
+}
+/* The tab's surface. No hatch now — the lift comes from the gradient running with the cut
+   plus a highlight along the top edge, so the tab reads as one lit plane. It stops at
+   violet-700 rather than running down into plum: plum is what the band itself is through the
+   middle, and the tab would dissolve into it right where the cut is. Clipped 2px inside the
+   parent's own polygon, which is what leaves the rim. */
+.ticker__lead::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  clip-path: polygon(0 0, calc(100% - 2px) 0, calc(100% - 14px) 100%, 0 100%);
+}
+/* The claim itself, lit top-left and cooling into lilac at the cut, so the type carries the
+   same light direction as the surface. lilac-200 is the floor and the ramp holds flat white
+   for the first 42%: the darkest stop is what the contrast is judged on, and at 10px/800 the
+   type has no weight to spare. Behind @supports because the fallback here is invisible text,
+   not duller text. */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .ticker__lead span {
+    background-image: linear-gradient(104deg, #fff 0%, #fff 42%, var(--lilac-200) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+}
+
+/* The claims drift through here, left out of the tab's shadow and off the right edge. Masked
+   at both ends so they dissolve rather than being cut off — at the left that is where the
+   pinned tab ends, at the right it is the screen edge. */
+.ticker__rotator {
+  position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden;
+  /* Starts the row just past the fade, so the first claim is whole on first paint instead of
+     emerging half-dissolved. Padding on the viewport, not the row — the loop translates the
+     row by half its own width, which padding here leaves alone. */
+  padding-left: 30px;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 40px), transparent);
+}
+/* --tick-dur is set in main.js from the number of claims, so adding one makes the row longer
+   instead of faster. */
+.ticker__row {
+  display: flex; width: max-content; height: 100%; align-items: center;
+  animation: tick-drift var(--tick-dur, 32s) linear infinite;
+}
+/* Exactly half the track, because each claim carries its own trailing gap in its margin
+   instead of the row using `gap` — with `gap` the last claim has none and the loop point
+   lands a gap short. */
+@keyframes tick-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.ticker__item {
+  flex: none; display: inline-flex; align-items: center; gap: var(--s-2);
+  font-size: 11px; font-weight: 800; letter-spacing: .06em; line-height: 1;
+  text-transform: uppercase; color: #fff; white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(12, 3, 16, .35);
+}
+/* Held back from white so the claim reads first and the glyph is support, not a second
+   highlight competing with it. The nudge is optical: flex centring lines a box up with the
+   line box, whose middle sits below the middle of all-caps text, since the line box carries
+   descender room the capitals never use. */
+.ticker__item .icon { width: 15px; height: 15px; stroke-width: 2.25; color: rgba(255, 255, 255, .62); translate: 0 -1px; }
+/* The separator: a tilted square between claims, which is also what spaces them — the gap
+   belongs to the claim before it, which is what keeps the half-track loop exact. */
+.ticker__item::after {
+  content: ""; width: 5px; height: 5px; rotate: 45deg; translate: 0 -1px;
+  margin-inline: var(--s-5); background: rgba(228, 182, 240, .5);
+}
+/* lilac-200, not lilac-300: the band is a lit surface and 300 drops under 4.5:1 on it. */
+.ticker__item--tag { letter-spacing: .12em; color: var(--lilac-200); }
+
+/* Same bargain as the review rows: a pointer does not stop it, an open overlay does, and
+   main.js stops it once the band has scrolled away. */
+.ticker.is-offscreen .ticker__row,
+body.is-overlay-open .ticker__row { animation-play-state: paused; }
+
+@media (min-width: 600px) {
+  .ticker__lead {
+    font-size: var(--fs-xs); letter-spacing: .1em;
+    padding-inline: var(--gutter) calc(var(--gutter) + 12px);
+  }
+  .ticker__item { font-size: var(--fs-xs); letter-spacing: .08em; }
+  .ticker__item .icon { width: 17px; height: 17px; }
+  .ticker__item::after { margin-inline: var(--s-6); }
+  .ticker__rotator {
+    padding-left: 40px;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 56px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 56px), transparent);
+  }
+}
+
+/* Motion off: the drift stops and the copies go, and the row turns into the same swipe rail
+   the clips use, so every claim is still reachable. */
+@media (prefers-reduced-motion: reduce) {
+  .ticker__rotator {
+    overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    padding-left: var(--s-4);
+    -webkit-mask-image: none; mask-image: none;
+  }
+  .ticker__rotator::-webkit-scrollbar { display: none; }
+  .ticker__row { animation: none; }
+  .ticker__item--dup { display: none; }
+  /* Nothing follows the last claim on the rail, so its separator would hang off the end. The
+     copies sit after the originals, hence the :has() — :last-child is a hidden copy. */
+  .ticker__item:last-child::after,
+  .ticker__item:has(+ .ticker__item--dup)::after { display: none; }
+}
+
 /* ---------- Hero ---------- */
 .hero { position: relative; container-type: inline-size; background: var(--ink-950); }
 .hero__track {
@@ -352,7 +544,7 @@ s { text-decoration-thickness: 1px; }
 .hero__media img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos-m, 86% 50%); }
 .hero__media::after {
   content: ""; position: absolute; inset: auto 0 0; height: 32%;
-  background: linear-gradient(to top, var(--ink-950), rgba(12, 7, 22, 0));
+  background: linear-gradient(to top, var(--ink-950), rgba(12, 3, 16, 0));
   pointer-events: none;
 }
 .hero__slide--creator { --pos-m: 88% 40%; }
@@ -365,15 +557,16 @@ s { text-decoration-thickness: 1px; }
   text-transform: uppercase;
   text-wrap: balance;
 }
-.hero__lead { font-size: var(--fs-lead); color: var(--text-soft); line-height: 1.5; max-width: 46ch; }
-.hero__actions { margin-top: var(--s-2); }
-.hero__actions .btn { width: 100%; }
+/* Each banner paints its own CTA, so the whole slide is the target. Sits below the arrows and
+   dots (z-index 2), and the inset outline keeps the focus ring inside the slide's edges. */
+.hero__slide-link { position: absolute; inset: 0; z-index: 1; }
+.hero__slide-link:focus-visible { outline-offset: -6px; }
 
 .hero__arrow {
   display: none; position: absolute; z-index: 2;
   width: 48px; height: 48px; border-radius: 50%;
   place-items: center; color: #fff;
-  background: rgba(12, 7, 22, .5); border: 1px solid rgba(255, 255, 255, .22);
+  background: rgba(12, 3, 16, .5); border: 1px solid rgba(255, 255, 255, .22);
   transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out;
 }
 .hero__arrow:hover { background: var(--violet-600); border-color: var(--violet-600); }
@@ -426,7 +619,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    be. So the picture keeps its own shape, dissolves into the floor it stands on, and the copy
    follows immediately beneath — the gap is the content's top padding and nothing else. */
 @media (max-width: 767px) {
-  .hero__slide { background: linear-gradient(180deg, #170A29 0%, #170A29 64%, var(--plum-800) 100%); }
+  .hero__slide { background: linear-gradient(180deg, #180520 0%, #180520 64%, var(--plum-800) 100%); }
   /* Wider than the art's own 16/9 on purpose. A narrower box crops the picture horizontally,
      which runs the product off the sides and leaves the bare floor under it taking up the room
      between the product and the copy. Wider, and the crop turns vertical: the full width of the
@@ -439,9 +632,11 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      is laid out wider than its box and offset by hand: --zoom sets how much of the picture's
      width stays (100/zoom), --left slides that window across it, and object-position Y picks
      the vertical slice. Measured off the rendered page rather than guessed: the fans occupy
-     x 54-90%, y 25-72% of their art, Jeje x 52-87% from y 8% down. Both subjects sit right of
+     x 54-90%, y 25-72% of their art, Jeje x 58-89% from y 6% down. Both subjects sit right of
      centre in their frames, so centring them needs enough zoom that the window can slide right
-     without running past the picture's edge - x 1.78 for the fans, x 1.65 for Jeje; both run above that so the square box still frames them tightly. */
+     without running past the picture's edge - x 1.78 for the fans, x 1.89 for Jeje; both run at
+     or above that so the square box still frames them tightly. Slide 2's crop also drops the
+     painted headline off the left, which is why its live heading stays visible down here. */
   .hero__media img {
     position: absolute; top: 0; height: 100%;
     /* the base reset caps images at 100%, which would clamp the zoom straight back out */
@@ -452,18 +647,16 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      deeper one would start dimming the product itself */
   .hero__media::after {
     inset: auto 0 0; height: 11%;
-    background: linear-gradient(to bottom, rgba(23, 10, 41, 0), #170A29 86%);
+    background: linear-gradient(to bottom, rgba(24, 5, 32, 0), #180520 86%);
   }
   .hero__slide--iceglow { --zoom-sm: 200%; --left-sm: -93.8%; --posy-sm: 37%; }
-  .hero__slide--creator { --zoom-sm: 190%; --left-sm: -82.4%; --posy-sm: 15%; }
+  .hero__slide--creator { --zoom-sm: 190%; --left-sm: -89.6%; --posy-sm: 15%; }
   /* sits straight under the art; bottom padding clears the dots */
   .hero__content { position: static; padding: var(--s-2) var(--gutter) var(--s-7); }
   /* margin-inline centres the 560px-capped column itself; justify-items only centres its
      contents inside it, which left the whole block sitting left of centre once the content box
      grew past 560px (roughly 610px up) */
   .hero__text { gap: var(--s-2); justify-items: center; text-align: center; margin-inline: auto; }
-  .hero__actions { margin-top: var(--s-1); }
-  .hero__actions .btn { width: auto; padding: 0 var(--s-5); }
   .hero__dots { top: auto; bottom: var(--s-3); }
 }
 
@@ -471,8 +664,20 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   /* 34px display type is a desktop size; at 375 the title wraps three times and crowds the art.
      28/15 matches the step the platform scales use for a phone headline over secondary copy. */
   .hero__title { font-size: 2.625rem; line-height: 1.12; }
-  .hero__lead { font-size: var(--fs-sm); }
-  .hero__actions .btn { --btn-h: 46px; font-size: .9375rem; }
+  /* Phones get the portrait banners (2/3), which paint their own headline and CTA, so the
+     picture shows whole: none of the zoom-and-slide crop the wide art needs above. */
+  .hero__slide { background: var(--ink-950); }
+  .hero__media { aspect-ratio: 2 / 3; }
+  .hero__media img { position: static; width: 100%; left: auto; object-position: 50% 50%; }
+  .hero__media::after { display: none; }
+  /* The art carries the headline, so the live one drops out of view but stays in the
+     accessibility tree; the content box is left as the strip the dots sit in, under the art. */
+  .hero__text--on-art > .hero__title {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .hero__content { padding: 0; height: 36px; }
+  .hero__dots { bottom: 6px; }
 }
 
 @media (min-width: 600px) and (max-width: 767px) {
@@ -482,16 +687,10 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 
 @media (min-width: 768px) {
-  .hero__media { aspect-ratio: 16 / 9; max-height: max(560px, calc(100svh - var(--header-h))); }
+  .hero__media { aspect-ratio: 16 / 9; max-height: max(560px, calc(100svh - var(--header-h) - var(--ticker-h))); }
   .hero__media::after { display: none; }
-  .hero__actions .btn { width: auto; } /* the base rule blocks it out full-width for phones */
   .hero__slide--iceglow .hero__media img { object-position: 50% 38%; }
-  .hero__slide--creator .hero__media img { object-position: 50% 30%; }
-  .hero__slide--creator .hero__media::before {
-    /* the room behind the creator is brighter than slide 1; a soft left fade keeps the copy legible */
-    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-    background: linear-gradient(90deg, rgba(12, 7, 22, .62) 0%, rgba(12, 7, 22, .35) 34%, rgba(12, 7, 22, 0) 52%);
-  }
+  .hero__slide--creator .hero__media img { object-position: 50% 40%; }
   /* Copy column. --hero-left is the indent; --hero-copy-end is a hard right boundary the text
      can never cross. Slide 1's first feature callout starts about 45% across and slide 2's
      creator about 52%, so 44% clears both. Pairing the two means a bigger indent narrows the
@@ -505,8 +704,12 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   }
   /* Fills whatever the column allows, so it shrinks rather than overflowing the boundary. */
   .hero__text { gap: var(--s-4); width: 100%; max-width: 540px; }
-  .hero__lead { color: var(--text-soft); }
-  .hero__actions { margin-top: var(--s-3); }
+  /* Both banners paint their own headline, so the live heading drops out of the picture but
+     stays in the accessibility tree and in the document outline. */
+  .hero__text--on-art > .hero__title {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
   /* Arrows centred on each edge, dots centred along the bottom. */
   .hero__arrow { display: grid; top: 50%; bottom: auto; translate: 0 -50%; width: 48px; height: 48px; }
   .hero__arrow--prev { left: clamp(16px, 2.2vw, 40px); right: auto; }
@@ -518,22 +721,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero { --hero-left: clamp(56px, 11%, 120px); }
   .hero__title { font-size: clamp(2rem, 4.24vw, 2.6875rem); }
-  .hero__lead { font-size: var(--fs-body); }
   .hero__text { gap: var(--s-3); }
   .hero__arrow { width: 40px; height: 40px; }
-}
-/* Both headlines sit on one line wherever the copy is laid over the art. Slide 2's is 19
-   characters to slide 1's 13, so it needs the wider column — which it can have, because the
-   creator behind it starts about 52% across where slide 1's first callout starts about 45%.
-   The display sizes and this boundary are measured against the rendered text, so changing
-   either headline means re-checking that it still fits on its line. */
-@media (min-width: 768px) {
-  .hero__slide--creator { --hero-copy-end: 58%; }
-  .hero__slide--creator .hero__text { max-width: 760px; }
-  /* the copy now reaches past where the 52% fade died, so the scrim carries further right */
-  .hero__slide--creator .hero__media::before {
-    background: linear-gradient(90deg, rgba(12, 7, 22, .62) 0%, rgba(12, 7, 22, .4) 42%, rgba(12, 7, 22, 0) 68%);
-  }
 }
 @media (min-width: 768px) and (max-width: 1199px) {
   .nav { gap: var(--s-5); }
@@ -546,36 +735,57 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 /* ---------- Sections ---------- */
 .section { padding-block: var(--section-y); }
-.section--tight-top { padding-top: 0; }
 
 /* "Apa Kata Streamers" and "Clip dari Live Mereka" share this one section. A dimmed copy of
-   the brand texture marks it as its own surface, while the mask dissolves the top and bottom
-   edges into --ink-950 so it reads as a shift in depth rather than a pasted-in band.
+   the brand texture marks it as its own surface. The edges are hard rather than faded: the
+   point is for the reader to see where one section stops and the next begins, so the band ends
+   on a flat line with a hairline rule drawn along it as the divider.
    Stretched rather than cover-cropped: cover would centre on the flat middle of the art and
    throw away the violet corner glows that do the differentiating. */
-#streamers, .section--textured { position: relative; isolation: isolate; }
+#streamers, .section--textured {
+  position: relative; isolation: isolate;
+  border-block: 1px solid var(--line);
+}
 #streamers::before, .section--textured::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
-    linear-gradient(rgba(12, 7, 22, .42), rgba(12, 7, 22, .42)),
+    linear-gradient(rgba(12, 3, 16, .42), rgba(12, 3, 16, .42)),
     url("../img/bg-streamers.jpg") center / 100% 100% no-repeat;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 88%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 88%, transparent 100%);
 }
-.section-head { text-align: center; margin-bottom: var(--s-5); display: grid; gap: var(--s-2); justify-items: center; }
-/* Matches .section-head's own margin-bottom at every breakpoint, so the space above this
-   sub-head equals the space below it (the gap before Clips starts). */
+/* The extra air goes above the headline only; below it, margin-bottom alone sets the gap, so the
+   title sits closer to the content it introduces than to the section that came before. */
+.section-head { text-align: center; padding-top: var(--head-y); margin-bottom: var(--s-5); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); justify-items: center; }
+/* Separates this sub-head from the video above it the way --section-y separates whole sections;
+   .section-head's own padding-top then adds the headline's air on top of that. */
 .section-head--sub { margin-top: var(--s-5); }
+/* A product row that follows a page's own content (Produk Lainnya on a product, the cart's
+   Tambah Produk Lainnya): the content above already leaves the gap, so neither the section nor
+   its head adds top air, and the head sits left like the page's other headings. The headline's
+   squeeze then anchors on its left edge too, or it would pull in off the content's line. */
+.section--more { padding-top: 0; }
+.section--more .section-head { padding-top: 0; text-align: left; justify-items: start; }
+.section--more .section-title { transform-origin: left; }
+/* Every section headline is Draco. It has one weight, so 400 is set explicitly (asking for bold
+   would get a synthesised one). The face is drawn wide and flat, so it is squeezed to 63% width
+   to set it tall and condensed; the head is centred, so the narrower text stays centred in it.
+   scaleX leaves the layout box alone, so the line would wrap at its unsqueezed width, long
+   before the squeezed text fills the column: the box is allowed 1/.63 of the column instead,
+   which is exactly the column once squeezed. The size eases down on narrow screens, so a phone
+   headline doesn't take over the section. */
 .section-title {
-  font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance;
+  --squeeze: .63;
+  font-family: "Draco", var(--font);
+  font-weight: 400;
+  font-size: clamp(1.25rem, .55rem + 3vw, 2.5rem);
+  line-height: 1.1;
+  text-wrap: balance;
+  width: max-content; max-width: calc(100% / var(--squeeze));
+  transform: scaleX(var(--squeeze));
 }
 .section-sub { font-size: var(--fs-lead); color: var(--mute); max-width: 32ch; text-wrap: balance; }
 /* Every section's supporting line sits one step under body on a phone, so the headline carries
    the section on its own and the rail or grid below starts sooner. */
 @media (max-width: 599px) { .section-sub { font-size: var(--fs-sm); } }
-.section-actions { display: flex; justify-content: center; margin-top: var(--s-6); }
-.filter-status { font-size: var(--fs-sm); color: var(--mute); display: flex; gap: var(--s-2); align-items: baseline; margin-top: var(--s-2); }
-.filter-status strong { color: var(--text); font-weight: 600; }
 
 @media (min-width: 600px) {
   .section-head { margin-bottom: var(--s-6); }
@@ -585,7 +795,6 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 @media (min-width: 1024px) {
   .section-head { margin-bottom: var(--s-7); gap: var(--s-3); }
   .section-head--sub { margin-top: var(--s-7); }
-  .section-actions { margin-top: var(--s-7); }
 }
 
 /* ---------- Product cards ---------- */
@@ -601,24 +810,43 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 .product-card.is-entering { animation: card-in 300ms var(--ease) both; }
 @keyframes card-in { from { opacity: 0; translate: 0 8px; } }
-.product-card.is-highlight { border-color: var(--violet-400); box-shadow: 0 0 0 1px var(--violet-400); }
 .product-card__media { position: relative; aspect-ratio: 1; background: var(--ink-800); overflow: hidden; }
-/* Scaled up so the product fills more of the tile; this also crops the artwork's outer edge,
-   which is where the old border sat. Pushing much past 1.08 starts clipping the baked-in
-   captions ("NEXURA COOLER ICE SERIES") that sit close to the bottom of each image. */
+/* No resting zoom: the near-white rim some screenshots carried is cropped out of the files
+   themselves now, so the whole card art shows, Nexura mark and captions included. */
 .product-card__media img {
-  width: 100%; height: 100%; object-fit: cover; transform: scale(1.08);
+  width: 100%; height: 100%; object-fit: cover;
   transition: transform 400ms var(--ease), opacity var(--t-fast) ease-out;
 }
 .product-card__media img.is-swapping { opacity: .4; }
-.product-card.is-out .product-card__media img { filter: saturate(.55) brightness(.8); }
+.product-card.is-out .product-card__media img { filter: saturate(.55) brightness(.6); }
+/* Centred over the dimmed picture. The card carries no link while sold out, so it also drops
+   the hover lift and zoom below. */
+/* The ticker tab's surface in a disc: violet-600 into violet-700 along its 115deg cut, a white
+   sheen across the top, the violet-500 rim, and a faint violet halo ring around it. Type is
+   the ticker's: uppercase 800, tracked, two short lines. */
+.sold-out {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 1;
+  display: grid; place-items: center; width: clamp(64px, 28%, 100px); aspect-ratio: 1; border-radius: 50%;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  border: 1px solid var(--violet-500);
+  box-shadow: 0 0 0 5px rgba(219, 77, 255, .16), 0 10px 26px rgba(12, 3, 16, .6);
+  color: #fff; font-size: clamp(9px, .45rem + .4vw, 12px); font-weight: 800; line-height: 1.15;
+  letter-spacing: .1em; text-transform: uppercase; text-align: center;
+  text-shadow: 0 1px 2px rgba(12, 3, 16, .35);
+}
+.product-card.is-out { cursor: default; }
+.search__option.is-out { cursor: default; opacity: .6; }
 
 .badge {
   align-self: center;
   padding: 3px 8px; border-radius: 6px; white-space: nowrap;
   font-size: 11px; font-weight: 700; line-height: 1.3; letter-spacing: .02em;
 }
-.badge--out { background: #3A3148; color: var(--lilac-300); }
+.badge--out { background: #35293C; color: var(--lilac-300); }
+/* Scarcity, so it takes the one amber the palette keeps for it. */
+.badge--low { background: var(--amber-400); color: var(--on-amber); }
 
 .product-card__body { display: flex; flex-direction: column; gap: var(--s-2); flex: 1; padding: var(--s-3); }
 .product-card__name {
@@ -626,32 +854,64 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   min-height: calc(2 * 1.4em);
 }
+/* The name is the card's one link, stretched over the whole card so the picture, price and
+   pill are all part of the target without nesting them inside an <a>. The clamp's overflow
+   does not clip it: its containing block is the card, an ancestor of the clamp. The ring is
+   drawn on the stretch, so focus outlines the card rather than one line of the name. */
+.product-card__link::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: var(--r-md); }
+.product-card__link:focus-visible { outline: none; }
+.product-card__link:focus-visible::after { outline: 2px solid var(--violet-400); outline-offset: -2px; }
 .product-card__price { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-2); }
 .product-card__price .price { font-size: 1.0625rem; }
 .product-card__price .price-was { font-size: var(--fs-xs); }
 
-.swatches { display: flex; align-items: center; gap: 2px; min-height: 28px; margin-left: -6px; }
-.swatch { position: relative; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; }
-.swatch::before {
-  content: ""; width: 16px; height: 16px; border-radius: 50%;
-  background: var(--swatch); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
-  transition: box-shadow var(--t-fast) ease-out;
+/* Rating and sales, Tokopedia's order: one amber star, the score, then sold. The row keeps its
+   line even when a product has neither yet, so the pills below stay level across a grid row. */
+.product-card__meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--s-2); min-height: 1.4em;
+  font-size: var(--fs-xs); color: var(--mute); line-height: 1.4;
 }
-.swatch:hover::before { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 0 0 2px var(--ink-900), 0 0 0 3px var(--line-strong); }
-.swatch[aria-pressed="true"]::before { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), 0 0 0 2px var(--ink-900), 0 0 0 4px var(--violet-400); }
-.swatch:focus-visible { outline-offset: 0; }
-.swatches__label { font-size: var(--fs-xs); color: var(--mute); margin-left: var(--s-2); }
-.product-card__note { font-size: var(--fs-xs); color: var(--mute); min-height: 28px; display: flex; align-items: center; }
-.product-card__body .swatches, .product-card__body .product-card__note { margin-bottom: var(--s-1); }
-.product-card__body .btn { margin-top: auto; } /* buttons line up across a row whatever sits above them */
-.btn--add .label-short, .btn--add .icon--short { display: none; }
+.product-card__rating { display: inline-flex; align-items: center; gap: 3px; color: var(--text-soft); font-weight: 600; }
+.product-card__rating .icon { width: 14px; height: 14px; fill: var(--amber-400); stroke: none; }
+.product-card__dot { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); }
 
-/* Narrow phones drop to "+ Keranjang": the cart glyph gives way to a plus, which reads as the
-   action on its own once the verb is gone. */
-@media (max-width: 500px) {
-  .btn--add .label-long, .btn--add .icon--long { display: none; }
-  .btn--add .label-short { display: inline; }
-  .btn--add .icon--short { display: block; }
+/* Names the kind of product under the price. The card's own name is clamped to two lines and
+   leads with marketing copy, so this is the one place a shopper can tell a cooler from a thumb
+   sleeve at a glance, so it is filled in brand violet rather than outlined — an outline in the
+   card's own border colour disappeared into the card. It still does not compete with .badge,
+   which carries stock news: that one is neutral grey, so the two read apart by hue instead of
+   by weight. Text comes from NEXURA.categories, the same map the search and the filter status
+   use, so the three never drift apart. */
+.product-card__cat {
+  align-self: start;
+  padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+  background: var(--violet-700); color: var(--lilac-200);
+  font-size: var(--fs-xs); font-weight: 700; letter-spacing: .02em;
+}
+
+.product-card__note { font-size: var(--fs-xs); color: var(--mute); display: flex; align-items: center; }
+
+/* Route through to the products page, as a cell of the grid rather than a bar beneath it. It
+   sits in the last slot of the first row, so it is on screen with the products instead of
+   waiting below the fold — the failure mode of putting this at the end of a rail, where it
+   goes unseen. Dashed and image-less so it never reads as a fifth product, but on the card's
+   footprint so the grid keeps its rhythm. */
+.more-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--s-2); padding: var(--s-4); text-align: center;
+  background: var(--ink-900); border: 1px dashed var(--line-strong); border-radius: var(--r-md);
+  color: var(--text-soft);
+  transition: border-color var(--t-fast) ease-out, background var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.more-card__icon {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--ink-800); color: var(--lilac-300);
+  transition: background var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.more-card__label { font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+@media (hover: hover) {
+  .more-card:hover { border-color: var(--violet-400); background: var(--ink-800); }
+  .more-card:hover .more-card__icon { background: var(--violet-600); color: #fff; }
 }
 @media (min-width: 600px) {
   .product-card__body { padding: var(--s-4); gap: var(--s-2); }
@@ -661,8 +921,764 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .product-card__price .badge { margin-left: auto; }
 }
 @media (hover: hover) {
-  .product-card:hover { border-color: #4A3B66; }
-  .product-card:hover .product-card__media img { transform: scale(1.12); }
+  .product-card:not(.is-out):hover { border-color: #493156; }
+  .product-card:not(.is-out):hover .product-card__media img { transform: scale(1.04); }
+}
+
+/* ---------- Products page ---------- */
+/* The page's opening band: trail and headline on the left of a banner scene — smoke, streaks
+   and a neon floor — so the page opens on Nexura's own surface before the plain catalogue below
+   it. Every category shares the scene and the band's height, so switching categories never
+   makes the band jump; a category with its products adds them on the right (see below). No top
+   rule — the nav's violet line is already there — just the hairline underneath. Covered and
+   anchored on the horizon (78% down the artwork), which keeps the floor in view at any shape.
+   A wash on the left keeps the trail readable over the smoke. */
+.page-head {
+  position: relative; isolation: isolate;
+  display: grid; align-content: center; min-height: 200px;
+  padding-block: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+.page-head::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(12, 3, 16, .75), rgba(12, 3, 16, .35) 35%, transparent 55%),
+    url("../img/banner-produk-1024.jpg") 50% 78% / cover no-repeat;
+}
+@media (min-width: 768px) {
+  .page-head { --banner-h: clamp(220px, 20vw, 320px); min-height: var(--banner-h); }
+  .page-head::before {
+    background:
+      linear-gradient(90deg, rgba(12, 3, 16, .75), rgba(12, 3, 16, .35) 35%, transparent 55%),
+      url("../img/banner-produk.jpg") 50% 78% / cover no-repeat;
+  }
+}
+/* The cart's head: just the trail and the headline on the page itself, no texture and no rule,
+   so the lines right under it are what the page opens on. */
+/* Doubled class so it outranks the padding .page-head takes on at 600px and 1024px. */
+.page-head.page-head--plain { display: block; min-height: 0; border-bottom: 0; padding-bottom: 0; }
+.page-head--plain::before { content: none; }
+
+/* Trail, headline and the line under it on the left; a category's products sit on the right
+   of the banner itself (below). */
+.page-head__text { min-width: 0; }
+
+/* A category's products on the banner: one image per category (::after) holding the products
+   with their own glow and reflection, set on the shared scene so they stand on its floor. Every
+   image shares one layout — the products are 640px tall with 140px beside them, 120px above
+   and 192px of reflection below (952px), so their height (--ph) fixes the image's height
+   (1.4875 × --ph) and offsets (.219 × --ph across, 1.1875 × --ph up from the floor at 86%).
+   Semua Produk shows the scene alone. Per category: the image, its shape (--ar), how wide the products are for their height
+   (--pw), and where the headline ends, on a phone (--gap-l, plus a little air) and within the
+   column wider (--title-w). Hydrogel's tall boxes reach up to the trail, so on a phone they
+   also start after it (it ends near 239px).
+   On a phone the products fill the space after the headline (96–124px tall) and centre in it;
+   where even 96px does not fit, they slide right until up to a fifth of them is past the edge.
+   Wider, they are larger (76% of the band's height, standing a little further forward so they
+   clear its top, and smaller only where the text leaves them less room) and end on the content column's right edge, where the product grid below
+   ends, never closer than 24px to the end of the headline or the line under it. The band clips the reflection's
+   tail. Main.js sets data-cat. */
+.page-head[data-cat="fan-cooler"] {
+  --banner-img: url("../img/banner-fan-cooler.webp"); --ar: 1343 / 952; --pw: 1.66;
+  --gap-l: calc(130px + 33vw); --title-w: calc(298px + 8.5vw);
+}
+.page-head[data-cat="sarung-jempol"] {
+  --banner-img: url("../img/banner-sarung-jempol.webp"); --ar: 1250 / 952; --pw: 1.52;
+  --gap-l: calc(153px + 43vw); --title-w: calc(400px + 10vw);
+}
+.page-head[data-cat="hydrogel"] {
+  --banner-img: url("../img/banner-hydrogel.webp"); --ar: 1104 / 952; --pw: 1.29;
+  --gap-l: max(115px + 27.5vw, 247px); --title-w: calc(255px + 6.5vw);
+}
+.page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"]) {
+  --space: calc(100vw - 12px - var(--gap-l));
+  --ph: clamp(96px, var(--space) / var(--pw), 124px);
+  --keep: .8;
+  overflow: hidden;
+}
+.page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"])::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: calc(86% - 1.1875 * var(--ph)); height: calc(1.4875 * var(--ph)); aspect-ratio: var(--ar);
+  left: calc(min(var(--gap-l) + max(0px, (var(--space) - var(--pw) * var(--ph)) / 2), 100vw - 8px - var(--keep) * var(--pw) * var(--ph)) - .219 * var(--ph));
+  background: var(--banner-img) center / contain no-repeat;
+}
+/* Sarung Jempol's headline is long, so below 600px it breaks into SARUNG / JEMPOL, and its pair
+   copies Hydrogel's boxes: the same height (Hydrogel's --ph, from its own --gap-l and --pw)
+   and the same right edge, never past 8px from the window's. */
+@media (max-width: 599px) {
+  .page-head[data-cat="sarung-jempol"] {
+    --hy-space: calc(100vw - 12px - max(115px + 27.5vw, 247px));
+    /* Shorter where its taller sleeves would reach the trail, which ends near 287px; when they
+       are taller than 96px they also start after it. */
+    --ph: clamp(96px, min(var(--hy-space) / 1.29, (100vw - 8px - 287px) / 1.52), 124px);
+    --right: min(100vw - 8px, 100vw - 12px - var(--hy-space) + 1.29 * var(--ph) + max(0px, (var(--hy-space) - 1.29 * var(--ph)) / 2));
+  }
+  .page-head[data-cat="sarung-jempol"]::after {
+    left: calc(max(var(--right) - var(--pw) * var(--ph), min(287px, 100vw - 8px - var(--pw) * var(--ph))) - .219 * var(--ph));
+  }
+  .page-head[data-cat="sarung-jempol"] .page-title { max-width: calc(48vw / var(--squeeze)); }
+}
+@media (min-width: 768px) {
+  .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"]) {
+    --col: min(100% - 2 * var(--gutter), var(--container));
+    /* 100vw, not --col: in a height, 100% would be the band's height. */
+    --ph: min(.76 * var(--banner-h), (min(100vw - 2 * var(--gutter), var(--container)) - max(var(--title-w), 26rem) - 24px) / var(--pw));
+  }
+  .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"])::after {
+    top: calc(90% - 1.1875 * var(--ph));
+    left: max((100% + var(--col)) / 2 - var(--pw) * var(--ph) - .219 * var(--ph),
+              (100% - var(--col)) / 2 + max(var(--title-w), 26rem) + 24px - .219 * var(--ph));
+  }
+}
+
+/* Lucide chevrons between crumbs, as shadcn's Breadcrumb draws them. The links keep a 32px line
+   so they are comfortable to tap without pushing the headline down. */
+.breadcrumb ol { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; font-size: var(--fs-sm); color: var(--mute); }
+.breadcrumb a, .breadcrumb [aria-current] { display: inline-flex; align-items: center; min-height: 32px; }
+.breadcrumb a { color: var(--mute); transition: color var(--t-fast) ease-out; }
+.breadcrumb a:hover { color: var(--text); }
+.breadcrumb [aria-current] { color: var(--text); font-weight: 500; }
+.breadcrumb__sep { display: flex; color: var(--faint); }
+.breadcrumb__sep .icon { width: 14px; height: 14px; }
+
+/* The category's one line under the headline, on the banner from a tablet up (on a phone the
+   band has no room for it beside the products). Capped so it stays clear of them. */
+.page-head__lead { display: none; }
+@media (min-width: 768px) {
+  .page-head__lead {
+    display: block; max-width: 26rem; margin-top: var(--s-3);
+    font-size: var(--fs-lead); line-height: 1.5; color: var(--text-soft);
+  }
+}
+
+/* The section headline, left-aligned under the trail. */
+.page-title { text-align: left; margin-top: var(--s-4); transform-origin: left; }
+
+.catalog { padding-block: var(--s-4) var(--s-8); }
+
+/* One line at every width. Positioned and lifted so the Filter menu opens over the cards,
+   whose stretched links sit at z-index 1. */
+.catalog-bar {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+/* The chips scroll sideways once they run out of room, and the Filter button stays put beside
+   them. The padding/margin pair gives focus rings room inside the scroller without moving the
+   first chip off the container's edge. */
+/* Shrinks but never grows, so Filter follows straight after the last chip instead of being
+   flung to the far edge of a wide screen; on a phone the rail still gives up width and scrolls. */
+.chips {
+  flex: 0 1 auto; min-width: 0;
+  display: flex; gap: var(--s-2);
+  overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+  padding: 4px; margin: -4px;
+}
+.chips::-webkit-scrollbar { display: none; }
+/* Each end fades only while there is more to scroll that way (main.js sets the classes). */
+.chips.has-more-end { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.chips.has-more-start { -webkit-mask-image: linear-gradient(to right, transparent, #000 32px); mask-image: linear-gradient(to right, transparent, #000 32px); }
+.chips.has-more-start.has-more-end { -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 40px), transparent); }
+
+/* Pills, like the category tag on the cards. The selected chip takes the primary button's
+   violet sweep, so the active category reads as brand, not as one more outline. */
+.chip, .filter-btn {
+  flex: none; display: inline-flex; align-items: center; gap: var(--s-2);
+  height: 40px; padding: 0 var(--s-4); border-radius: 999px;
+  border: 1px solid var(--line-strong); background: var(--ink-900);
+  font-size: var(--fs-sm); font-weight: 600; white-space: nowrap;
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip { color: var(--text-soft); }
+.chip:hover { background: var(--ink-800); border-color: #573C66; color: var(--text); }
+.chip[aria-pressed="true"] {
+  background: linear-gradient(170deg, var(--violet-500) -35%, var(--violet-700) 135%);
+  border-color: transparent; color: #fff;
+}
+
+/* Filter leads the row, with a hairline after it like the nav's divider before its account
+   icon: the button sits with the chips but reads as a different kind of control. */
+.filter-menu { position: relative; flex: none; display: flex; align-items: center; gap: var(--s-3); }
+.filter-menu::after { content: ""; width: 1px; height: 24px; background: var(--line-strong); }
+/* Not a chip: it opens a menu rather than toggling a category, so it is drawn the way the site
+   draws buttons, not the way it draws chips. Three cues carry that, the standard ones design
+   systems use to separate a menu button from filter chips:
+     shape    the site's 8px button corner, against the chips' pills
+     surface  filled ink-800 rather than outlined, so it reads as a solid control
+     chevron  a trailing down-arrow, the conventional "opens a menu" signal, turning up while open
+   Height stays at the chips' 40px so the row keeps one baseline. */
+.filter-btn {
+  position: relative; padding: 0 var(--s-3) 0 14px; border-radius: var(--r-sm);
+  background: var(--ink-800); color: var(--text);
+}
+.filter-btn .icon { width: 18px; height: 18px; }
+.filter-btn .filter-btn__chev { width: 16px; height: 16px; margin-left: -2px; color: var(--mute); transition: rotate var(--t-fast) ease-out; }
+.filter-btn:hover, .filter-menu.is-open .filter-btn { background: var(--ink-700); border-color: #573C66; }
+.filter-menu.is-open .filter-btn__chev { rotate: 180deg; }
+/* Something in the menu is off its default: the same badge language as the cart count. */
+.filter-btn__dot {
+  position: absolute; top: -1px; right: -1px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--violet-400); box-shadow: 0 0 0 2px var(--ink-950);
+}
+
+/* Same panel as the navbar's Produk dropdown, left-aligned under its button, which starts the
+   row, so it drops away from the chips rather than over them. */
+.menu {
+  position: absolute; left: 0; top: calc(100% + 8px); width: 236px;
+  padding: var(--s-1); background: var(--ink-900);
+  border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+  opacity: 0; visibility: hidden; translate: 0 -4px;
+  transition: opacity var(--t-fast) ease-out, translate var(--t-fast) ease-out, visibility 0s linear var(--t-fast);
+}
+.filter-menu.is-open .menu { opacity: 1; visibility: visible; translate: 0 0; transition-delay: 0s; }
+.menu__label {
+  padding: var(--s-2) var(--s-3) var(--s-1);
+  font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint);
+}
+.menu__sep { height: 1px; margin: var(--s-1) calc(-1 * var(--s-1)); border: 0; background: var(--line); }
+.menu__item {
+  display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 40px;
+  padding: 0 var(--s-3); border-radius: var(--r-sm); text-align: left;
+  font-size: var(--fs-sm); font-weight: 500; color: var(--text-soft);
+  transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.menu__item:hover, .menu__item:focus-visible { background: var(--ink-800); color: var(--text); }
+.menu__item:focus-visible { outline-offset: -2px; }
+.menu__item[aria-checked="true"] { color: var(--text); font-weight: 600; }
+/* Sorts: a check in a fixed slot, so the labels stay aligned whichever one is chosen. */
+.menu__check { width: 18px; height: 18px; color: var(--violet-400); stroke-width: 2.25; visibility: hidden; }
+.menu__item[aria-checked="true"] .menu__check { visibility: visible; }
+/* Stock: the same box the cart's line items use, in the same slot as the sort checks. */
+.menu__box {
+  flex: none; display: grid; place-items: center; width: 18px; height: 18px;
+  border-radius: 5px; border: 1.5px solid var(--line-strong); color: transparent;
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out;
+}
+.menu__box .icon { width: 13px; height: 13px; stroke-width: 3; }
+.menu__item[aria-checked="true"] .menu__box { background: var(--violet-600); border-color: var(--violet-600); color: #fff; }
+
+.catalog-empty { display: grid; justify-items: center; text-align: center; gap: var(--s-2); padding: var(--s-8) var(--s-5); }
+.catalog-empty__icon { width: 48px; height: 48px; color: var(--mute); stroke-width: 1.5; margin-bottom: var(--s-2); }
+.catalog-empty__title { font-size: 1.125rem; font-weight: 700; }
+.catalog-empty__text { font-size: var(--fs-sm); color: var(--mute); margin-bottom: var(--s-4); }
+
+.catalog-count { margin-top: var(--s-6); text-align: center; font-size: var(--fs-sm); color: var(--mute); }
+.catalog-count strong { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+@media (min-width: 600px) {
+  .page-head { padding-block: var(--s-4) var(--s-6); }
+  .page-title { margin-top: var(--s-5); }
+  .catalog { padding-top: var(--s-5); }
+  .catalog-bar { margin-bottom: var(--s-5); }
+}
+@media (min-width: 1024px) {
+  .page-head { padding-block: var(--s-5) var(--s-7); }
+  .page-title { margin-top: var(--s-6); }
+  .catalog { padding-top: var(--s-6); }
+  .catalog-bar { margin-bottom: var(--s-6); }
+  .catalog-count { margin-top: var(--s-7); }
+}
+
+/* ---------- Product detail page ---------- */
+/* Three things stick under the navbar, stacked: the navbar itself, the buy bar, and the tab
+   bar (plus the buy panel on wide screens). When the navbar retracts on the way down, the
+   other two close the gap with it, on its own timing, so the stack never shows a hole.
+   --nav-offset is the navbar's share of that stack: its height, or nothing while hidden. */
+.pdp { --buybar-h: 52px; --nav-offset: var(--header-h); }
+body:has(.site-header.is-hidden) .pdp { --nav-offset: 0px; }
+html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 52px + 52px); }
+
+/* Drawn like the ticker on the home page: the same lightly dimmed brand texture, covered and
+   anchored low-right, the same faint centre glow, the same violet rule along the edge, and the
+   claims' uppercase 800 type. Opaque like the ticker, so no blur. Only the bottom rule —
+   the navbar already draws its own violet line right above. */
+.buybar {
+  position: sticky; top: var(--header-h); z-index: 39;
+  display: flex; align-items: stretch;
+  background:
+    linear-gradient(rgba(12, 3, 16, .15), rgba(12, 3, 16, .15)),
+    url("../img/bg-streamers.jpg") 100% 72% / cover no-repeat;
+  border-bottom: 1px solid rgba(168, 63, 224, .55);
+  transition: translate 440ms var(--ease-nav);
+}
+.buybar::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(120% 180% at 50% 0%, rgba(219, 77, 255, .12), rgba(219, 77, 255, 0) 62%);
+}
+body:has(.site-header.is-hidden) .buybar { translate: 0 calc(-1 * var(--header-h)); }
+/* Not a .container: the button tab runs to the screen edge, so the line takes the rest of the
+   row and lines its left edge up with the container's by padding instead. */
+.buybar__inner {
+  position: relative; flex: 1 1 auto; min-width: 0; display: flex; align-items: center;
+  min-height: var(--buybar-h); padding-block: var(--s-2);
+  padding-inline: max(var(--gutter), (100vw - var(--container)) / 2) var(--s-3);
+}
+/* Lifted off the texture rather than sitting in it: a few steps bigger than the ticker's claims,
+   a tight dark shadow that cuts each letter out of the brighter patches, and the product name
+   in white with a violet glow so it is the first thing read. The words around it stay
+   lilac-200, one step back. */
+.buybar__text {
+  flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  font-size: var(--fs-sm); font-weight: 800; letter-spacing: .06em; line-height: 1.2;
+  text-transform: uppercase; color: var(--lilac-200); white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(12, 3, 16, .8), 0 0 10px rgba(12, 3, 16, .55);
+}
+.buybar__text strong {
+  color: #fff; font-weight: 800;
+  text-shadow: 0 1px 2px rgba(12, 3, 16, .8), 0 0 14px rgba(219, 77, 255, .75);
+}
+/* The ticker's "Mobile gaming gear #1" tab, mirrored: pinned to the right edge at the bar's
+   full height, cut on the diagonal along its left side, violet-500 rim showing 2px past the
+   surface along the cut, the same lit gradient and white-into-lilac type. */
+.buybar__btn {
+  position: relative; z-index: 1; flex: none; isolation: isolate;
+  display: flex; align-items: center;
+  padding-inline: calc(var(--s-4) + 12px) var(--s-4);
+  background: var(--violet-500);
+  clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
+  color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .08em; line-height: 1.15;
+  text-transform: uppercase; white-space: nowrap;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.buybar__btn::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 2px 100%);
+  transition: filter var(--t-fast) ease-out;
+}
+/* It is a button, so it lights up under the pointer and dips when pressed; the tab on the
+   home page is a label and never does. */
+.buybar__btn:hover::after { filter: brightness(1.18); }
+.buybar__btn:active::after { filter: brightness(.9); }
+/* clip-path would eat an outline, so focus is drawn inside the tab instead. */
+.buybar__btn:focus-visible { outline: none; }
+.buybar__btn:focus-visible::after { box-shadow: inset 0 0 0 2px #fff; }
+.buybar__btn:disabled { cursor: not-allowed; background: var(--disabled-bg); color: var(--disabled-fg); }
+.buybar__btn:disabled::after { background-image: none; background-color: var(--disabled-bg); filter: none; }
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .buybar__btn span {
+    background-image: linear-gradient(104deg, #fff 0%, #fff 42%, var(--lilac-200) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+}
+
+@media (min-width: 600px) {
+  .buybar__text { font-size: var(--fs-body); letter-spacing: .08em; }
+  .buybar__btn {
+    font-size: var(--fs-xs); letter-spacing: .1em;
+    padding-inline: calc(var(--gutter) + 12px) var(--gutter);
+  }
+}
+@media (min-width: 1024px) {
+  .pdp { --buybar-h: 56px; }
+  html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 56px + 52px); }
+}
+
+.pdp-crumbs { padding-block: var(--s-3); }
+
+.pdp-layout {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "gallery" "info" "tabs";
+  row-gap: var(--s-6); padding-bottom: var(--s-8);
+}
+.gallery { grid-area: gallery; min-width: 0; }
+.pdp-info { grid-area: info; min-width: 0; }
+.pdp-tabs { grid-area: tabs; min-width: 0; }
+/* Gallery. Square, because every product photo is a square listing card. */
+.gallery__stage {
+  position: relative; overflow: hidden;
+  background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-lg);
+}
+.gallery__track {
+  display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none; overscroll-behavior-x: contain;
+}
+.gallery__track::-webkit-scrollbar { display: none; }
+.gallery__track:focus-visible { outline-offset: -4px; }
+.gallery__slide { flex: 0 0 100%; aspect-ratio: 1; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; }
+.gallery__slide img { width: 100%; height: 100%; object-fit: cover; }
+.gallery__slide--empty { display: grid; place-content: center; justify-items: center; gap: var(--s-2); color: var(--faint); font-size: var(--fs-sm); }
+.gallery__slide--empty .icon { width: 48px; height: 48px; stroke-width: 1.5; }
+
+/* The hero's arrows, smaller. Phones swipe instead. */
+.gallery__arrow {
+  display: none; position: absolute; top: 50%; translate: 0 -50%; z-index: 1;
+  width: 40px; height: 40px; border-radius: 50%; place-items: center; color: #fff;
+  background: rgba(12, 3, 16, .55); border: 1px solid rgba(255, 255, 255, .22);
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out, opacity var(--t-fast) ease-out;
+}
+.gallery__arrow .icon { width: 20px; height: 20px; }
+.gallery__arrow:hover:not(:disabled) { background: var(--violet-600); border-color: var(--violet-600); }
+.gallery__arrow:disabled { opacity: 0; pointer-events: none; }
+.gallery__arrow--prev { left: var(--s-3); }
+.gallery__arrow--next { right: var(--s-3); }
+.gallery__count {
+  position: absolute; right: var(--s-3); bottom: var(--s-3);
+  padding: 2px 10px; border-radius: 999px; background: rgba(12, 3, 16, .72);
+  font-size: var(--fs-2xs); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-soft);
+}
+
+/* Thumbnails page sideways when there are more than fit. The arrows keep their room either
+   way (visibility, not display), so the strip never changes width as they come and go. */
+.gallery__strip { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-3); }
+.gallery__thumbs {
+  position: relative; flex: 1; min-width: 0;
+  display: grid; grid-auto-flow: column; grid-auto-columns: 64px; gap: var(--s-2);
+  overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+  padding: 3px; margin: -3px;
+}
+.gallery__thumbs::-webkit-scrollbar { display: none; }
+.gallery__thumb {
+  aspect-ratio: 1; overflow: hidden; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--ink-800); opacity: .6;
+  transition: opacity var(--t-fast) ease-out, border-color var(--t-fast) ease-out, box-shadow var(--t-fast) ease-out;
+}
+.gallery__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.gallery__thumb:hover { opacity: 1; }
+.gallery__thumb[aria-current="true"] { opacity: 1; border-color: var(--violet-400); box-shadow: 0 0 0 1px var(--violet-400); }
+.gallery__strip-btn {
+  flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--ink-800); border: 1px solid var(--line-strong); color: var(--text);
+  visibility: hidden;
+  transition: background-color var(--t-fast) ease-out, opacity var(--t-fast) ease-out;
+}
+.gallery__strip-btn .icon { width: 18px; height: 18px; }
+.gallery__strip-btn:hover:not(:disabled) { background: var(--ink-700); }
+.gallery__strip-btn:disabled { opacity: .35; cursor: default; }
+.gallery__strip.has-overflow .gallery__strip-btn { visibility: visible; }
+.gallery.is-single .gallery__strip, .gallery.is-single .gallery__arrow, .gallery.is-single .gallery__count { display: none; }
+
+/* Phones run the photo edge to edge, like the hero, and swipe it. */
+@media (max-width: 599px) {
+  .gallery__stage { margin-inline: calc(-1 * var(--gutter)); border-radius: 0; border-inline: 0; }
+  .gallery__strip-btn { display: none; }
+}
+@media (min-width: 600px) {
+  .gallery__arrow { display: grid; }
+  .gallery__thumbs { grid-auto-columns: calc((100% - 4 * var(--s-3)) / 5); gap: var(--s-3); }
+}
+
+/* Buy panel */
+.pdp-info { display: grid; gap: var(--s-4); align-content: start; }
+.pdp-info__tags { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.pdp-info__tags .badge { align-self: auto; }
+.pdp-title { font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem); font-weight: 700; line-height: 1.25; letter-spacing: -.02em; text-wrap: pretty; }
+.pdp-rating { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: calc(-1 * var(--s-2)); font-size: var(--fs-sm); color: var(--mute); }
+.pdp-rating strong { color: var(--text); font-weight: 700; }
+.pdp-rating a { color: var(--lilac-300); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.pdp-rating a:hover { color: var(--text); }
+.pdp-rating__sep { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); }
+.pdp-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-3); }
+.pdp-price .price { font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem); letter-spacing: -.02em; line-height: 1.1; }
+.pdp-price .price-was { font-size: var(--fs-body); }
+/* The category pill's violet, so the saving reads as brand news rather than as an alarm. */
+.pdp-off {
+  align-self: center; padding: 3px 8px; border-radius: 6px;
+  background: var(--violet-700); color: var(--lilac-200);
+  font-size: var(--fs-xs); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+
+/* Everything that goes into the order, in one card, so the choices read as one decision. */
+.pdp-buy {
+  display: grid; gap: var(--s-4); padding: var(--s-4);
+  background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-lg);
+}
+.pdp-field { display: grid; gap: var(--s-2); min-width: 0; margin: 0; padding: 0; border: 0; }
+.pdp-field__label { padding: 0; font-size: var(--fs-sm); color: var(--mute); }
+.pdp-field__label strong { color: var(--text); font-weight: 600; }
+/* A legend sits outside its fieldset's grid, so the gap never reaches it; padding stands in. */
+legend.pdp-field__label { padding-bottom: var(--s-2); }
+
+/* Variants: the radio stays in the tree and under the pointer (stretched, transparent), so
+   arrows, labels and focus all behave natively; the label draws the chip. */
+.opts { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.opt {
+  position: relative; display: inline-flex; align-items: center; gap: var(--s-2);
+  min-height: 44px; padding: 0 var(--s-4) 0 var(--s-3);
+  border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-soft); cursor: pointer;
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.opt--text { padding-inline: var(--s-4); }
+.opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.opt__swatch { flex: none; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28); }
+/* Photo chips: the variant's own listing photo, square, in place of the swatch. */
+.opt--photo { min-height: 48px; padding-left: var(--s-1); }
+.opt__thumb { flex: none; width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: var(--ink-800); }
+.opt:hover { background: var(--ink-800); border-color: #573C66; color: var(--text); }
+.opt:has(input:checked) { background: rgba(132, 29, 187, .18); border-color: var(--violet-400); box-shadow: inset 0 0 0 1px var(--violet-400); color: var(--text); }
+.opt:has(input:focus-visible) { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+
+.pdp-req {
+  margin-left: var(--s-1); padding: 1px 6px; border-radius: 4px; vertical-align: 1px;
+  background: rgba(132, 29, 187, .25); color: var(--lilac-200);
+  font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
+/* The navbar search's field, at form size. */
+.pdp-input {
+  width: 100%; height: 44px; padding: 0 var(--s-4);
+  background: var(--ink-950); border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  font-size: var(--fs-body); color: var(--text);
+  transition: border-color var(--t-fast) ease-out;
+}
+.pdp-input::placeholder { color: var(--faint); }
+.pdp-input:hover { border-color: #4A3356; }
+.pdp-input:focus { outline: none; border-color: var(--violet-400); }
+.pdp-hint { font-size: var(--fs-xs); color: var(--faint); }
+.pdp-field.is-invalid .pdp-input { border-color: var(--err); }
+.pdp-field.is-invalid .pdp-hint { color: var(--err); font-weight: 600; }
+
+.pdp-qty { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); }
+/* Doubled class: the cart's .stepper rules come later in the file. */
+.stepper.stepper--lg button { width: 40px; height: 40px; }
+.stepper.stepper--lg output { min-width: 44px; font-size: var(--fs-body); }
+.pdp-stock { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); color: var(--mute); }
+.pdp-stock::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--violet-400); }
+.pdp-stock--low { color: var(--amber-400); font-weight: 600; }
+.pdp-stock--low::before { background: var(--amber-400); }
+.pdp-stock--out::before { background: var(--faint); }
+
+.pdp-subtotal {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3);
+  padding-top: var(--s-4); border-top: 1px solid var(--line);
+}
+.pdp-subtotal span { font-size: var(--fs-sm); color: var(--mute); }
+.pdp-subtotal .price { font-size: 1.25rem; }
+.pdp-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+.pdp-actions .btn { padding-inline: var(--s-3); }
+.pdp-actions .btn--block { grid-column: 1 / -1; }
+/* Phones pin the two buttons to the bottom edge (see .pdp-dock in the markup), so Beli
+   Sekarang is always under the thumb; the top bar's own button steps aside for it. They open
+   the buy card as a bottom sheet instead of adding straight away, so the card leaves the page.
+   The dock sits below the navbar (40) and every overlay (50+), so the sheet and drawer cover it. */
+.pdp-dock, .pdp-sheet__head, .pdp-sheet__sum { display: none; }
+@media (max-width: 599px) {
+  .pdp-dock {
+    display: block; position: fixed; inset: auto 0 0; z-index: 38;
+    padding: var(--s-3) var(--gutter) calc(var(--s-3) + env(safe-area-inset-bottom));
+    background: var(--ink-900); border-top: 1px solid var(--line);
+    box-shadow: 0 -12px 24px -12px rgba(0, 0, 0, .6);
+  }
+  /* room under the footer, so its last line is not stuck behind the dock */
+  body:has(.pdp-dock:not([hidden])) { padding-bottom: calc(73px + env(safe-area-inset-bottom)); }
+  .buybar__btn { display: none; }
+
+  /* The buy card as a sheet: off-screen below the edge until opened, then slides up over the
+     backdrop. Same timing as the drawers, whose open/close code it shares. */
+  .pdp-buy {
+    position: fixed; inset: auto 0 0; z-index: 60;
+    max-height: 88svh; overflow-y: auto; overscroll-behavior: contain;
+    gap: var(--s-5); padding: 0 var(--gutter) calc(var(--s-4) + env(safe-area-inset-bottom));
+    border-width: 1px 0 0; border-radius: var(--r-lg) var(--r-lg) 0 0;
+    box-shadow: 0 -16px 40px rgba(0, 0, 0, .6);
+    visibility: hidden; transform: translateY(100%);
+    transition: transform var(--t-drawer) var(--ease), visibility 0s linear var(--t-drawer);
+  }
+  .pdp-buy.is-open { visibility: visible; transform: none; transition-delay: 0s; }
+  /* stays put while the options scroll under it */
+  .pdp-sheet__head {
+    position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: var(--s-2);
+    min-height: 60px; margin: 0 calc(-1 * var(--gutter)); padding: var(--s-2) var(--gutter) 0 calc(var(--gutter) - 10px);
+    background: var(--ink-900);
+  }
+  .pdp-sheet__title { font-size: 1.125rem; font-weight: 700; }
+  .pdp-sheet__sum { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+  .pdp-sheet__thumb {
+    width: 96px; height: 96px; border-radius: var(--r-sm); object-fit: cover;
+    background: var(--ink-800); border: 1px solid var(--line);
+  }
+  .pdp-sheet__info { display: grid; justify-items: start; gap: var(--s-1); min-width: 0; }
+  .pdp-sheet__price .price { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+  .pdp-sheet__was { display: flex; align-items: center; gap: var(--s-2); }
+  .pdp-sheet__was:not(:has(:not([hidden]))) { display: none; }
+  .pdp-sheet__pick {
+    margin-top: var(--s-1); padding: 3px 8px; border-radius: 6px;
+    background: var(--ink-800); font-size: var(--fs-xs); font-weight: 600; color: var(--text-soft);
+  }
+  .pdp-sheet__pick:empty { display: none; }
+  /* Jumlah and the stock note on the left, the stepper pushed right, as one row */
+  .pdp-buy .pdp-field:has(.pdp-qty) { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: var(--s-3); }
+  .pdp-buy .pdp-qty { display: contents; }
+  .pdp-buy .pdp-qty .stepper { order: 2; }
+  .pdp-buy .pdp-field:has(.pdp-qty) .pdp-field__label { font-weight: 600; color: var(--text); font-size: var(--fs-body); }
+  /* the sheet ends on one full-width button: the one the dock button that opened it named */
+  .pdp-buy .pdp-subtotal, .pdp-buy .pdp-chat { display: none; }
+  .pdp-buy .pdp-actions { grid-template-columns: minmax(0, 1fr); }
+  .pdp-buy[data-mode="cart"] [data-buy-now], .pdp-buy[data-mode="buy"] [data-add-cart] { display: none; }
+  /* alone at the end of the sheet it is the one thing to press, so it fills like a primary */
+  .pdp-buy [data-add-cart] {
+    background: linear-gradient(170deg, var(--violet-500) -35%, var(--violet-700) 135%);
+    border-color: transparent; color: #fff;
+  }
+}
+.pdp-chat {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  min-height: 32px; font-size: var(--fs-sm); color: var(--mute);
+  transition: color var(--t-fast) ease-out;
+}
+.pdp-chat .icon { color: var(--faint); transition: color var(--t-fast) ease-out; }
+.pdp-chat:hover, .pdp-chat:hover .icon { color: var(--text); }
+
+/* One row at every width. Where the panel has room the three sit inline, icon before label;
+   in a narrower panel each stacks its icon over its label rather than spilling onto a second
+   row. Measured against the panel, not the viewport: the panel narrows as the page widens
+   past 900, when it moves into the side column. */
+.pdp-trust {
+  container-type: inline-size;
+  display: flex; justify-content: space-between; gap: var(--s-3);
+  font-size: var(--fs-2xs); line-height: 1.35; color: var(--mute);
+}
+.pdp-trust li { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); text-align: center; }
+.pdp-trust .icon { width: 18px; height: 18px; color: var(--lilac-300); }
+@container (min-width: 500px) {
+  .pdp-trust li { flex: none; flex-direction: row; gap: 6px; white-space: nowrap; }
+  .pdp-trust .icon { width: 16px; height: 16px; }
+}
+
+/* Tabs: a hairline rail with a violet bar under the open tab, the nav's hover rule made
+   permanent. The rail scrolls sideways on a phone rather than wrapping, and runs edge to edge
+   there so the last tab visibly continues past the screen. */
+.tabs {
+  position: sticky; top: calc(var(--nav-offset) + var(--buybar-h)); z-index: 3;
+  display: flex; overflow-x: auto; scrollbar-width: none;
+  margin-inline: calc(-1 * var(--gutter)); padding-inline: calc(var(--gutter) - var(--s-3));
+  background: var(--ink-950); border-bottom: 1px solid var(--line);
+  transition: top 440ms var(--ease-nav);
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  position: relative; flex: none; height: 52px; padding: 0 var(--s-3);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--faint); white-space: nowrap;
+  transition: color var(--t-fast) ease-out;
+}
+.tab:hover { color: var(--text-soft); }
+.tab[aria-selected="true"] { color: var(--text); }
+.tab::after {
+  content: ""; position: absolute; left: var(--s-3); right: var(--s-3); bottom: -1px; height: 3px;
+  border-radius: 3px 3px 0 0; background: var(--violet-400);
+  transform: scaleX(0); transition: transform var(--t-fast) ease-out;
+}
+.tab[aria-selected="true"]::after { transform: scaleX(1); }
+.tab:focus-visible { outline-offset: -6px; }
+.tab-panel { padding-top: var(--s-5); }
+.tab-panel:focus-visible { outline-offset: 4px; border-radius: var(--r-sm); }
+
+.prose { display: grid; gap: var(--s-3); max-width: 68ch; color: var(--text-soft); }
+.pdp-h { margin: var(--s-6) 0 var(--s-3); font-size: 1.125rem; font-weight: 700; letter-spacing: -.01em; }
+
+.features { display: grid; column-gap: var(--s-7); }
+/* Read like a spec sheet, not a tile grid: no boxes, a hairline over each feature, the icon a
+   small mark beside the title and the copy hanging under the title's first letter. */
+.feature {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: var(--s-3); row-gap: var(--s-1);
+  align-content: start; padding-block: var(--s-4) var(--s-5); border-top: 1px solid var(--line);
+}
+.feature__icon { display: flex; align-items: center; height: 1.35em; font-size: 1rem; color: var(--lilac-300); }
+.feature__icon .icon { width: 20px; height: 20px; }
+.feature__title { font-size: 1rem; font-weight: 700; line-height: 1.35; }
+.feature__text { grid-column: 2; font-size: var(--fs-sm); color: var(--mute); line-height: 1.6; }
+
+.inbox { display: grid; gap: var(--s-2); }
+.inbox li { display: flex; align-items: flex-start; gap: var(--s-2); font-size: var(--fs-sm); color: var(--text-soft); }
+.inbox .icon { width: 18px; height: 18px; margin-top: 2px; color: var(--violet-400); stroke-width: 2.25; }
+
+/* A usage warning from the listing, so it leads the tab. Lilac on a violet wash rather than
+   amber: amber is kept for scarcity and stars. */
+.pdp-notice {
+  display: flex; align-items: flex-start; gap: var(--s-3); margin-bottom: var(--s-5);
+  padding: var(--s-3) var(--s-4); border-radius: var(--r-md);
+  background: rgba(132, 29, 187, .16); border: 1px solid rgba(219, 77, 255, .35);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text);
+}
+.pdp-notice .icon { width: 20px; height: 20px; color: var(--lilac-300); }
+.pdp-notice + .pdp-notice { margin-top: calc(-1 * var(--s-3)); }
+.pdp-games { margin-top: var(--s-4); max-width: 68ch; font-size: var(--fs-sm); color: var(--mute); }
+.pdp-games strong { color: var(--text-soft); font-weight: 600; }
+.pdp-tagline {
+  margin-top: var(--s-7); padding-top: var(--s-5); border-top: 1px solid var(--line);
+  text-align: center; font-size: var(--fs-lead); font-weight: 700; letter-spacing: -.01em; color: var(--lilac-200);
+}
+
+/* Label column a fixed share of the table so the values line up down the page. */
+.spec-table { margin: 0; border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+.spec-row { display: grid; grid-template-columns: minmax(110px, 36%) minmax(0, 1fr); font-size: var(--fs-sm); }
+.spec-row + .spec-row { border-top: 1px solid var(--line); }
+.spec-row:nth-child(odd) { background: var(--ink-900); }
+.spec-row dt { padding: var(--s-3) var(--s-4); color: var(--mute); }
+.spec-row dd { margin: 0; padding: var(--s-3) var(--s-4); color: var(--text); font-weight: 500; }
+
+/* The stats band's surface (Ulasan pembeli on the home page): violet-600 into violet-700 along
+   the same 115deg, a white sheen across the top, the violet-500 rim. Secondary text moves to
+   lilac-200 for the same reason it does there — mute and faint drop under 4.5:1 on violet. */
+.rating-summary {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5);
+  margin-bottom: var(--s-4); padding: var(--s-4) var(--s-5);
+  background: linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  border: 1px solid var(--violet-500); border-radius: var(--r-md);
+}
+.rating-summary::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 52%);
+}
+.rating-summary__score { font-size: 2.75rem; font-weight: 800; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.rating-summary__score span { font-size: 1rem; font-weight: 600; color: var(--lilac-200); letter-spacing: 0; }
+.rating-summary__meta { display: grid; gap: var(--s-1); font-size: var(--fs-sm); color: var(--lilac-200); }
+.rating-summary__meta .stars .icon { width: 18px; height: 18px; }
+.review-list { display: grid; gap: var(--s-3); }
+/* The marquee's card, out of the marquee: no fixed width, no trailing gap. Doubled class,
+   because the marquee's width rules come later in the file. */
+.review.review--static { width: auto; margin: 0; }
+.pdp-note { margin-top: var(--s-4); font-size: var(--fs-sm); color: var(--mute); }
+
+/* The banners are cut from one tall design, so they stack flush — no gap, no per-image
+   corners — and only the stack as a whole is rounded. */
+.showcase { display: grid; margin-top: var(--s-6); border-radius: var(--r-md); overflow: hidden; background: var(--ink-900); }
+.showcase img { width: 100%; }
+
+.pdp-missing { padding-block: var(--s-9); }
+
+@media (min-width: 600px) {
+  .pdp-crumbs { padding-block: var(--s-4); }
+  .pdp-buy { padding: var(--s-5); }
+  .features, .review-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inbox { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inbox.inbox--single { grid-template-columns: minmax(0, 1fr); }
+  .tab { padding: 0 var(--s-4); font-size: .9375rem; }
+  .tab::after { left: var(--s-4); right: var(--s-4); }
+  .tabs { padding-inline: calc(var(--gutter) - var(--s-4)); }
+}
+
+/* Two columns: photos and tabs on the left, the buy panel on the right. The panel spans both
+   rows, so it can stay in view the whole way down the left column. */
+@media (min-width: 900px) {
+  .pdp-layout {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "gallery info" "tabs info";
+    column-gap: clamp(32px, 4vw, 56px); row-gap: var(--s-7);
+  }
+  .pdp-info { align-self: start; }
+  /* Inside the column the rail starts at the column edge, so the first tab's text lines up
+     with the photos above it. */
+  .tabs { margin-inline: 0; padding-inline: 0; }
+  .tab:first-child { padding-left: 0; }
+  .tab:first-child::after { left: 0; }
+}
+/* Sticks only where the whole panel fits under the bars, or its bottom would be unreachable
+   until the end of the page. */
+@media (min-width: 900px) and (min-height: 760px) {
+  .pdp-info {
+    position: sticky; top: calc(var(--nav-offset) + var(--buybar-h) + var(--s-5));
+    transition: top 440ms var(--ease-nav);
+  }
 }
 
 /* ---------- Video ---------- */
@@ -679,8 +1695,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .video__empty {
   position: absolute; inset: 0; display: grid; place-content: center; justify-items: center;
   background:
-    linear-gradient(to top, rgba(12, 7, 22, .94) 0%, rgba(12, 7, 22, .6) 26%, rgba(12, 7, 22, 0) 54%),
-    rgba(12, 7, 22, .38);
+    linear-gradient(to top, rgba(12, 3, 16, .94) 0%, rgba(12, 3, 16, .6) 26%, rgba(12, 3, 16, 0) 54%),
+    rgba(12, 3, 16, .38);
 }
 /* Same bottom-left caption as a clip tile; sits above the scrim that makes it readable.
    Type is scaled up from the shared clip sizes: this box is several times a clip tile, so
@@ -728,7 +1744,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .clip__link img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease); }
 .clip__link::after {
   content: ""; position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to top, rgba(12, 7, 22, .94) 0%, rgba(12, 7, 22, .7) 22%, rgba(12, 7, 22, 0) 48%);
+  background: linear-gradient(to top, rgba(12, 3, 16, .94) 0%, rgba(12, 3, 16, .7) 22%, rgba(12, 3, 16, 0) 48%);
 }
 .clip__link .play-btn { position: absolute; z-index: 2; left: 50%; top: 50%; translate: -50% -50%; }
 .clip__meta { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; padding: var(--s-4); display: grid; gap: 2px; }
@@ -738,8 +1754,12 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 @media (hover: hover) { .clip__link:hover img { transform: scale(1.04); } }
 
 @media (min-width: 600px) { .clips { grid-auto-columns: 38%; gap: var(--s-4); } }
+/* Stays a rail on desktop rather than wrapping to a grid: there are more clips than fit a row,
+   and a rail keeps them in one reading order at every width. The column width is the container
+   split four ways, so four land inside the gutters and the rest sit just past the right edge —
+   a partial fifth card is the scroll cue. */
 @media (min-width: 1024px) {
-  .clips { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-5); overflow: visible; margin: 0; padding: 0; }
+  .clips { grid-auto-columns: calc((100% - 3 * var(--s-5)) / 4); gap: var(--s-5); }
   .clip__meta { padding: var(--s-5); }
   .clip__name { font-size: 1.125rem; }
 }
@@ -774,7 +1794,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .tech-card__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
   .tech-card__media::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(12, 7, 22, .95) 0%, rgba(12, 7, 22, .72) 30%, rgba(12, 7, 22, 0) 62%);
+    background: linear-gradient(to top, rgba(12, 3, 16, .95) 0%, rgba(12, 3, 16, .72) 30%, rgba(12, 3, 16, 0) 62%);
   }
   .tech-card__text { color: var(--text-soft); }
 }
@@ -786,7 +1806,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .tech-card__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
   .tech-card__media::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(12, 7, 22, .95) 0%, rgba(12, 7, 22, .72) 30%, rgba(12, 7, 22, 0) 62%);
+    background: linear-gradient(to top, rgba(12, 3, 16, .95) 0%, rgba(12, 3, 16, .72) 30%, rgba(12, 3, 16, 0) 62%);
   }
   .tech-card__body { padding: var(--s-5); }
   .tech-card__text { color: var(--text-soft); }
@@ -818,73 +1838,186 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .tech-card:focus-visible .tech-card__media img { transform: scale(calc(var(--zoom, 1) * 1.06)); }
 }
 
-/* ---------- CTA ---------- */
-.cta {
-  position: relative; display: grid; border-radius: var(--r-lg); overflow: hidden;
-  background: #170828; border: 1px solid var(--line); isolation: isolate;
+/* ---------- Ulasan pembeli ---------- */
+/* Spacing above the headline is left to .section alone, so it is the same --section-y plus
+   --head-y every other section headline sits on, at every breakpoint. An earlier version
+   zeroed the top padding here, because the tech grid above hides its card copy until hover
+   and so ends on bare artwork, which made the standard gap read as a hole. The rule below is
+   the better answer to that: once the boundary is drawn, the gap reads as spacing again, so
+   the override is gone and this section measures like its neighbours.
+   Same full-bleed hairline #streamers and .section--textured use. */
+#ulasan { border-top: 1px solid var(--line); }
+/* Edge to edge, in the same surface as the ticker's "Mobile gaming gear #1" tab: violet-600
+   running into violet-700 along the tab's own 115deg cut, lit by a white sheen along the top,
+   with the tab's violet-500 rim as the top and bottom edge. The two read as one family. */
+.stats-band {
+  position: relative; isolation: isolate; margin-top: var(--s-5);
+  background: linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  border-block: 1px solid var(--violet-500);
 }
-.cta__content { display: grid; gap: var(--s-3); justify-items: start; padding: var(--s-6) var(--s-5) var(--s-5); }
-.cta__title { font-size: var(--fs-h2); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance; }
-.cta__text { color: var(--text-soft); font-size: var(--fs-body); max-width: 46ch; }
-.cta__content .btn { margin-top: var(--s-3); width: 100%; }
-.cta__media { order: 2; position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
-.cta__media img { width: 100%; height: 100%; object-fit: cover; object-position: 48% 100%; } /* keeps the whole sensi panel in frame */
-.cta__media::before {
-  content: ""; position: absolute; inset: 0 0 auto; height: 40%; z-index: 1;
-  background: linear-gradient(to bottom, #170828, rgba(23, 8, 40, 0));
+/* The tab's top-edge highlight. Negative z-index paints over the gradient but under the
+   figures, the same way the textured sections layer their art. */
+.stats-band::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 52%);
 }
+/* The band spans the viewport; the figures inside it stop at the same 1600 the nav and
+   footer stop at, so they never drift apart on a wide screen.
+   Two shared rows — numbers, then labels — and each .stat adopts them with subgrid. That is
+   what keeps the three numbers on one baseline when a label wraps to two lines and its
+   neighbours do not; centring each cell independently let the odd one out ride up. It also
+   means the labels can be rewritten to any length without re-tuning anything. */
+.stats {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto auto; row-gap: var(--s-1);
+  max-width: 1600px; margin: 0 auto; padding: var(--s-4) var(--gutter);
+}
+.stat {
+  display: grid; grid-row: span 2; grid-template-rows: subgrid;
+  justify-items: center; text-align: center; padding-inline: var(--s-2);
+}
+.stat + .stat { border-left: 1px solid rgba(255, 255, 255, .18); }
+/* Explicit rows rather than source order: a <dl> has to keep dt before dd, and the number
+   belongs on top. */
+.stat__value {
+  grid-row: 1; align-content: start;
+  display: grid; justify-items: center; gap: var(--s-2); margin: 0;
+  font-size: clamp(1.625rem, 1rem + 2.6vw, 2.75rem); font-weight: 800;
+  line-height: 1.05; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+}
+/* lilac-200 rather than lilac-300: the token exists for exactly this case, where the lighter
+   label drops under 4.5:1 once it sits on violet instead of on the page. */
+.stat__label { font-size: var(--fs-2xs); color: var(--lilac-200); line-height: 1.3; }
 
-/* Phones get the same overlay the wider breakpoints get — one banner with the copy on the art,
-   just scaled down: the box is squarer, the art is anchored on the fan, and the type and button
-   step down with it. A scrim carries the copy, since at this width it sits over the artwork. */
-@media (max-width: 767px) {
-  /* the art moves behind the copy, so the card is only as tall as the type and button —
-     no stacked image block, and no empty run under the button */
-  .cta__media { position: absolute; inset: 0; aspect-ratio: auto; margin: 0; z-index: -1; }
-  /* contained rather than cropped, so the whole composition reads at phone width; the card's own
-     background fills the space above the band and the copy sits over it */
-  .cta__media img { object-fit: contain; object-position: 50% 100%; }
-  .cta__media::before {
-    inset: 0; height: auto;
-    background: linear-gradient(to bottom, rgba(23, 8, 40, .92) 30%, rgba(23, 8, 40, .72) 60%, rgba(23, 8, 40, .3) 100%);
-  }
-  .cta__content { padding: var(--s-6) var(--s-5); gap: var(--s-2); }
-  .cta__content .btn { width: auto; margin-top: var(--s-2); }
-}
-
+/* The one amber on the page. A five-star row is read as a score before it is read as
+   anything else, and in violet it would have blended into every other accent here — so the
+   token's "scarcity only" note now covers rating stars too. Nothing else may use it. */
+.stars { display: flex; gap: 2px; color: var(--amber-400); }
+.stars .icon { width: 15px; height: 15px; fill: currentColor; stroke: none; }
+.stars .is-off { color: var(--line-strong); }
+.stat__value .stars .icon { width: 18px; height: 18px; }
+/* Phones: a row of five stars under 4,8 made the numbers' row taller than the other two
+   figures need, leaving a gap under 40rb+ and 10rb+ that set their labels adrift. One star
+   beside the figure says "rating" just as well and keeps all three cells the same shape. */
 @media (max-width: 599px) {
-  .cta__title { font-size: 1.5rem; }
-  .cta__text { font-size: var(--fs-sm); }
-  .cta__content .btn { --btn-h: 46px; font-size: .9375rem; }
+  .stat__value:has(.stars) { display: flex; align-items: center; gap: 6px; }
+  .stat__value .stars .icon { width: .62em; height: .62em; }
+  .stat__value .stars .icon:not(:first-child) { display: none; }
 }
 
-/* Small tablets: more room, so the copy and the padding step up, but the art stays behind it. */
-@media (min-width: 600px) and (max-width: 767px) {
-  .cta__content { padding: var(--s-7) var(--s-6); gap: var(--s-3); }
-}
-/* tablet: same overlay treatment as desktop, cropped so the fan stays right and the copy sits in the open space */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .cta { aspect-ratio: 2.9 / 1; align-items: center; }
-  .cta__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
-  .cta__media img { object-position: 20% 50%; }
-  .cta__media::before {
-    inset: 0; height: auto;
-    background: linear-gradient(to right, #170828 18%, rgba(23, 8, 40, .72) 46%, rgba(23, 8, 40, 0) 70%);
-  }
-  .cta__content { max-width: 60%; padding: var(--s-6); gap: var(--s-4); }
-  .cta__content .btn { width: auto; margin-top: var(--s-4); }
+@media (min-width: 600px) {
+  .stats { padding-block: var(--s-5); row-gap: var(--s-2); }
+  .stat { padding-inline: var(--s-4); }
+  .stat__label { font-size: var(--fs-sm); }
 }
 @media (min-width: 1024px) {
-  .cta { aspect-ratio: 3648 / 1152; align-items: center; }
-  .cta__media { position: absolute; inset: 0; aspect-ratio: auto; z-index: -1; }
-  .cta__media::before { display: none; }
-  .cta__media img { object-position: 50% 50%; }
-  .cta__content { padding: var(--s-7) var(--s-8); max-width: 600px; gap: var(--s-4); align-self: start; padding-top: clamp(40px, 5vw, 64px); }
-  .cta__content .btn { width: auto; margin-top: var(--s-4); }
+  .stats { padding-block: var(--s-6); }
+  .stat { padding-inline: var(--s-5); }
+}
+
+/* Runs the full width of the page rather than the container: the rows have to leave and
+   enter past the gutters, or the drift reads as a glitch instead of as movement. */
+.marquee { --mq-gap: var(--s-3); display: grid; gap: var(--mq-gap); margin-top: var(--s-6); }
+.marquee__viewport {
+  overflow: hidden;
+  /* dissolves both ends instead of cutting them off at the screen edge */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
+/* --mq-dur is set per row in main.js from that row's card count, so both rows travel at a
+   steady speed however many quotes are in data.js. */
+.marquee__row {
+  display: flex; width: max-content;
+  animation: mq-drift var(--mq-dur, 72s) linear infinite;
+}
+.marquee__row--rev { animation-direction: reverse; }
+/* Exactly half the track, because each card carries its own trailing gap instead of the row
+   using `gap` — with `gap` the last card has none and the loop point lands half a gap short. */
+@keyframes mq-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* Deliberately does not stop for a pointer: the rows keep drifting under the cursor. Only
+   two things halt them, and neither is something a reader does on purpose — an open overlay,
+   and the section being off screen (main.js), since animating out of view is frames nobody
+   sees. Readers who do not want the movement are covered by the reduced-motion rail below. */
+.marquee.is-offscreen .marquee__row,
+body.is-overlay-open .marquee__row { animation-play-state: paused; }
+
+.review {
+  flex: none; width: min(78vw, 330px); margin: 0 var(--mq-gap) 0 0;
+  display: flex; flex-direction: column; gap: var(--s-3);
+  padding: var(--s-4); background: var(--ink-900);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.review__quote { margin: 0; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-soft); }
+/* margin-top pins the attribution to the bottom edge: cards in a row stretch to the tallest,
+   so without it the short quotes leave their product name floating mid-card. */
+.review__by { margin-top: auto; display: grid; gap: 2px; font-size: var(--fs-xs); }
+/* Tokopedia masks the name of anyone who reviews anonymously, and every reviewer here did,
+   so these land as 'O***p'. That is the published name, not a placeholder — see data.js. */
+.review__name { font-weight: 700; color: var(--text); letter-spacing: .01em; }
+.review__meta { color: var(--faint); }
+
+@media (min-width: 600px) {
+  .marquee { --mq-gap: var(--s-4); margin-top: var(--s-7); }
+  .review { width: 360px; padding: var(--s-5); }
+  .review__quote { font-size: var(--fs-body); }
+}
+
+/* With motion off the strip stops being a strip: the duplicate half goes, the drift stops,
+   and each row turns into the same swipe rail the clips and tech cards use, so every quote
+   is still reachable. This is now the only thing that stops the rows. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee__viewport {
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
+    -webkit-mask-image: none; mask-image: none;
+  }
+  .marquee__viewport::-webkit-scrollbar { display: none; }
+  .marquee__row { animation: none; }
+  .review { scroll-snap-align: start; }
+  .review--dup { display: none; }
+}
+
+/* ---------- CTA ---------- */
+/* The artwork is the whole section: headline, lockup and button are painted into it, so there
+   is no card, no copy and no overlay here — only the picture, capped so the banner never runs
+   past the bottom of the screen, and a link over the lot. */
+.cta-banner {
+  position: relative; margin-top: var(--section-y);
+  background: var(--ink-950);
+}
+.cta-banner__media { position: relative; display: block; width: 100%; overflow: hidden; }
+.cta-banner__media img {
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%;
+}
+/* Same bargain the hero strikes: the banner paints its own button, so the whole thing is the
+   target. The inset outline keeps the focus ring inside the artwork's edges. */
+.cta-banner__link { position: absolute; inset: 0; z-index: 1; }
+.cta-banner__link:focus-visible { outline-offset: -6px; }
+
+/* Phones: the art keeps its own 16/9 shape rather than being cropped to a phone-shaped box —
+   cropping it either runs the players off the sides or buries the headline. It is rendered
+   wider than the screen and anchored left, so the headline and the button stay in frame. */
+@media (max-width: 767px) {
+  .cta-banner__media { aspect-ratio: 16 / 11; }
+  .cta-banner__media img { object-position: 22% 50%; }
+}
+
+@media (min-width: 768px) {
+  /* The banner's own ratio, so nothing is cropped until the viewport is shorter than the art
+     is tall — at which point the cap takes over and trims the sides instead of the page. */
+  .cta-banner__media {
+    aspect-ratio: 1678 / 937;
+    max-height: calc(100svh - var(--header-h));
+  }
 }
 
 /* ---------- Footer ---------- */
-.site-footer { background: var(--ink-900); border-top: 1px solid var(--line); }
+/* A dark plum (between ink-900 and plum-800), so the footer reads as its own band against the
+   ink-950 page without glowing; --faint holds about 6:1 on it. The top border and the divider
+   take --line-strong, since the shared --line barely shows on this surface. */
+.site-footer { background: var(--ink-950); border-top: 1px solid var(--line-strong); --line: var(--line-strong); }
 .footer {
   max-width: 1600px; margin-inline: auto; padding: var(--s-7) var(--footer-x) var(--s-6);
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-6) var(--s-5);
@@ -934,7 +2067,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* ---------- Drawers ---------- */
 .backdrop {
   position: fixed; inset: 0; z-index: 50;
-  background: rgba(12, 7, 22, .6);
+  background: rgba(12, 3, 16, .6);
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   opacity: 0; transition: opacity var(--t-drawer) var(--ease);
 }
@@ -978,11 +2111,28 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   font-size: 1.0625rem; font-weight: 600; text-align: left; color: var(--text-soft);
 }
 .menu-list__item:hover { background: var(--ink-800); color: var(--text); }
-.menu-list__item .icon { transition: rotate var(--t-fast) ease-out; color: var(--faint); }
-.menu-list__item[aria-expanded="true"] .icon { rotate: 180deg; }
-.menu-list__sub { display: grid; padding: 0 0 var(--s-2) var(--s-3); margin-left: var(--s-3); border-left: 1px solid var(--line); }
-.menu-list__sub a { display: flex; align-items: center; min-height: 44px; padding: 0 var(--s-3); border-radius: var(--r-sm); color: var(--mute); font-weight: 500; }
-.menu-list__sub a:hover { background: var(--ink-800); color: var(--text); }
+/* Produk is a heading over its categories, not a toggle: they are always showing. */
+.menu-list__label {
+  display: flex; align-items: center; min-height: 52px; padding: 0 var(--s-3);
+  font-size: 1.0625rem; font-weight: 600; color: var(--text-soft);
+}
+.menu-cats { display: grid; gap: var(--s-1); padding-bottom: var(--s-2); margin-bottom: var(--s-2); border-bottom: 1px solid var(--line); }
+.menu-cat {
+  display: flex; align-items: center; gap: var(--s-3);
+  min-height: 64px; padding: var(--s-2) var(--s-3) var(--s-2) var(--s-2); border-radius: var(--r-sm);
+  font-size: 1rem; font-weight: 600; color: var(--text-soft);
+  transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.menu-cat:hover { background: var(--ink-800); color: var(--text); }
+.menu-cat__thumb {
+  flex: none; width: 48px; height: 48px; overflow: hidden; border-radius: var(--r-sm);
+  background: var(--ink-800); border: 1px solid var(--line);
+}
+.menu-cat__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.menu-cat__name { flex: 1 1 auto; min-width: 0; }
+.menu-cat__chev { flex: none; color: var(--faint); }
+/* Lihat Semua: a plain row under the photos, its text on the menu's left edge */
+.menu-cat--all { min-height: 48px; padding-left: var(--s-3); color: var(--lilac-300); font-size: var(--fs-sm); }
 
 /* cart */
 .cart-list { padding: 0 var(--s-5); }
@@ -1038,6 +2188,340 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .cart-empty__icon { width: 48px; height: 48px; color: var(--mute); stroke-width: 1.5; margin-bottom: var(--s-2); }
 .cart-empty__title { font-size: 1.125rem; font-weight: 700; }
 .cart-empty__text { font-size: var(--fs-sm); color: var(--mute); margin-bottom: var(--s-4); }
+
+/* ---------- Cart page (/keranjang/) ---------- */
+/* The drawer's lines given room: lines in one card on the left, the summary card on the right
+   from 900px, sticking under the navbar while the lines scroll. Below 900px the summary follows
+   the lines and only its total + Beli block sticks, to the bottom of the screen. */
+/* --section-y is .section-head's margin-bottom at every width, so the gap under "Keranjang"
+   matches the gap under every home page headline. */
+.cartpage { padding-block: var(--section-y) var(--s-6); }
+.cartpage__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+
+.cart-undo {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  margin-bottom: var(--s-4); padding: var(--s-3) var(--s-4);
+  background: var(--ink-800); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  font-size: var(--fs-sm); color: var(--text-soft);
+}
+.cart-undo[hidden] { display: none; }
+
+.cart-panel { background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md); }
+.cart-panel__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--line);
+}
+.cart-panel__all { display: flex; align-items: center; gap: var(--s-3); width: auto; margin-left: 0; min-height: 44px; }
+.cart-panel__all-label { font-size: var(--fs-sm); font-weight: 700; }
+.cart-panel__count { color: var(--mute); font-weight: 400; }
+/* An indeterminate tick: some lines chosen, not all. */
+.cart-panel__all input:indeterminate + .cart-item__box { background: var(--violet-600); border-color: var(--violet-600); }
+.cart-panel__all input:indeterminate + .cart-item__box::after { content: ""; width: 10px; height: 2px; border-radius: 1px; background: #fff; }
+.cart-panel__all input:indeterminate + .cart-item__box .icon { display: none; }
+.cart-panel__clear {
+  min-height: 44px; padding: 0 var(--s-2); margin-right: calc(-1 * var(--s-2));
+  font-size: var(--fs-sm); font-weight: 700; color: var(--err); border-radius: var(--r-sm);
+}
+.cart-panel__clear:hover { background: var(--err-wash); color: var(--err-hover); }
+
+/* One line: tick, picture, then name and variant beside the price; the bin and the stepper
+   close the line on the right. On a phone the price drops under the name. */
+.cp-list { padding: 0 var(--s-4); }
+.cp-item {
+  display: grid; grid-template-columns: 28px 72px minmax(0, 1fr);
+  grid-template-areas: "check thumb info" "check thumb price" "actions actions actions";
+  column-gap: var(--s-3); row-gap: var(--s-2);
+  padding: var(--s-4) 0; border-bottom: 1px solid var(--line);
+}
+.cp-item:last-child { border-bottom: 0; }
+.cp-item__check { grid-area: check; align-self: start; height: 44px; margin-top: -12px; }
+.cp-item__thumb {
+  grid-area: thumb; position: relative; align-self: start; display: block;
+  aspect-ratio: 1; border-radius: var(--r-sm); overflow: hidden; background: var(--ink-800);
+}
+.cp-item__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.cp-item__off {
+  position: absolute; top: 4px; left: 4px; padding: 1px 5px; border-radius: 4px;
+  background: var(--violet-600); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 1.4; font-variant-numeric: tabular-nums;
+}
+.cp-item__info { grid-area: info; min-width: 0; display: grid; gap: 2px; align-content: start; }
+.cp-item__name {
+  font-size: var(--fs-sm); font-weight: 500; line-height: 1.4; color: var(--text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cp-item__name:hover { color: var(--lilac-300); }
+.cp-item__variant { font-size: var(--fs-xs); color: var(--faint); line-height: 1.4; }
+.cp-item__stock { font-size: var(--fs-xs); font-weight: 600; color: var(--amber-400); }
+.cp-item__price { grid-area: price; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-2); }
+.cp-item__price .price { font-size: 1rem; }
+.cp-item__price .price-was { font-size: var(--fs-xs); }
+.cp-item__actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-end; gap: var(--s-2); }
+.cp-item__sub { margin-right: auto; font-size: var(--fs-xs); color: var(--mute); }
+.cp-item__sub .price { color: var(--text); font-size: var(--fs-sm); }
+.cp-item__remove { color: var(--err); }
+.cp-item__remove:hover { background: var(--err-wash); color: var(--err-hover); }
+.cp-item__remove .icon { width: 20px; height: 20px; }
+.cp-item.is-unchecked .cp-item__thumb, .cp-item.is-unchecked .cp-item__info, .cp-item.is-unchecked .cp-item__price { opacity: .55; }
+
+.cart-summary, .cart-pay { background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s-4); }
+.cart-summary { display: grid; gap: var(--s-4); }
+.cart-summary__title { font-size: 1.0625rem; font-weight: 700; }
+.cart-summary__rows { display: grid; gap: var(--s-2); font-size: var(--fs-sm); }
+.cart-summary__rows div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); }
+.cart-summary__rows div[hidden] { display: none; }
+.cart-summary__rows dt { color: var(--mute); }
+.cart-summary__save { color: var(--lilac-300); }
+.cart-summary__later { color: var(--faint); font-size: var(--fs-xs); }
+.cart-summary .pdp-trust { padding-top: var(--s-4); border-top: 1px solid var(--line); }
+
+.cart-pay { display: grid; gap: var(--s-3); }
+.cart-pay__total { display: flex; align-items: baseline; justify-content: space-between; }
+.cart-pay__total span { font-weight: 600; }
+.cart-pay__total .price { font-size: 1.25rem; }
+.cart-pay__hint { font-size: var(--fs-xs); color: var(--faint); text-align: center; }
+
+/* Below 900px the pay block is pinned to the bottom of the screen, so the total and the button
+   are always in reach, footer included. main.js measures it into --dock-h and the page keeps
+   that much room at its foot, so nothing ends up hidden behind it. Below the navbar (40) and
+   the overlays (50+), so drawers still cover it. */
+body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
+@media (max-width: 899px) {
+  .cart-side { display: contents; }
+  .cart-pay {
+    position: fixed; inset: auto 0 0; z-index: 38;
+    border-radius: 0; border-inline: 0; border-bottom: 0;
+    padding: var(--s-3) var(--gutter) calc(var(--s-3) + env(safe-area-inset-bottom));
+    box-shadow: 0 -12px 24px -12px rgba(0, 0, 0, .6);
+    grid-template-columns: 1fr auto; align-items: center; column-gap: var(--s-4);
+  }
+  .cart-pay__total { display: grid; gap: 0; }
+  .cart-pay__total span { font-size: var(--fs-xs); color: var(--mute); font-weight: 500; }
+  .cart-pay .btn { width: auto; min-width: 140px; }
+  .cart-pay__hint { grid-column: 1 / -1; }
+}
+@media (min-width: 600px) {
+  .cart-panel__bar { padding-inline: var(--s-5); }
+  .cp-list { padding-inline: var(--s-5); }
+  .cp-item {
+    grid-template-columns: 28px 96px minmax(0, 1fr) auto;
+    grid-template-areas: "check thumb info price" "check thumb actions actions";
+    column-gap: var(--s-4);
+  }
+  .cp-item__name { font-size: .9375rem; }
+  .cp-item__price { flex-direction: column; align-items: flex-end; text-align: right; }
+  .cp-item__price .price { font-size: 1.0625rem; }
+  .cp-item__actions { align-self: end; }
+}
+@media (min-width: 900px) {
+  .cartpage { padding-bottom: var(--s-7); }
+  .cartpage__layout { grid-template-columns: minmax(0, 1fr) 360px; gap: var(--s-5); }
+  .cart-side {
+    position: sticky; top: calc(var(--header-h) + var(--s-4));
+    background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md);
+  }
+  .cart-side .cart-summary, .cart-side .cart-pay { background: none; border: 0; border-radius: 0; padding: var(--s-5); }
+  .cart-side .cart-pay { border-top: 1px solid var(--line); }
+  .cart-summary { padding-bottom: var(--s-4); }
+}
+
+/* ---------- Checkout (/checkout/) ---------- */
+/* The cart page's frame: the order in cards on the left, payment in one card on the right from
+   900px, sticking under the navbar. Below 900px payment follows the order and only its total +
+   Bayar block sticks, to the bottom of the screen. */
+.co { padding-block: var(--section-y) var(--s-6); }
+.co__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+.co__main { display: grid; gap: var(--s-4); min-width: 0; }
+.co-card { padding: var(--s-4); background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md); }
+.co-card__eyebrow { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+
+/* Address */
+.co-address { display: grid; gap: var(--s-3); scroll-margin-block: calc(var(--header-h) + var(--s-4)); }
+.co-address.is-invalid { border-color: var(--err); }
+.co-address__filled { display: flex; align-items: center; gap: var(--s-4); }
+.co-address__filled[hidden], .co-address__empty[hidden] { display: none; }
+.co-address__text { flex: 1; min-width: 0; display: grid; gap: var(--s-1); }
+.co-address__who { display: flex; align-items: flex-start; gap: var(--s-2); font-size: .9375rem; }
+.co-address__who strong { font-weight: 700; }
+.co-address__who .icon { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--violet-400); }
+.co-address__line { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-soft); padding-left: 26px; overflow-wrap: anywhere; }
+.co-address__edit { --btn-h: 36px; flex: none; padding: 0 var(--s-4); font-size: var(--fs-sm); }
+.co-address__empty { display: grid; justify-items: start; gap: var(--s-3); }
+.co-address__hint { font-size: var(--fs-sm); color: var(--mute); }
+.co-error { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); font-weight: 600; color: var(--err); }
+.co-error[hidden] { display: none; }
+
+/* Order: the lines, then their delivery and the note */
+.co-order { display: grid; gap: var(--s-4); }
+.co-items { display: grid; gap: var(--s-4); }
+.co-item { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: "thumb info" "thumb price"; column-gap: var(--s-3); row-gap: var(--s-1); }
+.co-item__thumb { grid-area: thumb; width: 64px; height: 64px; border-radius: var(--r-sm); object-fit: cover; background: var(--ink-800); }
+.co-item__info { grid-area: info; min-width: 0; display: grid; gap: 2px; align-content: start; }
+.co-item__name {
+  font-size: var(--fs-sm); line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.co-item__variant { font-size: var(--fs-xs); color: var(--faint); line-height: 1.4; }
+.co-item__price { grid-area: price; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-2); font-size: var(--fs-sm); }
+.co-item__price .price-was { font-size: var(--fs-xs); }
+
+.co-ship { border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
+.co-ship__current {
+  display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 64px;
+  padding: var(--s-3) var(--s-4); text-align: left; border-radius: 7px 7px 0 0;
+  transition: background-color var(--t-fast) ease-out;
+}
+.co-ship__current:hover { background: var(--ink-800); }
+.co-ship__text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.co-ship__label { font-size: .9375rem; font-weight: 700; }
+.co-ship__eta { font-size: var(--fs-sm); color: var(--mute); }
+.co-ship__chev { flex: none; color: var(--mute); transition: transform var(--t-fast) var(--ease); }
+.co-ship__current[aria-expanded="true"] .co-ship__chev { transform: rotate(180deg); }
+.co-ship__list { margin: 0; padding: var(--s-1) var(--s-2); border: 0; border-top: 1px solid var(--line); }
+.co-ship__list[hidden] { display: none; }
+.co-ship__ins {
+  display: flex; align-items: center; gap: var(--s-3); min-height: 52px;
+  margin: 0 var(--s-4); border-top: 1px solid var(--line); cursor: pointer;
+}
+.co-ship__ins > .icon { flex: none; width: 18px; height: 18px; color: var(--mute); }
+.co-ship__ins-text { flex: 1; font-size: var(--fs-sm); color: var(--text-soft); }
+.co-ship__ins-text .price { font-weight: 500; }
+.co-ship__ins .cart-item__check { margin: 0 -4px 0 0; }
+
+.co-note { border-top: 1px solid var(--line); margin-top: calc(-1 * var(--s-1)); }
+.co-note__toggle {
+  display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 52px;
+  font-size: var(--fs-sm); color: var(--text-soft); text-align: left;
+}
+.co-note__toggle > .icon { flex: none; width: 18px; height: 18px; color: var(--mute); }
+.co-note__label { flex: 1; }
+.co-note__count { font-size: var(--fs-xs); color: var(--faint); font-variant-numeric: tabular-nums; }
+.co-note__chev { flex: none; width: 18px; height: 18px; color: var(--mute); transition: transform var(--t-fast) var(--ease); }
+.co-note__toggle[aria-expanded="true"] .co-note__chev { transform: rotate(90deg); }
+.co-note__body { padding-bottom: var(--s-1); }
+.co-note__input, .co-dialog__area { height: auto; min-height: 88px; padding: var(--s-3) var(--s-4); line-height: 1.5; resize: vertical; }
+
+/* One row per choice, the radio on the right: couriers and payment methods. */
+.co-option {
+  display: flex; align-items: center; gap: var(--s-3); min-height: 60px;
+  padding: var(--s-3) 0; cursor: pointer;
+}
+.co-option + .co-option { border-top: 1px solid var(--line); }
+.co-option[hidden] { display: none; }
+.co-option__text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.co-option__name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; }
+.co-option__note { font-size: var(--fs-xs); color: var(--mute); line-height: 1.4; }
+.co-ship__list .co-option { padding-inline: var(--s-2); }
+.co-radio {
+  flex: none; appearance: none; width: 22px; height: 22px; margin: 0; border-radius: 50%;
+  border: 1.5px solid var(--line-strong); background: transparent; cursor: pointer;
+  display: grid; place-items: center;
+  transition: border-color var(--t-fast) ease-out;
+}
+.co-radio::before {
+  content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--violet-400);
+  transform: scale(0); transition: transform var(--t-fast) var(--ease);
+}
+.co-radio:checked { border-color: var(--violet-400); }
+.co-radio:checked::before { transform: scale(1); }
+.co-radio:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+.co-option:hover .co-radio:not(:checked) { border-color: #573C66; }
+
+/* Payment side: one card of stacked blocks from 900px, separate cards below. */
+.co-side { display: grid; gap: var(--s-4); }
+.co-methods, .co-promo, .co-summary, .co-paybar {
+  padding: var(--s-4); background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.co-side__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); }
+.co-side__title { font-size: 1.0625rem; font-weight: 700; }
+.co-methods__set { margin: var(--s-2) 0 0; padding: 0; border: 0; min-width: 0; }
+/* White tiles, as in the footer: the bank marks are drawn for a light ground. */
+.co-pm__logo {
+  flex: none; display: grid; place-items: center; width: 64px; height: 36px; padding: 5px 7px;
+  border-radius: 6px; background: #fff;
+}
+.co-pm__logo img { max-width: 100%; max-height: 26px; width: auto; height: auto; }
+
+.co-promo { display: grid; gap: var(--s-3); }
+.co-promo__toggle {
+  display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 44px;
+  font-size: var(--fs-sm); font-weight: 600; text-align: left; color: var(--text-soft);
+}
+.co-promo__icon { flex: none; width: 22px; height: 22px; color: var(--lilac-300); }
+.co-promo__label { flex: 1; }
+.co-promo__chev { flex: none; width: 18px; height: 18px; color: var(--mute); transition: transform var(--t-fast) var(--ease); }
+.co-promo__toggle[aria-expanded="true"] .co-promo__chev { transform: rotate(90deg); }
+.co-promo__toggle.is-applied { color: var(--lilac-200); }
+.co-promo__form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-2); }
+.co-promo__form[hidden] { display: none; }
+.co-promo__form .pdp-input { text-transform: uppercase; }
+.co-promo__form .pdp-input::placeholder { text-transform: none; }
+.co-promo__form .btn { --btn-h: 44px; padding: 0 var(--s-4); }
+.co-promo__msg { font-size: var(--fs-xs); color: var(--lilac-300); }
+.co-promo__msg.is-error { color: var(--err); }
+.co-promo__msg[hidden] { display: none; }
+
+.co-summary { display: grid; gap: var(--s-3); }
+.co-paybar { display: grid; gap: var(--s-3); }
+.co-paybar .btn .icon { width: 18px; height: 18px; }
+.co-terms { font-size: var(--fs-xs); line-height: 1.5; color: var(--faint); text-align: center; }
+
+/* Address dialog */
+.co-dialog {
+  width: min(100% - 2 * var(--s-4), 560px); max-height: min(100dvh - 2 * var(--s-4), 760px);
+  margin: auto; padding: 0; overflow: hidden;
+  background: var(--ink-900); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-lg);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .6);
+}
+.co-dialog::backdrop { background: rgba(6, 1, 9, .72); backdrop-filter: blur(4px); }
+.co-dialog__form { display: flex; flex-direction: column; max-height: inherit; }
+.co-dialog__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5); border-bottom: 1px solid var(--line);
+}
+.co-dialog__title { font-size: 1.0625rem; font-weight: 700; }
+.co-dialog__body { flex: 1; overflow-y: auto; display: grid; gap: var(--s-4); padding: var(--s-5); }
+.co-dialog__row { display: grid; gap: var(--s-4); }
+.co-dialog__postal { max-width: 200px; }
+.co-dialog .pdp-hint:empty { display: none; }
+.co-dialog__foot {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3);
+  padding: var(--s-4) var(--s-5); border-top: 1px solid var(--line);
+}
+
+@media (max-width: 899px) {
+  .co-side { display: contents; }
+  .co-paybar {
+    position: fixed; inset: auto 0 0; z-index: 38;
+    border-radius: 0; border-inline: 0; border-bottom: 0;
+    padding: var(--s-3) var(--gutter) calc(var(--s-3) + env(safe-area-inset-bottom));
+    box-shadow: 0 -12px 24px -12px rgba(0, 0, 0, .6);
+    grid-template-columns: 1fr auto; align-items: center; column-gap: var(--s-4);
+  }
+  .co-paybar .cart-pay__total { display: grid; gap: 0; }
+  .co-paybar .cart-pay__total span { font-size: var(--fs-xs); color: var(--mute); font-weight: 500; }
+  .co-paybar .btn { width: auto; }
+  .co-terms { grid-column: 1 / -1; text-align: left; }
+}
+@media (min-width: 600px) {
+  .co-card { padding: var(--s-5); }
+  .co-item { grid-template-columns: 80px minmax(0, 1fr) auto; grid-template-areas: "thumb info price"; column-gap: var(--s-4); }
+  .co-item__thumb { width: 80px; height: 80px; }
+  .co-item__name { font-size: .9375rem; }
+  .co-item__price { flex-direction: column; align-items: flex-end; text-align: right; font-size: .9375rem; }
+  .co-dialog__row { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 900px) {
+  .co { padding-bottom: var(--s-7); }
+  .co__layout { grid-template-columns: minmax(0, 1fr) 400px; gap: var(--s-5); }
+  .co-side {
+    position: sticky; top: calc(var(--header-h) + var(--s-4)); gap: 0;
+    background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md);
+  }
+  .co-side > * { background: none; border: 0; border-radius: 0; padding: var(--s-5); }
+  .co-side > * + * { border-top: 1px solid var(--line); }
+  .co-side .co-promo { padding-block: var(--s-3); }
+}
 
 /* ---------- Motion preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
