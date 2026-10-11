@@ -1033,11 +1033,14 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     --right: min(100vw - 8px, 100vw - 12px - var(--hy-space) + 1.29 * var(--ph) + max(0px, (var(--hy-space) - 1.29 * var(--ph)) / 2));
   }
   .page-head[data-cat="sarung-jempol"]::after {
-    /* where they cannot start after the trail, they sit just low enough to clear it (80px) */
-    top: max(50% - .6875 * var(--ph), 80px - .1875 * var(--ph));
     left: calc(max(var(--right) - var(--pw) * var(--ph), min(287px, 100vw - 8px - var(--pw) * var(--ph))) - .219 * var(--ph));
   }
   .page-head[data-cat="sarung-jempol"] .page-title { max-width: calc(48vw / var(--squeeze)); }
+}
+/* Below 441px even 96px-tall sleeves cannot start after the trail, so they sit just low enough
+   to clear it (tops at 80px) instead of centred. */
+@media (max-width: 440px) {
+  .page-head[data-cat="sarung-jempol"]::after { top: max(50% - .6875 * var(--ph), 80px - .1875 * var(--ph)); }
 }
 @media (min-width: 768px) {
   .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"]) {
