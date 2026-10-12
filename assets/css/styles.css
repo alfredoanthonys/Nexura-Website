@@ -438,19 +438,6 @@ s { text-decoration-thickness: 1px; }
     linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
   clip-path: polygon(0 0, calc(100% - 2px) 0, calc(100% - 14px) 100%, 0 100%);
 }
-/* The claim itself, lit top-left and cooling into lilac at the cut, so the type carries the
-   same light direction as the surface. lilac-200 is the floor and the ramp holds flat white
-   for the first 42%: the darkest stop is what the contrast is judged on, and at 10px/800 the
-   type has no weight to spare. Behind @supports because the fallback here is invisible text,
-   not duller text. */
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-  .ticker__lead span {
-    background-image: linear-gradient(104deg, #fff 0%, #fff 42%, var(--lilac-200) 100%);
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
-  }
-}
-
 /* The claims drift through here, left out of the tab's shadow and off the right edge. Masked
    at both ends so they dissolve rather than being cut off — at the left that is where the
    pinned tab ends, at the right it is the screen edge. */
