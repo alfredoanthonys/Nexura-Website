@@ -481,7 +481,10 @@
     const menuWrap = $('[data-filter-menu]', catalog);
     const menuBtn = $('[aria-haspopup="menu"]', menuWrap);
     const menu = $('[role="menu"]', menuWrap);
-    const menuItems = $$('[role^="menuitem"]', menu);
+    const allMenuItems = $$('[role^="menuitem"]', menu);
+    // The reset item is hidden while everything is at its default, so the keys skip it then.
+    const menuItems = () => allMenuItems.filter((it) => !it.closest('[hidden]'));
+    const menuReset = $('[data-menu-reset]', menu);
     const stockItem = $('[data-stock]', menu);
     const sortItems = $$('[data-sort]', menu);
     const activeDot = $('[data-filter-dot]', menuBtn);
@@ -514,6 +517,7 @@
 
     const compare = (a, b) => SORTS[state.sort].cmp(a, b) || byPopular(a, b);
     const isDefaultMenu = () => state.sort === DEFAULTS.sort && state.inStock === DEFAULTS.inStock;
+    const isDefault = () => isDefaultMenu() && state.category === DEFAULTS.category;
     const categoryLabel = () => (state.category === 'all' ? 'Semua Produk' : categories[state.category]);
 
     // Drawn once in the opening order, then only reordered and hidden — the nodes, and the
@@ -565,6 +569,7 @@
       stockItem.setAttribute('aria-checked', String(state.inStock));
       sortItems.forEach((it) => it.setAttribute('aria-checked', String(it.dataset.sort === state.sort)));
       activeDot.hidden = isDefaultMenu();
+      menuReset.hidden = isDefault();
 
       empty.hidden = list.length > 0;
       count.hidden = list.length === 0;
@@ -599,12 +604,14 @@
       setCategory(link.dataset.filter, { scroll: !link.closest('[data-catalog]') });
     });
 
-    $('[data-catalog-reset]', catalog).addEventListener('click', () => {
+    // Two of these: in the Filter menu, and in the empty state when nothing matches.
+    function resetFilters() {
       Object.assign(state, DEFAULTS);
       const n = apply({ animate: true });
       keepChipInView();
       announce(`Filter direset. ${countMessage(n)}`);
-    });
+    }
+    $('[data-catalog-reset]', empty).addEventListener('click', resetFilters);
 
     // The chip rail scrolls sideways on narrow screens. Each end fades only while there is more
     // to scroll that way, so a row that fits shows no fade at all.
@@ -632,7 +639,8 @@
     function openMenu(which = 'first') {
       menuWrap.classList.add('is-open');
       menuBtn.setAttribute('aria-expanded', 'true');
-      (which === 'last' ? menuItems[menuItems.length - 1] : menuItems[0]).focus();
+      const items = menuItems();
+      (which === 'last' ? items[items.length - 1] : items[0]).focus();
     }
     function closeMenu(restoreFocus = true) {
       if (!isMenuOpen()) return;
@@ -647,19 +655,24 @@
       if (e.key === 'ArrowUp') { e.preventDefault(); openMenu('last'); }
     });
     menu.addEventListener('keydown', (e) => {
-      const i = menuItems.indexOf(document.activeElement);
-      const focusAt = (n) => { e.preventDefault(); menuItems[(n + menuItems.length) % menuItems.length].focus(); };
+      const items = menuItems();
+      const i = items.indexOf(document.activeElement);
+      const focusAt = (n) => { e.preventDefault(); items[(n + items.length) % items.length].focus(); };
       if (e.key === 'ArrowDown') focusAt(i + 1);
       else if (e.key === 'ArrowUp') focusAt(i - 1);
       else if (e.key === 'Home') focusAt(0);
-      else if (e.key === 'End') focusAt(menuItems.length - 1);
+      else if (e.key === 'End') focusAt(items.length - 1);
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeMenu(); }
       else if (e.key === 'Tab') closeMenu(false);
     });
     menu.addEventListener('click', (e) => {
       const item = e.target.closest('[role^="menuitem"]');
       if (!item) return;
-      if (item === stockItem) {
+      if (item.matches('[data-catalog-reset]')) {
+        // The item hides itself once everything is back to default, so focus goes to the button.
+        closeMenu();
+        resetFilters();
+      } else if (item === stockItem) {
         state.inStock = !state.inStock;
         const n = apply({ animate: true });
         announce(`${state.inStock ? 'Hanya stok tersedia' : 'Semua stok'}. ${countMessage(n)}`);
