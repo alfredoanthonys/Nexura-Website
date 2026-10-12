@@ -1385,7 +1385,7 @@
 
     $('[data-buybar-text]', pdp).innerHTML = out
       ? `<strong>${escapeHtml(p.short)}</strong> lagi restock`
-      : `Dapatkan <strong>${escapeHtml(p.short)}</strong> sekarang`;
+      : `Dapatkan <strong>${escapeHtml(p.short)}</strong> Sekarang`;
 
     /* Rating line: only what is known. A missing figure drops out rather than showing a zero. */
     const ratingBits = [];
