@@ -1872,24 +1872,22 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 }
 /* The band spans the viewport; the figures inside it stop at the same 1600 the nav and
    footer stop at, so they never drift apart on a wide screen.
-   Two shared rows — numbers, then labels — and each .stat adopts them with subgrid. That is
-   what keeps the three numbers on one baseline when a label wraps to two lines and its
-   neighbours do not; centring each cell independently let the odd one out ride up. It also
-   means the labels can be rewritten to any length without re-tuning anything. */
+   Each label sits right under its own number rather than on a row shared with the others:
+   the stars make 4,8 taller, and a shared row left a gap under 40rb+ and 10rb+. The cells
+   are top-aligned, so the three numbers stay on one line however the labels wrap. */
 .stats {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: auto auto; row-gap: var(--s-1);
   max-width: 1600px; margin: 0 auto; padding: var(--s-4) var(--gutter);
 }
 .stat {
-  display: grid; grid-row: span 2; grid-template-rows: subgrid;
-  justify-items: center; text-align: center; padding-inline: var(--s-2);
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-1);
+  text-align: center; padding-inline: var(--s-2);
 }
 .stat + .stat { border-left: 1px solid rgba(255, 255, 255, .18); }
-/* Explicit rows rather than source order: a <dl> has to keep dt before dd, and the number
+/* Reordered rather than source order: a <dl> has to keep dt before dd, and the number
    belongs on top. */
 .stat__value {
-  grid-row: 1; align-content: start;
+  order: -1;
   display: grid; justify-items: center; gap: var(--s-2); margin: 0;
   font-size: clamp(1.625rem, 1rem + 2.6vw, 2.75rem); font-weight: 800;
   line-height: 1.05; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
@@ -1915,8 +1913,8 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 }
 
 @media (min-width: 600px) {
-  .stats { padding-block: var(--s-5); row-gap: var(--s-2); }
-  .stat { padding-inline: var(--s-4); }
+  .stats { padding-block: var(--s-5); }
+  .stat { padding-inline: var(--s-4); gap: var(--s-2); }
   .stat__label { font-size: var(--fs-sm); }
 }
 @media (min-width: 1024px) {
