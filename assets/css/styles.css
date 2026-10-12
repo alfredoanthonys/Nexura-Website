@@ -1853,6 +1853,15 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
    the override is gone and this section measures like its neighbours.
    Same full-bleed hairline #streamers and .section--textured use. */
 #ulasan { border-top: 1px solid var(--line); }
+/* On a phone the section is tall and narrow, so the stretched art's violet corner glows ran
+   down both edges. Covered instead, it shows only the dark striped middle of the art. */
+@media (max-width: 599px) {
+  #ulasan::before {
+    background:
+      linear-gradient(rgba(12, 3, 16, .42), rgba(12, 3, 16, .42)),
+      url("../img/bg-streamers.jpg") center / cover no-repeat;
+  }
+}
 /* Edge to edge, in the same surface as the ticker's "Mobile gaming gear #1" tab: violet-600
    running into violet-700 along the tab's own 115deg cut, lit by a white sheen along the top,
    with the tab's violet-500 rim as the top and bottom edge. The two read as one family. */
