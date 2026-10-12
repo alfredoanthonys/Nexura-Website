@@ -991,9 +991,6 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   left: calc(min(var(--gap-l) + max(0px, (var(--space) - var(--pw) * var(--ph)) / 2), 100vw - 8px - var(--keep) * var(--pw) * var(--ph)) - .219 * var(--ph));
   background: var(--banner-img) center / contain no-repeat;
 }
-/* Sarung Jempol's headline is long, so below 600px it breaks into SARUNG / JEMPOL, and its pair
-   copies Hydrogel's boxes: the same height (Hydrogel's --ph, from its own --gap-l and --pw)
-   and the same right edge, never past 8px from the window's. */
 /* Up to a tablet the products are centred in the band like the headline beside them, rather
    than standing on the floor: their top is half their height (--ph) above the middle, and the
    image's own top a further .1875 × --ph above that. */
@@ -1013,21 +1010,21 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 @media (max-width: 599px) {
   .page-head[data-cat="sarung-jempol"] {
-    --hy-space: calc(100vw - 12px - max(115px + 27.5vw, 247px));
-    /* Shorter where its taller sleeves would reach the trail, which ends near 287px; when they
-       are taller than 96px they also start after it. */
-    --ph: clamp(96px, min(var(--hy-space) / 1.29, (100vw - 8px - 287px) / 1.52), 124px);
-    --right: min(100vw - 8px, 100vw - 12px - var(--hy-space) + 1.29 * var(--ph) + max(0px, (var(--hy-space) - 1.29 * var(--ph)) / 2));
+    /* The sleeves start after the trail (which ends near 287px, a little past the headline) and
+       end 24px from the window's edge, the same margin the text has on the left: they fill that space, about 60px tall at 390px, and once
+       they reach 124px they stay against the right edge. */
+    --start: 287px;
+    --ph: clamp(48px, (100vw - 24px - var(--start)) / var(--pw), 124px);
   }
   .page-head[data-cat="sarung-jempol"]::after {
-    left: calc(max(var(--right) - var(--pw) * var(--ph), min(287px, 100vw - 8px - var(--pw) * var(--ph))) - .219 * var(--ph));
+    left: calc(max(100vw - 24px - var(--pw) * var(--ph), min(var(--start), 100vw - 8px - var(--pw) * var(--ph))) - .219 * var(--ph));
   }
-  .page-head[data-cat="sarung-jempol"] .page-title { max-width: calc(48vw / var(--squeeze)); }
-}
-/* Below 441px even 96px-tall sleeves cannot start after the trail, so they sit just low enough
-   to clear it (tops at 80px) instead of centred. */
-@media (max-width: 440px) {
-  .page-head[data-cat="sarung-jempol"]::after { top: max(50% - .6875 * var(--ph), 80px - .1875 * var(--ph)); }
+  /* Capped so it stays on one line and ends about 16px short of the sleeves: before the trail
+     does while they are filling the space after it, then up to their left edge once they are
+     full size (each px of type is about 13.6px of headline). */
+  .page-head[data-cat="sarung-jempol"] .page-title {
+    font-size: min(.55rem + 3vw, max(18.5px, 7.37vw - 18.6px)); white-space: nowrap;
+  }
 }
 @media (min-width: 768px) {
   .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"]) {
