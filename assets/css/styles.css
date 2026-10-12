@@ -1873,14 +1873,14 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 /* The band spans the viewport; the figures inside it stop at the same 1600 the nav and
    footer stop at, so they never drift apart on a wide screen.
    Each label sits right under its own number rather than on a row shared with the others:
-   the stars make 4,8 taller, and a shared row left a gap under 40rb+ and 10rb+. The cells
-   are top-aligned, so the three numbers stay on one line however the labels wrap. */
+   the stars make 4,8 taller, and a shared row left a gap under 40rb+ and 10rb+. Each cell
+   is centred in the band's height, so the shorter two sit level with the middle of 4,8. */
 .stats {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   max-width: 1600px; margin: 0 auto; padding: var(--s-4) var(--gutter);
 }
 .stat {
-  display: flex; flex-direction: column; align-items: center; gap: var(--s-1);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-1);
   text-align: center; padding-inline: var(--s-2);
 }
 .stat + .stat { border-left: 1px solid rgba(255, 255, 255, .18); }
