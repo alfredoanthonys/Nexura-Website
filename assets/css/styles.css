@@ -1986,9 +1986,10 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 /* ---------- CTA ---------- */
 /* The artwork is the whole section: headline, lockup and button are painted into it, so there
    is no card, no copy and no overlay here — only the picture, capped so the banner never runs
-   past the bottom of the screen, and a link over the lot. */
+   past the bottom of the screen, and a link over the lot. It sits flush under the textured
+   reviews section, so that section's bottom rule is the only divider between them. */
 .cta-banner {
-  position: relative; margin-top: var(--section-y);
+  position: relative;
   background: var(--ink-950);
 }
 .cta-banner__media { position: relative; display: block; width: 100%; overflow: hidden; }
