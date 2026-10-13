@@ -25,7 +25,7 @@
   <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-iceglow.jpg"
         imagesrcset="assets/img/hero-iceglow-1280.jpg 1280w, assets/img/hero-iceglow.jpg 1672w"
         imagesizes="100vw" media="(min-width: 600px)">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20261011013000">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261014120000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -174,27 +174,8 @@
     </div>
   </header>
 
-  <main id="konten">
+  <main id="konten" class="home">
     <span id="top" class="anchor-top" aria-hidden="true"></span>
-
-    <!-- ============ TICKER ============ -->
-    <!-- A violet band wedged between the near-black nav and the dark banner, so the eye lands
-         on it on the way down. The claim to the left is pinned and never moves; the rest
-         drift past it. main.js fills the figures from NEXURA.social and hands the row its
-         duplicate half for the seamless loop. -->
-    <aside class="ticker" data-ticker aria-label="Kenapa Nexura">
-      <p class="ticker__lead"><span>Mobile gaming gear #1</span></p>
-      <div class="ticker__rotator">
-        <div class="ticker__row" data-ticker-row>
-          <span class="ticker__item"><svg class="icon" aria-hidden="true"><use href="#i-trophy"/></svg>Dipercaya pro player &amp; streamer</span>
-          <span class="ticker__item"><svg class="icon" aria-hidden="true"><use href="#i-snowflake"/></svg>Main seharian, HP tetap dingin</span>
-          <span class="ticker__item"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg>Rating <span data-tick="rating">&mdash;</span> dari <span data-tick="reviewCount">&mdash;</span> ulasan</span>
-          <span class="ticker__item"><svg class="icon" aria-hidden="true"><use href="#i-package"/></svg><span data-tick="sold">&mdash;</span> gear sudah terkirim</span>
-          <span class="ticker__item"><svg class="icon" aria-hidden="true"><use href="#i-truck"/></svg>Dikirim sampai rumah, bayar langsung</span>
-          <span class="ticker__item ticker__item--tag">#GearYourAura</span>
-        </div>
-      </div>
-    </aside>
 
     <!-- ============ HERO SLIDER ============ -->
     <section class="hero" aria-roledescription="carousel" aria-label="Produk unggulan" data-hero>
@@ -256,9 +237,8 @@
       <div class="container">
         <header class="section-head">
           <h2 class="section-title" id="produk-title">Produk Andalan</h2>
-          <p class="section-sub">Terlaris dan terbaru, dipakai para pro player.</p>
         </header>
-        <div class="product-grid" id="produk-grid" data-product-grid></div>
+        <div class="product-grid product-grid--rail" id="produk-grid" data-product-grid></div>
       </div>
     </section>
 
@@ -282,8 +262,7 @@
         </div>
 
         <header class="section-head section-head--sub" id="clips">
-          <h3 class="section-title">Clip dari Live Mereka</h3>
-          <p class="section-sub">Mereka udah nyobain. Nih, pendapat mereka!</p>
+          <h3 class="section-title section-title--sub">Clip dari Live Mereka</h3>
         </header>
 
         <!-- TODO: replace each href with the clip's own Instagram/TikTok URL -->
@@ -397,7 +376,6 @@
       <div class="container">
         <header class="section-head">
           <h2 class="section-title" id="teknologi-title">Teknologi&nbsp;Ter-<br class="br-phone">Nyata</h2>
-          <p class="section-sub">Bukan gimmick. Performa yang bisa lu andalkan pas push rank.</p>
         </header>
 
         <div class="tech-grid">
@@ -614,6 +592,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="assets/js/data.js?v=20261011009000"></script>
-  <script src="assets/js/main.js?v=20261011011000"></script>
+  <script src="assets/js/main.js?v=20261014120000"></script>
 </body>
 </html>

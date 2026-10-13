@@ -287,45 +287,6 @@
   });
 
   /* ------------------------------------------------------------------
-     Ticker: the claim band between the nav and the banner
-     ------------------------------------------------------------------ */
-  {
-    const ticker = $('[data-ticker]');
-    const row = ticker && $('[data-ticker-row]', ticker);
-    if (row) {
-      // The figures are the same ones the stat band publishes, so they are read from
-      // NEXURA.social rather than written into the markup twice. A missing key keeps the
-      // em-dash that is already there.
-      $$('[data-tick]', row).forEach((el) => {
-        const value = (social || {})[el.dataset.tick];
-        if (value) el.textContent = value;
-      });
-
-      // Seconds per claim, not a fixed duration: one more claim in the markup makes the row
-      // longer rather than quicker.
-      const claims = $$('.ticker__item', row);
-      row.style.setProperty('--tick-dur', (claims.length * 5).toFixed(1) + 's');
-
-      // The copy is what the loop drifts into, so it is hidden from assistive tech and from
-      // the reduced-motion rail instead of being read out twice.
-      const copy = row.cloneNode(true);
-      $$('.ticker__item', copy).forEach((el) => {
-        el.classList.add('ticker__item--dup');
-        el.setAttribute('aria-hidden', 'true');
-      });
-      row.insertAdjacentHTML('beforeend', copy.innerHTML);
-
-      // Stops once the band has scrolled past: animating out of view is frames nobody sees.
-      if ('IntersectionObserver' in window) {
-        new IntersectionObserver(
-          ([entry]) => ticker.classList.toggle('is-offscreen', !entry.isIntersecting),
-          { rootMargin: '200px 0px' },
-        ).observe(ticker);
-      }
-    }
-  }
-
-  /* ------------------------------------------------------------------
      Hero slider (native scroll-snap; JS only adds arrows, dots, autoplay)
      ------------------------------------------------------------------ */
   const hero = $('[data-hero]');
@@ -437,8 +398,7 @@
           <p class="product-card__meta">${[
             p.rating ? `<span class="product-card__rating">${icon('star')}<span class="sr-only">Rating </span>${p.rating}</span>` : '',
             p.sold ? `<span>${soldLabel(p.sold)} terjual</span>` : '',
-          ].filter(Boolean).join('<span class="product-card__dot" aria-hidden="true"></span>')}</p>
-          <p class="product-card__cat">${escapeHtml(categories[p.category] || '')}</p>
+          ].filter(Boolean).join('<span class="product-card__dot" aria-hidden="true"></span>')}<span class="product-card__cat">${escapeHtml(categories[p.category] || '')}</span></p>
           ${p.note ? `<p class="product-card__note">${escapeHtml(p.note)}</p>` : ''}
         </div>
       </article>`;
@@ -454,16 +414,12 @@
      ------------------------------------------------------------------ */
   const grid = $('[data-product-grid]');
   if (grid) {
-    // The tile takes the last cell of the first row, so the grid shows one product fewer than the
-    // row holds rather than pushing a control onto a line of its own. It leaves for the products
-    // page, so the rest of the catalogue is that page's job, not this grid's.
-    const COLLAPSED = 3;
-
-    // Featured and in stock, best sellers first: a sold-out product drops out of the grid on
-    // its own and the next featured one takes its place.
-    grid.innerHTML = products.filter((p) => p.featured && p.stock !== 'out')
-      .sort((a, b) => (a.popular || 99) - (b.popular || 99))
-      .slice(0, COLLAPSED).map((p) => cardHTML(p)).join('') + `
+    // A rail of six in stock: featured first, then best sellers, so a sold-out product drops
+    // out on its own. The tile closes the rail and leaves for the products page.
+    const RAIL = 6;
+    grid.innerHTML = products.filter((p) => p.stock !== 'out')
+      .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (a.popular || 99) - (b.popular || 99))
+      .slice(0, RAIL).map((p) => cardHTML(p)).join('') + `
       <a class="more-card" href="${PRODUCTS_PAGE}">
         <span class="more-card__icon">${icon('arrow-right', 'icon')}</span>
         <span class="more-card__label">Lihat produk lainnya</span>

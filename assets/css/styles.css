@@ -80,9 +80,6 @@
   --head-y: 16px;
   --container: 1200px;
   --header-h: 56px;
-  /* The claim band's height. The hero subtracts it along with the header, so the banner still
-     ends at the fold with the band above it. */
-  --ticker-h: 46px;
 
   --r-sm: 8px;
   --r-md: 12px;
@@ -96,7 +93,7 @@
 }
 
 @media (min-width: 600px) {
-  :root { --gutter: 36px; --gutter-wide: 36px; --footer-x: 52px; --section-y: 32px; --head-y: 24px; --header-h: 64px; --ticker-h: 44px; }
+  :root { --gutter: 36px; --gutter-wide: 36px; --footer-x: 52px; --section-y: 32px; --head-y: 24px; --header-h: 64px; }
 }
 @media (min-width: 1024px) {
   :root { --gutter: 48px; --gutter-wide: 56px; --footer-x: 80px; --section-y: 48px; --head-y: 32px; --header-h: 72px; }
@@ -384,140 +381,6 @@ s { text-decoration-thickness: 1px; }
   .search__results { left: 0; right: auto; width: max(100%, 360px); top: calc(100% + 8px); }
 }
 
-/* ---------- Ticker ---------- */
-/* Wears the brand texture the streamers section does, only lightly dimmed (the claims carry their own
-   text-shadow). Covered, not stretched as #streamers stretches it: on a band this shallow,
-   stretching flattens the diagonals into streaks — the same call .page-head makes. Full-bleed
-   and never in the container. */
-.ticker {
-  position: relative; z-index: 1; display: flex; align-items: stretch; overflow: hidden;
-  height: var(--ticker-h);
-  background:
-    linear-gradient(rgba(12, 3, 16, .15), rgba(12, 3, 16, .15)),
-    url("../img/bg-streamers.jpg") 100% 72% / cover no-repeat;
-  /* The same violet rule the nav draws along its bottom edge, so the band is bounded by the
-     page's own line rather than by a brighter one of its own. */
-  border-top: 1px solid rgba(168, 63, 224, .55);
-  border-bottom: 1px solid rgba(168, 63, 224, .55);
-}
-/* A faint centre lift. Paint only, so it never sits over the text's contrast enough to
-   matter — the claims are white 800 on a dark plum either way. Held low now that the field
-   underneath is near-black: the point of the darker band is the gap it opens to the tab. */
-.ticker::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background-image: radial-gradient(120% 180% at 50% 0%, rgba(219, 77, 255, .12), rgba(219, 77, 255, 0) 62%);
-}
-
-/* Pinned: this one never rotates away, so it is readable at any moment of the cycle. The
-   clipped right edge cuts it on the diagonal, which is what separates the tab from the field
-   behind it without a second border. */
-.ticker__lead {
-  position: relative; z-index: 1; flex: none; isolation: isolate;
-  display: flex; align-items: center;
-  padding-inline: var(--s-4) calc(var(--s-4) + 12px);
-  /* The edge colour. The surface below sits 2px short of the diagonal, so what shows through
-     along the cut is this — a rim rather than a border, which clip-path would have eaten
-     anyway. One step above the surface's lightest stop, which is all the separation the cut
-     needs now that both the tab and the band under it are dark. */
-  background: var(--violet-500);
-  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
-  color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; line-height: 1.15;
-  text-transform: uppercase;
-  /* One line at every width: the claim reads as a single label, never a stacked block. */
-  white-space: nowrap;
-}
-/* The tab's surface. No hatch now — the lift comes from the gradient running with the cut
-   plus a highlight along the top edge, so the tab reads as one lit plane. It stops at
-   violet-700 rather than running down into plum: plum is what the band itself is through the
-   middle, and the tab would dissolve into it right where the cut is. Clipped 2px inside the
-   parent's own polygon, which is what leaves the rim. */
-.ticker__lead::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 52%),
-    linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
-  clip-path: polygon(0 0, calc(100% - 2px) 0, calc(100% - 14px) 100%, 0 100%);
-}
-/* The claims drift through here, left out of the tab's shadow and off the right edge. Masked
-   at both ends so they dissolve rather than being cut off — at the left that is where the
-   pinned tab ends, at the right it is the screen edge. */
-.ticker__rotator {
-  position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden;
-  /* Starts the row just past the fade, so the first claim is whole on first paint instead of
-     emerging half-dissolved. Padding on the viewport, not the row — the loop translates the
-     row by half its own width, which padding here leaves alone. */
-  padding-left: 30px;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 40px), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 40px), transparent);
-}
-/* --tick-dur is set in main.js from the number of claims, so adding one makes the row longer
-   instead of faster. */
-.ticker__row {
-  display: flex; width: max-content; height: 100%; align-items: center;
-  animation: tick-drift var(--tick-dur, 32s) linear infinite;
-}
-/* Exactly half the track, because each claim carries its own trailing gap in its margin
-   instead of the row using `gap` — with `gap` the last claim has none and the loop point
-   lands a gap short. */
-@keyframes tick-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-.ticker__item {
-  flex: none; display: inline-flex; align-items: center; gap: var(--s-2);
-  font-size: 11px; font-weight: 800; letter-spacing: .06em; line-height: 1;
-  text-transform: uppercase; color: #fff; white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(12, 3, 16, .35);
-}
-/* Held back from white so the claim reads first and the glyph is support, not a second
-   highlight competing with it. The nudge is optical: flex centring lines a box up with the
-   line box, whose middle sits below the middle of all-caps text, since the line box carries
-   descender room the capitals never use. */
-.ticker__item .icon { width: 15px; height: 15px; stroke-width: 2.25; color: rgba(255, 255, 255, .62); translate: 0 -1px; }
-/* The separator: a tilted square between claims, which is also what spaces them — the gap
-   belongs to the claim before it, which is what keeps the half-track loop exact. */
-.ticker__item::after {
-  content: ""; width: 5px; height: 5px; rotate: 45deg; translate: 0 -1px;
-  margin-inline: var(--s-5); background: rgba(228, 182, 240, .5);
-}
-/* lilac-200, not lilac-300: the band is a lit surface and 300 drops under 4.5:1 on it. */
-.ticker__item--tag { letter-spacing: .12em; color: var(--lilac-200); }
-
-/* Same bargain as the review rows: a pointer does not stop it, an open overlay does, and
-   main.js stops it once the band has scrolled away. */
-.ticker.is-offscreen .ticker__row,
-body.is-overlay-open .ticker__row { animation-play-state: paused; }
-
-@media (min-width: 600px) {
-  .ticker__lead {
-    font-size: var(--fs-xs); letter-spacing: .1em;
-    padding-inline: var(--gutter) calc(var(--gutter) + 12px);
-  }
-  .ticker__item { font-size: var(--fs-xs); letter-spacing: .08em; }
-  .ticker__item .icon { width: 17px; height: 17px; }
-  .ticker__item::after { margin-inline: var(--s-6); }
-  .ticker__rotator {
-    padding-left: 40px;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 56px), transparent);
-    mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 56px), transparent);
-  }
-}
-
-/* Motion off: the drift stops and the copies go, and the row turns into the same swipe rail
-   the clips use, so every claim is still reachable. */
-@media (prefers-reduced-motion: reduce) {
-  .ticker__rotator {
-    overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
-    padding-left: var(--s-4);
-    -webkit-mask-image: none; mask-image: none;
-  }
-  .ticker__rotator::-webkit-scrollbar { display: none; }
-  .ticker__row { animation: none; }
-  .ticker__item--dup { display: none; }
-  /* Nothing follows the last claim on the rail, so its separator would hang off the end. The
-     copies sit after the originals, hence the :has() — :last-child is a hidden copy. */
-  .ticker__item:last-child::after,
-  .ticker__item:has(+ .ticker__item--dup)::after { display: none; }
-}
-
 /* ---------- Hero ---------- */
 .hero { position: relative; container-type: inline-size; background: var(--ink-950); }
 .hero__track {
@@ -654,8 +517,11 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   /* Phones get the portrait banners (2/3), which paint their own headline and CTA, so the
      picture shows whole: none of the zoom-and-slide crop the wide art needs above. */
   .hero__slide { background: var(--ink-950); }
+  /* Edge to edge at every phone height, at the art's own 2/3. Not capped at the fold: a cap
+     left the box shorter than the art on short phones, and the art, shown whole, then sat
+     between dark margins either side. A short phone scrolls a little to reach the dots instead. */
   .hero__media { aspect-ratio: 2 / 3; }
-  .hero__media img { position: static; width: 100%; left: auto; object-position: 50% 50%; }
+  .hero__media img { position: static; width: 100%; left: auto; object-fit: contain; object-position: 50% 50%; }
   .hero__media::after { display: none; }
   /* The art carries the headline, so the live one drops out of view but stays in the
      accessibility tree; the content box is left as the strip the dots sit in, under the art. */
@@ -674,7 +540,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 
 @media (min-width: 768px) {
-  .hero__media { aspect-ratio: 16 / 9; max-height: max(560px, calc(100svh - var(--header-h) - var(--ticker-h))); }
+  /* Ends at the fold: on a screen shorter than 16/9 allows, cover trims the art top and bottom. */
+  .hero__media { aspect-ratio: 16 / 9; max-height: calc(100svh - var(--header-h)); }
   .hero__media::after { display: none; }
   .hero__slide--iceglow .hero__media img { object-position: 50% 38%; }
   .hero__slide--creator .hero__media img { object-position: 50% 40%; }
@@ -722,6 +589,26 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 /* ---------- Sections ---------- */
 .section { padding-block: var(--section-y); }
+/* The home page's vertical rhythm, after gamesir.com's: each section pads 32/64/96 top and
+   bottom, and its headline adds 16/24/32 more above itself, so the air sits between sections.
+   Under the heading block it stays tight, 24/32/48, so a headline holds onto what it
+   introduces. A subtitle sits 16 under its headline. Vertical only: the gutters stay. The rest
+   of the site keeps the tighter --section-y rhythm. */
+.home > .section { padding-block: 32px; }
+.home .section-head { padding-top: var(--s-4); margin-bottom: var(--s-5); gap: var(--s-4); }
+/* "Clip dari Live Mereka" is a heading inside Apa Kata Streamers, so it is spaced off the video
+   like a new block (the same gap a heading keeps from its content) and stays closer to its clips. */
+.home .section-head--sub { margin-top: 40px; margin-bottom: var(--s-5); }
+@media (min-width: 600px) {
+  .home > .section { padding-block: 64px; }
+  .home .section-head { padding-top: var(--s-5); margin-bottom: var(--s-6); }
+  .home .section-head--sub { margin-top: 64px; margin-bottom: var(--s-6); }
+}
+@media (min-width: 1024px) {
+  .home > .section { padding-block: 96px; }
+  .home .section-head { padding-top: var(--s-6); margin-bottom: var(--s-7); }
+  .home .section-head--sub { margin-top: 96px; margin-bottom: var(--s-7); }
+}
 
 /* "Apa Kata Streamers" and "Clip dari Live Mereka" share this one section. A dimmed copy of
    the brand texture marks it as its own surface. The edges are hard rather than faded: the
@@ -769,6 +656,10 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   width: max-content; max-width: calc(100% / var(--squeeze));
   transform: scaleX(var(--squeeze));
 }
+/* A heading inside a section, under its headline ("Clip dari Live Mereka" under Apa Kata
+   Streamers): the same Draco, at about 60% of the headline's size, so it reads as a part of the
+   section rather than a second one starting. */
+.section-title--sub { font-size: clamp(1rem, .45rem + 1.8vw, 1.5rem); }
 /* A line break only phones take (see "Teknologi Ter- / Nyata"). */
 @media (min-width: 600px) { .br-phone { display: none; } }
 .section-sub { font-size: var(--fs-lead); color: var(--mute); max-width: 32ch; text-wrap: balance; }
@@ -790,6 +681,18 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
 @media (min-width: 600px) { .product-grid { gap: var(--s-4); } }
 @media (min-width: 900px) { .product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-5); } }
+/* Produk Andalan: one row that scrolls sideways, the same rail the clips use, with the "Lihat
+   produk lainnya" tile closing it. A part card at the right edge is the scroll cue. */
+.product-grid--rail {
+  grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 44%;
+  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
+  overscroll-behavior-x: contain;
+}
+.product-grid--rail::-webkit-scrollbar { display: none; }
+.product-grid--rail > * { scroll-snap-align: start; }
+@media (min-width: 600px) { .product-grid--rail { grid-auto-columns: 30%; } }
+@media (min-width: 900px) { .product-grid--rail { grid-template-columns: none; grid-auto-columns: calc((100% - 3 * var(--s-5)) / 4); } }
 
 .product-card {
   position: relative; display: flex; flex-direction: column;
@@ -854,14 +757,15 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .product-card__price .price { font-size: 1.0625rem; }
 .product-card__price .price-was { font-size: var(--fs-xs); }
 
-/* Rating and sales, Tokopedia's order: one amber star, the score, then sold. The row keeps its
-   line even when a product has neither yet, so the pills below stay level across a grid row. */
+/* Rating and sales, Tokopedia's order: one violet star, the score, then sold, with the
+   category pill on the same line where the card is wide enough. Where it is not, the line
+   wraps and the pill drops below, whole; nothing is cut off. */
 .product-card__meta {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--s-2); min-height: 1.4em;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); min-height: 1.4em;
   font-size: var(--fs-xs); color: var(--mute); line-height: 1.4;
 }
 .product-card__rating { display: inline-flex; align-items: center; gap: 3px; color: var(--text-soft); font-weight: 600; }
-.product-card__rating .icon { width: 14px; height: 14px; fill: var(--amber-400); stroke: none; }
+.product-card__rating .icon { width: 14px; height: 14px; fill: var(--violet-400); stroke: none; }
 .product-card__dot { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); }
 
 /* Names the kind of product under the price. The card's own name is clamped to two lines and
@@ -872,19 +776,15 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    by weight. Text comes from NEXURA.categories, the same map the search and the filter status
    use, so the three never drift apart. */
 .product-card__cat {
-  align-self: start;
-  padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+  padding: 2px 8px; border-radius: 999px; white-space: nowrap; line-height: 1.4;
   background: var(--violet-700); color: var(--lilac-200);
   font-size: var(--fs-xs); font-weight: 700; letter-spacing: .02em;
 }
 
 .product-card__note { font-size: var(--fs-xs); color: var(--mute); display: flex; align-items: center; }
 
-/* Route through to the products page, as a cell of the grid rather than a bar beneath it. It
-   sits in the last slot of the first row, so it is on screen with the products instead of
-   waiting below the fold — the failure mode of putting this at the end of a rail, where it
-   goes unseen. Dashed and image-less so it never reads as a fifth product, but on the card's
-   footprint so the grid keeps its rhythm. */
+/* Route through to the products page, closing the Produk Andalan rail. Dashed and image-less
+   so it never reads as another product, but on the card's footprint so the rail keeps its rhythm. */
 .more-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: var(--s-2); padding: var(--s-4); text-align: center;
@@ -935,7 +835,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     url("../img/banner-produk-1024.jpg") 50% 78% / cover no-repeat;
 }
 @media (min-width: 768px) {
-  .page-head { --banner-h: clamp(220px, 20vw, 320px); min-height: var(--banner-h); }
+  .page-head { --banner-h: clamp(240px, 26vw, 400px); min-height: var(--banner-h); }
   .page-head::before {
     background:
       linear-gradient(90deg, rgba(12, 3, 16, .75), rgba(12, 3, 16, .35) 35%, transparent 55%),
@@ -963,7 +863,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    also start after it (it ends near 239px).
    On a phone the products fill the space after the headline (96–124px tall) and centre in it;
    where even 96px does not fit, they slide right until up to a fifth of them is past the edge.
-   Wider, they are larger (76% of the band's height, standing a little further forward so they
+   Wider, they are larger (80% of the band's height, standing a little further forward so they
    clear its top, and smaller only where the text leaves them less room) and end on the content column's right edge, where the product grid below
    ends, never closer than 24px to the end of the headline or the line under it. The band clips the reflection's
    tail. Main.js sets data-cat. */
@@ -999,38 +899,46 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     top: calc(50% - .6875 * var(--ph));
   }
 }
-/* Fan Cooler keeps its one-line headline on a phone, with the fans whole beside it: they start
-   20px after the headline (which ends near 116px + 31vw) and shrink to fit rather than run
-   past the edge, down to about 64px tall at 375px. */
+/* On a phone the band is about square (16px taller than it is wide, 446px at 430px, capped at
+   480px): the trail and headline sit centred at its top, and a category's products stand
+   centred on the floor below them (86% down), filling the room under the headline (which ends
+   about 100px down) or as wide as the window less 24px each side, whichever is smaller. Every category shares the
+   height, so switching between them never moves the catalogue (Semua Produk drops the band,
+   below). The wash
+   runs down from the top instead of in from the left, behind the centred text. */
 @media (max-width: 599px) {
-  .page-head[data-cat="fan-cooler"] {
-    --gap-l: calc(136px + 31.1vw); --space: calc(100vw - 16px - var(--gap-l));
-    --ph: clamp(56px, var(--space) / var(--pw), 124px); --keep: 1;
+  .page-head:not(.page-head--plain) {
+    --band-h: min(100vw + 16px, 480px);
+    min-height: var(--band-h); align-content: start;
+    padding-block: var(--s-4) var(--s-5); text-align: center;
   }
-}
-@media (max-width: 599px) {
-  .page-head[data-cat="sarung-jempol"] {
-    /* The sleeves start after the trail (which ends near 287px, a little past the headline) and
-       end 24px from the window's edge, the same margin the text has on the left: they fill that space, about 60px tall at 390px, and once
-       they reach 124px they stay against the right edge. */
-    --start: 287px;
-    --ph: clamp(48px, (100vw - 24px - var(--start)) / var(--pw), 124px);
+  .page-head:not(.page-head--plain)::before {
+    background:
+      linear-gradient(180deg, rgba(12, 3, 16, .75), rgba(12, 3, 16, .3) 30%, transparent 45%),
+      url("../img/banner-produk-1024.jpg") 50% 78% / cover no-repeat;
   }
-  .page-head[data-cat="sarung-jempol"]::after {
-    left: calc(max(100vw - 24px - var(--pw) * var(--ph), min(var(--start), 100vw - 8px - var(--pw) * var(--ph))) - .219 * var(--ph));
+  .page-head:not(.page-head--plain) .breadcrumb ol { justify-content: center; }
+  /* The squeezed headline's box spans 1/.63 of the column, pulled out equally both sides, so
+     its centred lines land in the middle of the column once squeezed, and wrap where they
+     would meet its edges. */
+  .page-head:not(.page-head--plain) .page-title {
+    width: calc(100% / var(--squeeze)); max-width: none;
+    margin-inline: calc((100% - 100% / var(--squeeze)) / 2);
+    text-align: center; transform-origin: center;
   }
-  /* Capped so it stays on one line and ends about 16px short of the sleeves: before the trail
-     does while they are filling the space after it, then up to their left edge once they are
-     full size (each px of type is about 13.6px of headline). */
-  .page-head[data-cat="sarung-jempol"] .page-title {
-    font-size: min(.55rem + 3vw, max(18.5px, 7.37vw - 18.6px)); white-space: nowrap;
+  .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"]) {
+    --ph: min((100vw - 48px) / var(--pw), .86 * var(--band-h) - 116px);
+  }
+  .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"])::after {
+    top: calc(86% - 1.1875 * var(--ph));
+    left: calc(50% - var(--pw) * var(--ph) / 2 - .219 * var(--ph));
   }
 }
 @media (min-width: 768px) {
   .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"]) {
     --col: min(100% - 2 * var(--gutter), var(--container));
     /* 100vw, not --col: in a height, 100% would be the band's height. */
-    --ph: min(.76 * var(--banner-h), (min(100vw - 2 * var(--gutter), var(--container)) - max(var(--title-w), 26rem) - 24px) / var(--pw));
+    --ph: min(.8 * var(--banner-h), (min(100vw - 2 * var(--gutter), var(--container)) - max(var(--title-w), 26rem) - 24px) / var(--pw));
   }
   .page-head:is([data-cat="fan-cooler"], [data-cat="sarung-jempol"], [data-cat="hydrogel"])::after {
     top: calc(90% - 1.1875 * var(--ph));
@@ -1190,6 +1098,24 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .catalog-bar { margin-bottom: var(--s-6); }
   .catalog-count { margin-top: var(--s-7); }
 }
+
+/* Semua Produk has no products to show on the band, so it drops the band, the headline (still
+   read out, for screen readers) and the line under it at every width, and opens on the trail
+   alone with the catalogue straight under it. The space above the trail matches the
+   catalogue's own top padding below it. */
+.page-head[data-cat="all"] {
+  display: block; min-height: 0; border-bottom: 0;
+  padding-block: var(--s-4) 0; text-align: left;
+}
+.page-head[data-cat="all"]::before { content: none; }
+.page-head[data-cat="all"] .breadcrumb ol { justify-content: flex-start; }
+.page-head[data-cat="all"] .page-title {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.page-head[data-cat="all"] .page-head__lead { display: none; }
+@media (min-width: 600px) { .page-head[data-cat="all"] { padding-top: var(--s-5); } }
+@media (min-width: 1024px) { .page-head[data-cat="all"] { padding-top: var(--s-6); } }
 
 /* ---------- Product detail page ---------- */
 /* Three things stick under the navbar, stacked: the navbar itself, the buy bar, and the tab
@@ -1596,7 +1522,7 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 .inbox .icon { width: 18px; height: 18px; margin-top: 2px; color: var(--violet-400); stroke-width: 2.25; }
 
 /* A usage warning from the listing, so it leads the tab. Lilac on a violet wash rather than
-   amber: amber is kept for scarcity and stars. */
+   amber: amber is kept for scarcity. */
 .pdp-notice {
   display: flex; align-items: flex-start; gap: var(--s-3); margin-bottom: var(--s-5);
   padding: var(--s-3) var(--s-4); border-radius: var(--r-md);
@@ -1902,10 +1828,9 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
    label drops under 4.5:1 once it sits on violet instead of on the page. */
 .stat__label { font-size: var(--fs-2xs); color: var(--lilac-200); line-height: 1.3; }
 
-/* The one amber on the page. A five-star row is read as a score before it is read as
-   anything else, and in violet it would have blended into every other accent here — so the
-   token's "scarcity only" note now covers rating stars too. Nothing else may use it. */
-.stars { display: flex; gap: 2px; color: var(--amber-400); }
+/* Rating stars are the brand's bright violet, the same as the one star on a product card.
+   Amber stays for scarcity alone. */
+.stars { display: flex; gap: 2px; color: var(--violet-400); }
 .stars .icon { width: 15px; height: 15px; fill: currentColor; stroke: none; }
 .stars .is-off { color: var(--line-strong); }
 .stat__value .stars .icon { width: 18px; height: 18px; }
