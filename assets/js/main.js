@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { products, categories, categoryLeads, video, social, reviews, store } = window.NEXURA;
+  const { products, categories, categoryLeads, compareLabels, video, social, reviews, store } = window.NEXURA;
   const byId = Object.fromEntries(products.map((p) => [p.id, p]));
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -38,6 +38,78 @@
   const live = $('[data-live]');
   const announce = (msg) => { live.textContent = ''; requestAnimationFrame(() => { live.textContent = msg; }); };
 
+  /* Draco headlines: the skew that stands the face upright goes on each word, not the whole
+     headline. Skewing the block leans its lines too, so a headline that wraps steps sideways
+     line by line: a centred one drifts, a left-aligned one becomes a staircase. Each word as
+     an inline-block skews about its own middle, so every line keeps its place. Text only:
+     child elements (a .nowrap span) are walked into, and screen readers still get the words
+     in order. Without this script the CSS skews the whole headline instead. */
+  $$('.section-title').forEach((title) => {
+    const wrap = (node) => {
+      [...node.childNodes].forEach((n) => {
+        if (n.nodeType === 1) { wrap(n); return; }
+        if (n.nodeType !== 3 || !n.textContent.trim()) return;
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+          const w = document.createElement('span');
+          w.className = 'section-title__w';
+          w.textContent = part;
+          frag.appendChild(w);
+        });
+        n.replaceWith(frag);
+      });
+    };
+    wrap(title);
+    title.classList.add('is-worded');
+  });
+
+  /* Beranda: GameSir's scroll motion (gamesir.com's MotionReveal, read from its own code). Each
+     block slides into place the first time it comes 80px into view: 0.85s on cubic-bezier(.22,
+     1, .36, 1), from 20px to one side ("slide-left" / "slide-right"), from 96% ("scale"), or
+     from 20px lower; it stays fully opaque, so it moves rather than appears. Section headlines
+     alternate sides; a row of cards takes left / scale / scale / right across its four
+     columns (three columns: left / scale / right), each 60ms after the last (at most 420ms).
+     The hero rises 20px over 1s on load. Once in place, a block stays. Skipped for readers who
+     ask for reduced motion. Uses the translate / scale properties, so it composes with any
+     transform a block already has. */
+  if ($('main.home') && !reducedMotion.matches && 'IntersectionObserver' in window) {
+    const set = (el, variant, delay = 0) => {
+      el.dataset.motion = variant;
+      if (delay) el.style.setProperty('--motion-delay', `${Math.min(delay, 0.42)}s`);
+    };
+    const four = (k) => (k % 4 === 0 ? 'slide-left' : k % 4 === 3 ? 'slide-right' : 'scale');
+    const three = (k) => (k % 3 === 0 ? 'slide-left' : k % 3 === 1 ? 'scale' : 'slide-right');
+
+    $$('.home .section-head').forEach((h, k) => set(h, k % 2 ? 'slide-right' : 'slide-left'));
+    $$('.home .video, .home .cta-banner').forEach((el) => set(el, 'scale'));
+    $$('.home .rail-ctrl, .home .marquee').forEach((el) => set(el, 'fade'));
+    // product rail and clips: per card, by its column in view
+    $$('.home .product-grid > *, .home .clips > .clip').forEach((c, k) => set(c, four(k), (k % 4) * 0.06));
+    // Teknologi: per card from 600 up (its grid); on a phone it is a coverflow, so the block moves
+    const techCards = $$('.home .tech-card');
+    if (window.matchMedia('(min-width: 600px)').matches) techCards.forEach((c, k) => set(c, three(k), k * 0.06));
+    else { const tg = $('.home .tech-grid'); if (tg) set(tg, 'scale'); }
+    const hero = $('.home .hero');
+    if (hero) set(hero, 'hero');
+
+    // A rail's cards past its right edge never cross the screen (the rail clips them), so a
+    // rail is watched as a whole and brings all its cards in together.
+    const rails = $$('.home .product-grid, .home .clips');
+    const io = new IntersectionObserver((entries) => entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      const t = en.target;
+      (rails.includes(t) ? $$('[data-motion]', t) : [t]).forEach((el) => el.classList.add('is-in'));
+      io.unobserve(t);
+    }), { rootMargin: '0px 0px -80px 0px' });
+    // two frames, so the start position paints before the first move
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      rails.forEach((r) => io.observe(r));
+      $$('[data-motion]').filter((el) => !rails.some((r) => r.contains(el))).forEach((el) => io.observe(el));
+    }));
+  }
+
   const storage = {
     get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
     set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode: cart lives for this visit only */ } },
@@ -70,7 +142,7 @@
     if (openDrawer && openDrawer !== drawer) hideDrawer(openDrawer, false);
     openDrawer = drawer;
     returnFocus = trigger || document.activeElement;
-    header.classList.remove('is-hidden'); // the bar owns the cart button the drawer returns focus to
+    header.classList.remove('is-hidden'); // the bar owns the menu button the drawer returns focus to
     drawer.inert = false;
     backdrop.hidden = false;
     document.body.classList.add('is-overlay-open');
@@ -253,9 +325,10 @@
   document.addEventListener('click', (e) => { if (!e.target.closest('[data-search]') && !e.target.closest('[data-search-toggle]')) closeSearch(); });
 
   /* ------------------------------------------------------------------
-     Header retracts on scroll down, returns on scroll up
+     Header retracts on scroll down, returns on scroll up — except on the product page, where
+     the bar stays put the whole way down
      ------------------------------------------------------------------ */
-  {
+  if (!document.querySelector('.pdp')) {
     const THRESHOLD = 6; // ignore sub-pixel jitter and trackpad noise
     let lastY = window.scrollY;
     let headerH = header.offsetHeight;
@@ -372,6 +445,53 @@
      ------------------------------------------------------------------ */
   // `heading` follows the page outline: h3 under the home page's section h2, h2 under the
   // products page's h1. `eager` skips lazy loading for the cards that land above the fold.
+  /* A review as its own Tokopedia screenshot, untouched, so a buyer sees the real thing (the
+     home page's rows and the product page's Ulasan tab). The words are its alt text, so a
+     screen reader hears the review too. Drawn over the screenshot, not into it: a second set of
+     stars laid exactly on the screenshot's own, which lift and glow when the card pops, and a
+     sticker quoting a few of the reviewer's own words; both decoration. The card is a button
+     that opens the screenshot full size (openReviewZoom). `dup` is the home rows' loop copy: a
+     plain picture, hidden from screen readers. */
+  function reviewShotHTML(r, dup = false) {
+    const alt = `Ulasan bintang ${r.rating} dari ${r.name}${r.variant ? `, varian ${r.variant}` : ''}: ${r.text}`;
+    const img = `<img src="${ASSETS}img/reviews/${r.screenshot}.webp" alt="${dup ? '' : escapeHtml(alt)}" loading="lazy" decoding="async">`;
+    const extras = `<span class="review-shot__stars" aria-hidden="true">${starGlyphs(r.rating)}</span>${
+      r.highlight ? `<span class="review-shot__tag" aria-hidden="true">\u201c${escapeHtml(r.highlight)}\u201d</span>` : ''}`;
+    return dup
+      ? `<figure class="review-shot review--dup" aria-hidden="true">${img}${extras}</figure>`
+      : `<figure class="review-shot"><button class="review-shot__btn" type="button" data-review-zoom aria-label="Perbesar ulasan dari ${escapeHtml(r.name)}">${img}</button>${extras}</figure>`;
+  }
+
+  /* Full-size view of one review screenshot: a modal dialog, closed by its button, Escape, or a
+     tap outside the picture. Built on first use, so any page with screenshot cards gets it.
+     Taps on [data-review-zoom] inside `scope` open it; onToggle(open) lets the caller pause. */
+  function wireReviewZoom(scope, onToggle = () => {}) {
+    let zoom = $('[data-review-dialog]');
+    if (!zoom) {
+      zoom = document.createElement('dialog');
+      zoom.className = 'review-zoom';
+      zoom.dataset.reviewDialog = '';
+      zoom.setAttribute('aria-label', 'Ulasan pembeli');
+      zoom.innerHTML = `<button class="review-zoom__close" type="button" data-review-close aria-label="Tutup">${icon('x')}</button><img alt="">`;
+      document.body.appendChild(zoom);
+    }
+    const zoomImg = $('img', zoom);
+    scope.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-review-zoom]');
+      if (!btn) return;
+      const src = $('img', btn);
+      zoomImg.src = src.currentSrc || src.src;
+      zoomImg.alt = src.alt;
+      zoom.showModal();
+      onToggle(true);
+    });
+    if (!zoom.dataset.wired) {
+      zoom.dataset.wired = '1';
+      zoom.addEventListener('click', (e) => { if (e.target === zoom || e.target.closest('[data-review-close]')) zoom.close(); });
+    }
+    zoom.addEventListener('close', () => onToggle(false));
+  }
+
   function cardHTML(p, { heading = 'h3', eager = false } = {}) {
     const color = colorOf(p);
     // `cover` is a lineup shot that beats any single variant on a card (see Reflex).
@@ -395,11 +515,11 @@
             <span class="price" data-price>${rupiah(priceOf(p, color && color.id))}</span>
             ${p.compareAt ? `<s class="price-was"><span class="sr-only">Harga normal </span>${rupiah(p.compareAt)}</s>` : ''}
           </p>
+          ${p.note ? `<p class="product-card__note">${escapeHtml(p.note)}</p>` : ''}
           <p class="product-card__meta">${[
             p.rating ? `<span class="product-card__rating">${icon('star')}<span class="sr-only">Rating </span>${p.rating}</span>` : '',
             p.sold ? `<span>${soldLabel(p.sold)} terjual</span>` : '',
           ].filter(Boolean).join('<span class="product-card__dot" aria-hidden="true"></span>')}<span class="product-card__cat">${escapeHtml(categories[p.category] || '')}</span></p>
-          ${p.note ? `<p class="product-card__note">${escapeHtml(p.note)}</p>` : ''}
         </div>
       </article>`;
   }
@@ -427,6 +547,134 @@
   }
 
   /* ------------------------------------------------------------------
+     Home rails (Produk Andalan, clips): dots, arrows, autoplay
+     ------------------------------------------------------------------ */
+  /* After GameSir's product carousel: every 5s the rail moves one card on, in 300ms on an
+     `ease` curve (Swiper's defaults), and after the last stop it slides back to the first.
+     The rails can't be swiped or scrolled by hand (overflow hidden), so autoplay, the arrows
+     and the dots are the only ways along. A stop is one card further along, so a rail of 7
+     showing 4 has 4 stops and 4 dots.
+     The active dot's fill is the timer: the rail moves on when it is full, so pausing the
+     fill pauses the rail in step. Unlike GameSir it pauses while the pointer, a finger or
+     focus is on it, and while it is off screen, so a card never slides out from under a
+     reader. Reduced motion: no autoplay, the arrows and dots still work. */
+  const RAIL_AUTOPLAY = 5000;
+  const RAIL_SPEED = 300;
+  // CSS `ease`, cubic-bezier(.25, .1, .25, 1), solved for y at time t
+  const ease = (t) => {
+    const bez = (a, b, u) => 3 * a * u * (1 - u) ** 2 + 3 * b * u * u * (1 - u) + u ** 3;
+    let lo = 0, hi = 1, u = t;
+    for (let k = 0; k < 20; k++) { u = (lo + hi) / 2; if (bez(.25, .25, u) < t) lo = u; else hi = u; }
+    return bez(.1, 1, u);
+  };
+
+  $$('[data-rail]').forEach((rail) => {
+    const ctrl = $(`[data-rail-ctrl="${rail.id}"]`);
+    if (!ctrl) return;
+    const dotsBox = $('[data-rail-dots]', ctrl);
+    const prev = $('[data-rail-prev]', ctrl);
+    const next = $('[data-rail-next]', ctrl);
+    const items = [...rail.children];
+    let stops = 0, step = 0, current = -1, anim = 0;
+    let hovered = false, focused = false, touching = false, visible = false;
+    ctrl.style.setProperty('--rail-autoplay', RAIL_AUTOPLAY + 'ms');
+
+    const maxScroll = () => rail.scrollWidth - rail.clientWidth;
+    const leftOf = (i) => Math.min(i * step, maxScroll());
+
+    const setPaused = () => ctrl.classList.toggle('is-paused', hovered || focused || touching || !visible);
+
+    const setCurrent = (i) => {
+      if (i === current) return;
+      current = i;
+      $$('button', dotsBox).forEach((d, k) => (k === i ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+      prev.setAttribute('aria-disabled', String(i <= 0));
+      next.setAttribute('aria-disabled', String(i >= stops - 1));
+    };
+
+    // Measures the rail: how far one card moves it, and how many stops that leaves. Rebuilds
+    // the dots only when the count changes (a breakpoint), so the active fill isn't restarted
+    // by every resize.
+    const measure = () => {
+      step = items.length > 1 ? items[1].offsetLeft - items[0].offsetLeft : rail.clientWidth;
+      const n = step > 0 ? Math.round(maxScroll() / step) + 1 : 1;
+      ctrl.hidden = n < 2;
+      if (n !== stops) {
+        stops = n;
+        dotsBox.innerHTML = Array.from({ length: n }, (_, k) =>
+          `<button type="button" aria-label="Ke posisi ${k + 1} dari ${n}"></button>`).join('');
+        current = -1;
+      }
+      sync();
+    };
+    // the stop nearest the scroll position; the last one is the far end, wherever it lands
+    const sync = () => {
+      const x = rail.scrollLeft;
+      setCurrent(x >= maxScroll() - 2 ? stops - 1 : Math.min(stops - 1, Math.round(x / step)));
+    };
+
+    const cancel = () => { if (anim) { cancelAnimationFrame(anim); anim = 0; } };
+    // Its own 300ms tween rather than scrollTo's smooth, whose length the browser picks.
+    const goTo = (i) => {
+      i = Math.max(0, Math.min(stops - 1, i));
+      cancel();
+      const from = rail.scrollLeft, to = leftOf(i);
+      setCurrent(i);
+      if (reducedMotion.matches || from === to) { rail.scrollLeft = to; return; }
+      const t0 = performance.now();
+      const frame = (now) => {
+        const t = Math.min(1, (now - t0) / RAIL_SPEED);
+        rail.scrollLeft = from + (to - from) * ease(t);
+        if (t < 1) anim = requestAnimationFrame(frame); else anim = 0;
+      };
+      anim = requestAnimationFrame(frame);
+    };
+
+    let ticking = false;
+    rail.addEventListener('scroll', () => {
+      if (anim || ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { ticking = false; sync(); });
+    }, { passive: true });
+
+    prev.addEventListener('click', () => { if (current > 0) goTo(current - 1); });
+    next.addEventListener('click', () => { if (current < stops - 1) goTo(current + 1); });
+    dotsBox.addEventListener('click', (e) => {
+      const d = e.target.closest('button');
+      if (d) goTo($$('button', dotsBox).indexOf(d));
+    });
+
+    // the fill finishing is the tick; after the last stop the rail slides back to the first
+    dotsBox.addEventListener('animationend', (e) => {
+      if (e.animationName !== 'dot-progress' || reducedMotion.matches) return;
+      if (ctrl.classList.contains('is-paused') || document.hidden || openDrawer) return;
+      goTo(current >= stops - 1 ? 0 : current + 1);
+    });
+
+    const zone = [rail, ctrl];
+    zone.forEach((el) => {
+      el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { hovered = true; setPaused(); } });
+      el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { hovered = false; setPaused(); } });
+      el.addEventListener('focusin', () => { focused = true; setPaused(); });
+      el.addEventListener('focusout', (e) => { if (!zone.some((z) => z.contains(e.relatedTarget))) { focused = false; setPaused(); } });
+    });
+    rail.addEventListener('touchstart', () => { touching = true; setPaused(); }, { passive: true });
+    rail.addEventListener('touchend', () => { touching = false; setPaused(); }, { passive: true });
+
+    new IntersectionObserver(([en]) => { visible = en.isIntersecting; setPaused(); }, { threshold: 0.5 }).observe(rail);
+    // Only a change of width re-measures; images loading in change the height, and re-seating
+    // the rail then would yank it out from under a swipe.
+    let lastWidth = 0;
+    new ResizeObserver(() => {
+      if (rail.clientWidth === lastWidth) return;
+      lastWidth = rail.clientWidth;
+      cancel(); measure(); rail.scrollLeft = leftOf(Math.max(0, current));
+    }).observe(rail);
+    setPaused();
+    measure();
+  });
+
+  /* ------------------------------------------------------------------
      Products page: category chips, the Filter menu, the count
      ------------------------------------------------------------------ */
   const catalog = $('[data-catalog]');
@@ -448,8 +696,6 @@
     const count = $('[data-catalog-count]', catalog);
     const title = $('[data-page-title]');
     const lead = $('[data-page-lead]');
-    const crumbProduk = $('[data-crumb-produk]');
-    const crumbCat = $$('[data-crumb-cat]');
     const head = $('.page-head');
 
     // Ties fall back to popularity, so equal prices still come out in a stable, sensible order.
@@ -491,21 +737,15 @@
       history.replaceState(null, '', location.pathname + (s ? `?${s}` : ''));
     }
 
-    // The headline and the trail name the category, so a chip reads as arriving somewhere
-    // rather than as hiding cards. Produk turns back into a link once there is a level under it.
+    // The headline names the category, so a chip reads as arriving somewhere
+    // rather than as hiding cards.
     function syncHeading() {
       const label = categoryLabel();
-      const inCategory = state.category !== 'all';
       title.textContent = label;
       lead.textContent = categoryLeads[state.category] || '';
-      // A category with its products on the banner (see .page-head[data-cat] in the CSS) shows them.
+      // No category shows the band (see .page-head[data-cat] in the CSS).
       head.dataset.cat = state.category;
       document.title = `${label} — Nexura | #GearYourAura`;
-      crumbProduk.innerHTML = inCategory
-        ? `<a href="${PRODUCTS_PAGE}" data-filter="all">Produk</a>`
-        : '<span aria-current="page">Produk</span>';
-      crumbCat.forEach((el) => { el.hidden = !inCategory; });
-      $('[aria-current]', crumbCat[crumbCat.length - 1]).textContent = inCategory ? label : '';
     }
 
     function apply({ animate = false, url = true } = {}) {
@@ -549,7 +789,7 @@
 
     chips.forEach((chip) => chip.addEventListener('click', () => setCategory(chip.dataset.cat)));
 
-    // The navbar dropdown, the menu drawer, the footer and the breadcrumb all carry
+    // The navbar dropdown, the menu drawer and the footer all carry
     // data-filter. Here they switch the list in place instead of reloading the same page; a
     // modified click still opens a new tab the way a link should.
     document.addEventListener('click', (e) => {
@@ -651,12 +891,6 @@
      ------------------------------------------------------------------ */
   const cart = (() => {
     const KEY = 'nexura-cart-v1';
-    const drawer = $('[data-cart-drawer]');
-    const list = $('[data-cart-list]');
-    const empty = $('[data-cart-empty]');
-    const foot = $('[data-cart-foot]');
-    const totalEl = $('[data-cart-total]');
-    const countEl = $('[data-cart-count]');
     const badge = $('[data-cart-badge]');
     const trigger = $('[data-cart-open]');
 
@@ -670,7 +904,6 @@
     // The same sheet cut for two different phones is two lines, not one line of two.
     const keyOf = (it) => `${it.id}:${it.color || ''}:${(it.phone || '').toLowerCase()}`;
     const count = () => items.reduce((n, it) => n + it.qty, 0);
-    const total = () => items.reduce((sum, it) => sum + (it.checked ? priceOf(byId[it.id], it.color) * it.qty : 0), 0);
     const label = (it) => { const p = byId[it.id]; const c = colorOf(p, it.color); return c ? `${p.short} ${c.label}` : p.short; };
     const save = () => { storage.set(KEY, items); notify(); };
 
@@ -679,94 +912,19 @@
       badge.hidden = n === 0;
       badge.textContent = n > 9 ? '9+' : String(n);
       trigger.setAttribute('aria-label', n ? `Keranjang, ${n} item` : 'Keranjang, kosong');
-      countEl.textContent = n;
-      totalEl.textContent = rupiah(total());
-      empty.hidden = items.length > 0;
-      foot.hidden = items.length === 0;
-      list.hidden = items.length === 0;
-
-      list.innerHTML = items.map((it) => {
-        const p = byId[it.id];
-        const c = colorOf(p, it.color);
-        const k = keyOf(it);
-        return `
-          <li class="cart-item${it.checked ? '' : ' is-unchecked'}" data-key="${k}">
-            <label class="cart-item__check">
-              <input type="checkbox" ${it.checked ? 'checked' : ''} aria-label="Ikutkan ${escapeHtml(label(it))} di total" data-act="check">
-              <span class="cart-item__box">${icon('check')}</span>
-            </label>
-            <img class="cart-item__thumb" src="${img(imageOf(p, it.color), 160)}" alt="" width="64" height="64">
-            <div class="cart-item__info">
-              <p class="cart-item__name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</p>
-              <p class="cart-item__variant">${c ? `${variantLabel(p)}: ${escapeHtml(c.label)}` : escapeHtml(categories[p.category])}${it.phone ? ` · HP: ${escapeHtml(it.phone)}` : ''}</p>
-              <div class="cart-item__row">
-                <span class="price">${rupiah(priceOf(p, it.color))}</span>
-                <div class="stepper" role="group" aria-label="Jumlah ${escapeHtml(label(it))}">
-                  <button type="button" aria-label="Kurangi" data-act="dec" ${it.qty <= 1 ? 'disabled' : ''}>${icon('minus')}</button>
-                  <output aria-live="polite">${it.qty}</output>
-                  <button type="button" aria-label="Tambah" data-act="inc" ${it.qty >= 99 ? 'disabled' : ''}>${icon('plus')}</button>
-                </div>
-              </div>
-            </div>
-            <button class="icon-btn cart-item__remove" type="button" aria-label="Hapus ${escapeHtml(label(it))} dari keranjang" data-act="remove">${icon('trash')}</button>
-          </li>`;
-      }).join('');
     }
+
+    // On the cart page the icon goes to the top of the page instead of reloading it.
+    trigger.addEventListener('click', (e) => {
+      if (!$('[data-cartpage]')) return;
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+    });
 
     function bump() {
       if (reducedMotion.matches) return;
       badge.classList.remove('is-bump'); void badge.offsetWidth; badge.classList.add('is-bump');
     }
-
-    list.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-act]');
-      if (!btn || btn.dataset.act === 'check') return;
-      const row = btn.closest('.cart-item');
-      const it = items.find((x) => keyOf(x) === row.dataset.key);
-      if (!it) return;
-      const act = btn.dataset.act;
-      if (act === 'inc') it.qty = Math.min(99, it.qty + 1);
-      if (act === 'dec') it.qty = Math.max(1, it.qty - 1);
-      if (act === 'remove') {
-        const idx = items.indexOf(it);
-        items.splice(idx, 1);
-        save(); render();
-        announce(`${label(it)} dihapus dari keranjang.`);
-        // keep focus inside the drawer
-        const rows = $$('.cart-item', list);
-        (rows[Math.min(idx, rows.length - 1)] ? $('[data-act="remove"]', rows[Math.min(idx, rows.length - 1)]) : $('[data-drawer-close]', drawer)).focus();
-        return;
-      }
-      save(); render();
-      announce(`Jumlah ${label(it)} jadi ${it.qty}. Estimasi total ${rupiah(total())}.`);
-      // re-rendering replaced the button; put focus back on its replacement
-      const again = $(`.cart-item[data-key="${CSS.escape(keyOf(it))}"] [data-act="${act}"]`, list);
-      if (again && !again.disabled) again.focus();
-      else $(`.cart-item[data-key="${CSS.escape(keyOf(it))}"] [data-act="${act === 'inc' ? 'dec' : 'inc'}"]`, list)?.focus();
-    });
-
-    list.addEventListener('change', (e) => {
-      if (e.target.dataset.act !== 'check') return;
-      const row = e.target.closest('.cart-item');
-      const it = items.find((x) => keyOf(x) === row.dataset.key);
-      it.checked = e.target.checked;
-      row.classList.toggle('is-unchecked', !it.checked);
-      totalEl.textContent = rupiah(total());
-      save();
-      announce(`Estimasi total ${rupiah(total())}.`);
-    });
-
-    // On the cart page the drawer would only repeat the page, so the icon goes to the top of it.
-    trigger.addEventListener('click', () => {
-      if ($('[data-cartpage]')) window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
-      else showDrawer(drawer, trigger);
-    });
-
-    // On the checkout page the drawer's Checkout only has to get out of the way.
-    $('[data-checkout]').addEventListener('click', () => {
-      if ($('[data-checkout-page]')) hideDrawer(drawer);
-      else location.href = CHECKOUT_PAGE;
-    });
 
     // Another tab changed the cart: pick it up, so the two never disagree.
     window.addEventListener('storage', (e) => {
@@ -794,16 +952,14 @@
         save(); render(); bump();
         announce(`${qty > 1 ? qty + ' ' : ''}${label(it)} masuk keranjang. Total ${count()} item.`);
       },
-      // `focusSel` names the control in the drawer that takes focus, e.g. '[data-checkout]'.
-      open(from, focusSel) { showDrawer(drawer, from || trigger, focusSel && $(focusSel, drawer)); },
     };
   })();
 
   /* ------------------------------------------------------------------
      Cart page (/keranjang/)
-     The same items as the drawer, laid out in full: every line with its variant, phone model,
+     The cart's items, laid out in full: every line with its variant, phone model,
      discount and own subtotal, a select-all bar, and a summary that breaks the total down.
-     Edits go through cart.set, so the badge and the drawer follow.
+     Edits go through cart.set, so the badge follows.
      ------------------------------------------------------------------ */
   const cartPage = $('[data-cartpage]');
   if (cartPage) {
@@ -817,6 +973,9 @@
     const undoText = $('[data-undo-text]', cartPage);
     const payBtn = $('[data-cartpage-checkout]', cartPage);
     const payHint = $('[data-pay-hint]', cartPage);
+    const promoSheet = $('[data-promo-sheet]', cartPage);
+    const promoScrim = $('[data-promo-scrim]', cartPage);
+    const promoToggle = $('[data-promo-toggle]', cartPage);
     const { keyOf, label } = cart;
     const lineUrl = (it) => detailUrl(byId[it.id]) + (it.color ? `&varian=${encodeURIComponent(it.color)}` : '');
     let undo = null;
@@ -846,11 +1005,11 @@
           </div>
           <p class="cp-item__price">
             <span class="price">${rupiah(price)}</span>
-            ${was ? `<s class="price-was"><span class="sr-only">Harga normal </span>${rupiah(was)}</s>` : ''}
+            ${was ? `<span class="cp-item__was"><s class="price-was"><span class="sr-only">Harga normal </span>${rupiah(was)}</s>
+            <span class="cp-item__pct" aria-hidden="true">${Math.round((1 - price / was) * 100)}%</span></span>` : ''}
           </p>
           <div class="cp-item__actions">
             ${it.qty > 1 ? `<p class="cp-item__sub">Subtotal <strong class="price">${rupiah(price * it.qty)}</strong></p>` : ''}
-            <button class="icon-btn cp-item__remove" type="button" aria-label="Hapus ${name} dari keranjang" data-act="remove">${icon('trash')}</button>
             <div class="stepper" role="group" aria-label="Jumlah ${name}">
               <button type="button" aria-label="Kurangi" data-act="dec" ${it.qty <= 1 ? 'disabled' : ''}>${icon('minus')}</button>
               <output aria-live="polite">${it.qty}</output>
@@ -871,6 +1030,19 @@
       }, { units: 0, gross: 0, total: 0 });
     }
 
+    function setPromo(open, refocusToggle) {
+      promoSheet.hidden = !open;
+      promoScrim.hidden = !open;
+      promoToggle.setAttribute('aria-expanded', String(open));
+      if (!open && refocusToggle) promoToggle.focus();
+    }
+    promoToggle.addEventListener('click', () => setPromo(promoSheet.hidden));
+    $('[data-promo-close]', cartPage).addEventListener('click', () => setPromo(false, true));
+    promoScrim.addEventListener('click', () => setPromo(false, true));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !promoSheet.hidden) setPromo(false, true);
+    });
+
     function render() {
       const items = cart.list();
       filled.hidden = !items.length;
@@ -888,7 +1060,15 @@
       $('[data-sum-gross]', cartPage).textContent = rupiah(t.gross);
       $('[data-sum-disc-row]', cartPage).hidden = t.gross === t.total;
       $('[data-sum-disc]', cartPage).textContent = '-' + rupiah(t.gross - t.total);
-      $$('[data-sum-total]', cartPage).forEach((el) => { el.textContent = rupiah(t.total); });
+      // Nothing ticked reads as a dash, not Rp0: there is no total yet, rather than a free order.
+      $$('[data-sum-total]', cartPage).forEach((el) => { el.textContent = t.units ? rupiah(t.total) : '-'; });
+      // Total diskon and its breakdown only while something ticked is actually discounted.
+      const disc = t.units ? t.gross - t.total : 0;
+      promoToggle.hidden = !disc;
+      if (!disc) setPromo(false);
+      $('[data-promo-disc-short]', cartPage).textContent = rupiah(disc);
+      $('[data-promo-gross]', cartPage).textContent = rupiah(t.gross);
+      $('[data-promo-disc]', cartPage).textContent = '-' + rupiah(disc);
       // One text node: the button is a flex row, so a separate number would be gapped off its brackets.
       payBtn.textContent = `Beli (${t.units})`;
       payBtn.disabled = t.units === 0;
@@ -904,7 +1084,7 @@
       if (target) { target.focus(); return; }
       const rows = $$('.cp-item', list);
       const near = rows[Math.min(fallbackIdx, rows.length - 1)];
-      (near ? $('[data-act="remove"]', near) : $('[data-cartpage-shop]', cartPage)).focus();
+      (near ? $('[data-act="check"]', near) : $('[data-cartpage-shop]', cartPage)).focus();
     }
 
     function removeWhere(test, message) {
@@ -928,10 +1108,6 @@
       if (!btn || btn.dataset.act === 'check') return;
       const key = btn.closest('.cp-item').dataset.key;
       const act = btn.dataset.act;
-      if (act === 'remove') {
-        removeWhere((it) => keyOf(it) === key, (r) => `${label(r[0])} dihapus dari keranjang.`);
-        return;
-      }
       const next = cart.list().map((it) => (keyOf(it) !== key ? it
         : { ...it, qty: act === 'inc' ? Math.min(99, it.qty + 1) : Math.max(1, it.qty - 1) }));
       cart.set(next);
@@ -968,14 +1144,6 @@
 
     payBtn.addEventListener('click', () => { location.href = CHECKOUT_PAGE; });
 
-    // Product cards under the cart: best sellers that are in stock and not in it already. Drawn
-    // once, so a line removed above does not reshuffle the grid under the reader.
-    const inCart = new Set(cart.list().map((it) => it.id));
-    $('[data-cartpage-more]', cartPage).innerHTML = products
-      .filter((p) => p.stock !== 'out' && !inCart.has(p.id))
-      .sort((a, b) => (a.popular || 99) - (b.popular || 99))
-      .slice(0, 4).map((p) => cardHTML(p)).join('');
-
     cart.onChange(render);
     render();
   }
@@ -985,7 +1153,7 @@
      Buys the lines ticked in the cart: an address (guest checkout, kept in this browser), a
      courier with optional insurance, a note, a payment method and a promo code. Couriers,
      payments and promos come from NEXURA.checkout in data.js. The cart stays the source of
-     the lines, so a change in the drawer redraws the order here.
+     the lines, so a change in another tab redraws the order here.
      ------------------------------------------------------------------ */
   const coPage = $('[data-checkout-page]');
   if (coPage) {
@@ -1098,7 +1266,11 @@
       addrCard.classList.remove('is-invalid');
       $('[data-co-addr-name]', coPage).textContent = address.name;
       $('[data-co-addr-phone]', coPage).textContent = address.phone;
-      $('[data-co-addr-line]', coPage).textContent = `${address.street}, ${address.city}, ${address.province}, ${address.postal}`;
+      $('[data-co-addr-line]', coPage).textContent = `${address.street}, ${address.city}, ${address.postal}`;
+      const noteEl = $('[data-co-addr-note]', coPage);
+      noteEl.hidden = !address.courierNote;
+      noteEl.textContent = address.courierNote ? `Catatan kurir: ${address.courierNote}` : '';
+      $('[data-co-addr-pin]', coPage).hidden = !address.pin;
     }
 
     const field = (name) => addrForm.elements[name];
@@ -1107,8 +1279,8 @@
       phone: (v) => /^(\+?62|0)8\d{7,12}$/.test(v.replace(/[\s-]/g, '')) || 'Nomor WhatsApp diawali 08 atau +62, contoh 0812 3456 7890.',
       street: (v) => v.length >= 10 || 'Tulis alamat lengkap: jalan, nomor rumah, kelurahan, kecamatan.',
       city: (v) => !!v || 'Isi kota atau kabupaten.',
-      province: (v) => !!v || 'Isi provinsi.',
       postal: (v) => /^\d{5}$/.test(v) || 'Kode pos 5 angka.',
+      courierNote: () => true, // optional
     };
     function check(name) {
       const el = field(name);
@@ -1120,14 +1292,172 @@
       return ok === true;
     }
 
+    const counts = $$('[data-count-for]', dialog);
+    const renderCount = (el) => {
+      const input = $('#' + el.dataset.countFor);
+      el.textContent = `${input.value.length}/${input.maxLength}`;
+    };
+    const renderCounts = () => counts.forEach(renderCount);
+    counts.forEach((el) => $('#' + el.dataset.countFor).addEventListener('input', () => renderCount(el)));
+
+    /* Map pin (UI only). The browser's location prompt is real, but nothing is looked up yet: the
+       map is a drawn placeholder and each drop of the pin shows the next sample address below.
+       TODO: connect a map provider (Google Maps or Leaflet) and reverse geocoding. */
+    const SAMPLE_PLACES = [
+      { title: 'Jl. Kemang Raya No. 12', sub: 'Bangka, Mampang Prapatan, Kota Jakarta Selatan, DKI Jakarta', street: 'Jl. Kemang Raya No. 12', city: 'Jakarta Selatan', postal: '12730' },
+      { title: 'Jl. Tebet Barat Dalam Raya No. 45', sub: 'Tebet Barat, Tebet, Kota Jakarta Selatan, DKI Jakarta', street: 'Jl. Tebet Barat Dalam Raya No. 45', city: 'Jakarta Selatan', postal: '12810' },
+      { title: 'Jl. Pemuda No. 118', sub: 'Embong Kaliasin, Genteng, Kota Surabaya, Jawa Timur', street: 'Jl. Pemuda No. 118', city: 'Surabaya', postal: '60271' },
+    ];
+    const formView = $('[data-co-form-view]', dialog);
+    const formFoot = $('[data-co-form-foot]', dialog);
+    const dlgTitle = $('[data-co-dialog-title]', dialog);
+    const mapView = $('[data-co-map-view]', dialog);
+    const mapBack = $('[data-co-map-back]', dialog);
+    const canvas = $('[data-co-map-canvas]', dialog);
+    const mapTitle = $('[data-co-map-title]', dialog);
+    const mapSub = $('[data-co-map-sub]', dialog);
+    const mapConfirm = $('[data-co-map-confirm]', dialog);
+    const mapLocate = $('[data-co-map-locate]', dialog);
+    const mapQ = $('[data-co-map-q]', dialog);
+    const locEmpty = $('[data-co-loc-empty]', dialog);
+    const locSet = $('[data-co-loc-set]', dialog);
+    const locGps = $('[data-co-loc-gps]', dialog);
+    const locGpsLabel = $('[data-co-loc-gps-label]', dialog);
+    const locMsg = $('[data-co-loc-msg]', dialog);
+    let pin = null;      // the pin saved with the address being edited
+    let draft = null;    // the place under the pin while the map is open
+    let lastFill = {};   // what the pin last wrote into each field, so typed edits are never overwritten
+    let sampleAt = 0;
+    let lookupTimer;
+    const offset = { x: 0, y: 0 };
+
+    function renderPin() {
+      locEmpty.hidden = !!pin || !canLocate;
+      locSet.hidden = !pin;
+      if (!pin) return;
+      $('[data-co-loc-title]', dialog).textContent = pin.title;
+      $('[data-co-loc-sub]', dialog).textContent = pin.sub;
+    }
+    const setLocMsg = (text) => { locMsg.hidden = !text; locMsg.textContent = text; };
+    const panTo = (x, y) => {
+      offset.x = x; offset.y = y;
+      canvas.style.backgroundPosition = `${x}px ${y}px`;
+    };
+
+    // Stands in for reverse geocoding: a short wait, then the next sample address.
+    function lookUp() {
+      clearTimeout(lookupTimer);
+      draft = null;
+      mapConfirm.disabled = true;
+      mapTitle.textContent = 'Mencari alamat…';
+      mapSub.textContent = '';
+      lookupTimer = setTimeout(() => {
+        draft = SAMPLE_PLACES[sampleAt++ % SAMPLE_PLACES.length];
+        mapTitle.textContent = draft.title;
+        mapSub.textContent = draft.sub;
+        mapConfirm.disabled = false;
+      }, 600);
+    }
+
+    function showMap(open, { focus = true } = {}) {
+      formView.hidden = open;
+      formFoot.hidden = open;
+      mapView.hidden = !open;
+      mapBack.hidden = !open;
+      dlgTitle.textContent = open ? 'Tandai Lokasi' : 'Alamat Pengiriman';
+      clearTimeout(lookupTimer);
+      if (open) { mapQ.value = ''; lookUp(); }
+      if (focus) (open ? mapBack : pin ? $('[data-co-loc-pick]', locSet) : locGps).focus();
+    }
+
+    // UI only: location access is taken as already granted, so the button goes straight to the
+    // map after a short "Mencari lokasi…". TODO: when connecting, ask through
+    // navigator.geolocation.getCurrentPosition on the press (never on open), hide the button where
+    // it is missing or the page is not HTTPS, and on failure call `fail` with
+    //   denied:  `Akses lokasi ditolak. Izinkan lokasi untuk situs ini di pengaturan browser, atau ${fallback}.`
+    //   other:   `Lokasi belum ketemu. Coba lagi, atau ${fallback}.`
+    const canLocate = true;
+    const locate = (done) => setTimeout(done, 500);
+    const setBusy = (busy) => {
+      locGps.setAttribute('aria-busy', String(busy));
+      locGps.disabled = busy;
+      locGpsLabel.textContent = busy ? 'Mencari lokasi…' : 'Gunakan lokasi saat ini';
+    };
+    locGps.addEventListener('click', () => {
+      setLocMsg('');
+      setBusy(true);
+      locate(() => { setBusy(false); panTo(0, 0); showMap(true); }, (msg) => { setBusy(false); setLocMsg(msg); }, 'isi alamatnya di bawah');
+    });
+    mapLocate.addEventListener('click', () => {
+      locate(() => { panTo(0, 0); lookUp(); }, (msg) => { mapTitle.textContent = 'Lokasi belum ketemu'; mapSub.textContent = msg; }, 'geser peta ke lokasi kamu');
+    });
+    $$('[data-co-loc-pick]', dialog).forEach((b) => b.addEventListener('click', () => showMap(true)));
+    $('[data-co-loc-preview]', dialog).addEventListener('click', () => showMap(true));
+    mapBack.addEventListener('click', () => showMap(false));
+    // Esc steps back to the form rather than closing the whole dialog.
+    dialog.addEventListener('cancel', (e) => { if (!mapView.hidden) { e.preventDefault(); showMap(false); } });
+
+    // Drag the map under the fixed pin; the address updates once it is let go.
+    let drag = null;
+    canvas.addEventListener('pointerdown', (e) => {
+      drag = { x: e.clientX - offset.x, y: e.clientY - offset.y, sx: e.clientX, sy: e.clientY };
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      mapView.classList.add('is-moving');
+      panTo(e.clientX - drag.x, e.clientY - drag.y);
+    });
+    const endDrag = (e) => {
+      if (!drag) return;
+      const moved = Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 3;
+      drag = null;
+      mapView.classList.remove('is-moving');
+      if (moved) lookUp();
+    };
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('keydown', (e) => {
+      const step = { ArrowLeft: [40, 0], ArrowRight: [-40, 0], ArrowUp: [0, 40], ArrowDown: [0, -40] }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      panTo(offset.x + step[0], offset.y + step[1]);
+      lookUp();
+    });
+
+    const search = () => { if (mapQ.value.trim()) { panTo(offset.x - 160, offset.y + 90); lookUp(); } };
+    mapQ.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
+
+    // The pin fills Alamat, Kota and Kode pos, except where the buyer has typed their own.
+    mapConfirm.addEventListener('click', () => {
+      if (!draft) return;
+      pin = draft;
+      ['street', 'city', 'postal'].forEach((name) => {
+        const el = field(name);
+        if (!el.value.trim() || el.value.trim() === lastFill[name]) el.value = pin[name];
+        if (el.closest('.is-invalid')) check(name);
+      });
+      lastFill = { street: pin.street, city: pin.city, postal: pin.postal };
+      renderCounts();
+      renderPin();
+      showMap(false);
+      announce('Titik lokasi dipilih. Lengkapi detail alamat kalau perlu.');
+    });
+
     function openAddress() {
       Object.keys(rules).forEach((name) => {
-        field(name).value = address ? address[name] : '';
+        field(name).value = address?.[name] ?? '';
         field(name).closest('.pdp-field').classList.remove('is-invalid');
         field(name).setAttribute('aria-invalid', 'false');
         const hint = $('#' + field(name).getAttribute('aria-describedby'));
         hint.textContent = hint.dataset.hint;
       });
+      renderCounts();
+      pin = address?.pin ?? null;
+      lastFill = {};
+      setLocMsg('');
+      renderPin();
+      showMap(false, { focus: false });
       lockScroll(true);
       dialog.showModal();
     }
@@ -1149,6 +1479,7 @@
       const bad = Object.keys(rules).filter((name) => !check(name));
       if (bad.length) { field(bad[0]).focus(); return; }
       address = Object.fromEntries(Object.keys(rules).map((name) => [name, field(name).value.trim().replace(/\s+/g, ' ')]));
+      if (pin) address.pin = pin;
       storage.set(ADDR_KEY, address);
       renderAddress();
       dialog.close();
@@ -1230,10 +1561,24 @@
             <input class="co-radio" type="radio" name="pay" value="${m.id}" ${m.id === prefs.pay ? 'checked' : ''}>
           </label>`).join('');
     }
+    // A dropdown in effect: closed, only the chosen method shows. Picking one with a tap closes
+    // the list again; arrow keys leave it open, so stepping through the methods doesn't fold
+    // it shut under the keyboard.
+    const payToggle = $('[data-co-pay-toggle]', coPage);
+    let payByKey = false;
+    function setPayOpen(open) {
+      payList.classList.toggle('is-open', open);
+      payToggle.setAttribute('aria-expanded', String(open));
+      $('[data-co-pay-toggle-text]', payToggle).textContent = open ? 'Tutup' : 'Lihat Semua';
+    }
+    payToggle.addEventListener('click', () => setPayOpen(!payList.classList.contains('is-open')));
+    payList.addEventListener('keydown', (e) => { payByKey = e.key.startsWith('Arrow'); });
     payList.addEventListener('change', (e) => {
       prefs.pay = e.target.value;
       savePrefs();
       announce(`Bayar pakai ${cfg.payments.find((m) => m.id === prefs.pay).label}.`);
+      if (!payByKey) setPayOpen(false);
+      payByKey = false;
     });
 
     /* Promo */
@@ -1320,25 +1665,14 @@
     const panel = (key) => $(`[data-panel="${key}"]`, pdp);
     const mine = (reviews || []).filter((r) => r.product === p.short);
 
-    /* Produk Lainnya: four others in stock, this one's category first, then best sellers. */
-    $('[data-pdp-more]', pdp).innerHTML = products
-      .filter((o) => o.id !== p.id && o.stock !== 'out')
-      .sort((a, b) => (b.category === p.category) - (a.category === p.category)
-        || (a.popular || 99) - (b.popular || 99))
-      .slice(0, 4).map((o) => cardHTML(o)).join('');
-
-    /* Page head, trail, title, tags */
+    /* Page head, title, tags */
     document.title = `${p.short} — Nexura | #GearYourAura`;
     if (p.description) $('meta[name="description"]')?.setAttribute('content', p.description[0]);
-    const crumbCat = $('[data-crumb-cat]', pdp);
-    crumbCat.href = `${PRODUCTS_PAGE}?kategori=${p.category}`;
-    crumbCat.textContent = categories[p.category];
-    $('[data-crumb-name]', pdp).textContent = p.short;
     $('[data-pdp-name]', pdp).textContent = p.name;
-    // Stock speaks twice: a badge by the name when it is news (low, out), and a line by the
-    // quantity every time, since that is where the question comes up.
+    // Stock speaks only when it is news (low, out): a badge by the name and a line by the
+    // quantity, since that is where the question comes up.
     const STOCK = {
-      in: { note: 'Stok tersedia' },
+      in: { note: '' },
       low: { note: 'Stok terakhir', badge: 'Stok terakhir' },
       out: { note: 'Stok habis', badge: 'Restock segera' },
     }[p.stock] || { note: '' };
@@ -1350,11 +1684,8 @@
     }
     const stockNote = $('[data-pdp-stock-note]', pdp);
     stockNote.textContent = STOCK.note;
+    stockNote.hidden = !STOCK.note;
     stockNote.classList.add(`pdp-stock--${p.stock}`);
-
-    $('[data-buybar-text]', pdp).innerHTML = out
-      ? `<strong>${escapeHtml(p.short)}</strong> lagi restock`
-      : `Dapatkan <strong>${escapeHtml(p.short)}</strong> Sekarang`;
 
     /* Rating line: only what is known. A missing figure drops out rather than showing a zero. */
     const ratingBits = [];
@@ -1516,7 +1847,7 @@
       if (b.disabled) (b === inc ? dec : inc).focus();
     }));
 
-    /* Buying. Both buttons put the pick in the cart and open the drawer. */
+    /* Buying. Both buttons put the pick in the cart; Beli Sekarang then goes on to checkout. */
     if (out) {
       $$('[data-pdp-actions]', pdp).forEach((el) => { el.innerHTML = '<button class="btn btn--block" type="button" disabled>Restock segera</button>'; });
       $$('[data-buy-now]', pdp).forEach((b) => { b.disabled = true; b.textContent = 'Restock segera'; });
@@ -1537,7 +1868,7 @@
       phoneInput.addEventListener('input', () => { if (phoneInput.value.trim()) setPhoneError(false); });
     }
 
-    const addToCart = (trigger, focusSel) => {
+    const addToCart = (then) => {
       const phone = p.phoneModel ? phoneInput.value.trim().replace(/\s+/g, ' ') : '';
       if (p.phoneModel && !phone) {
         setPhoneError(true);
@@ -1548,8 +1879,9 @@
         return;
       }
       cart.add(p.id, state.color, state.qty, phone);
-      // from the sheet, focus comes back to the dock button that opened it, not the sheet's
-      cart.open(sheetOpen() ? sheetTrigger : trigger, focusSel);
+      if (then) { location.href = then; return; }
+      // from the sheet, focus comes back to the dock button that opened it
+      if (sheetOpen()) hideDrawer(buyBox);
     };
 
     /* Phones: the buy card is a bottom sheet. The dock's two buttons open it, each setting
@@ -1578,21 +1910,9 @@
       showDrawer(buyBox, b);
     }));
     $('[data-sheet-close]', pdp).addEventListener('click', () => hideDrawer(buyBox));
-    $$('[data-add-cart]', pdp).forEach((b) => b.addEventListener('click', (e) => addToCart(e.currentTarget)));
-    // Phase 1 has no checkout page, so Beli Sekarang differs only in where it leaves focus: on
-    // the drawer's Checkout button, one step from paying. TODO: go straight to checkout with
-    // just this item once that page exists.
-    // On a phone the top bar's button works like the dock's: it opens the sheet set to buy, so
-    // colour, quantity and phone model are picked first.
-    $$('[data-buy-now]', pdp).forEach((b) => b.addEventListener('click', (e) => {
-      if (phoneMq.matches && !buyBox.contains(b)) {
-        sheetTrigger = b;
-        buyBox.dataset.mode = 'buy';
-        showDrawer(buyBox, b);
-        return;
-      }
-      addToCart(e.currentTarget, '[data-checkout]');
-    }));
+    $$('[data-add-cart]', pdp).forEach((b) => b.addEventListener('click', () => addToCart()));
+    // Beli Sekarang adds the item and goes straight on to checkout.
+    $$('[data-buy-now]', pdp).forEach((b) => b.addEventListener('click', () => addToCart(CHECKOUT_PAGE)));
 
     const chat = $('[data-pdp-chat]', pdp);
     if (store && store.whatsapp) {
@@ -1603,35 +1923,32 @@
 
     /* Tab panels */
     panel('detail').innerHTML = [
-      ...[].concat(p.notice || []).map((n) => `<p class="pdp-notice">${icon('alert')}<span>${escapeHtml(n)}</span></p>`),
       p.description ? `<div class="prose">${p.description.map((t) => `<p>${escapeHtml(t)}</p>`).join('')}</div>` : '',
+      // Notes read as part of the description, not as a warning that leads the tab.
+      ...[].concat(p.notice || []).map((n) => `<p class="prose">Catatan: ${escapeHtml(n)}</p>`),
       // A banner whose file has not been added yet drops out instead of leaving a broken frame
       // in the middle of the stack.
       p.showcase ? `
         <div class="showcase">${p.showcase.map((s) => `
           <img src="${galleryImg(s.image)}" alt="${escapeHtml(s.alt)}" width="800" height="800" loading="lazy" decoding="async" onerror="this.remove()">`).join('')}
         </div>` : '',
-      p.features ? `
-        <h2 class="pdp-h">Fitur unggulan</h2>
-        <ul class="features">${p.features.map((f) => `
-          <li class="feature">
-            <span class="feature__icon">${icon(f.icon)}</span>
-            <span class="feature__title">${escapeHtml(f.title)}</span>
-            <span class="feature__text">${escapeHtml(f.text)}</span>
-          </li>`).join('')}
-        </ul>` : '',
       ...(p.sections || []).map((sec) => `
-        <h2 class="pdp-h">${escapeHtml(sec.title)}</h2>
         ${sec.text ? `<p class="prose">${escapeHtml(sec.text)}</p>` : ''}`),
+      // Each list gets a heading, so the box contents and the usage tips don't read as one run
+      // of ticks.
       p.inBox ? `
-        <h2 class="pdp-h">Isi paket</h2>
-        <ul class="inbox">${p.inBox.map((t) => `<li>${icon('check')}${escapeHtml(t)}</li>`).join('')}</ul>` : '',
+        <section class="pdp-block">
+          <h3 class="pdp-block__title">Isi Produk</h3>
+          <ul class="inbox">${p.inBox.map((t) => `<li>${icon('check')}${escapeHtml(t)}</li>`).join('')}</ul>
+        </section>` : '',
+      // The heading only stands over usage tips; a games line on its own goes without one.
       p.usage ? `
-        <h2 class="pdp-h">Rekomendasi penggunaan</h2>
-        ${p.usage.tips ? `<ul class="inbox inbox--single">${p.usage.tips.map((t) => `<li>${icon('check')}${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
-        ${p.usage.games ? `
-          <p class="pdp-games">Cocok untuk game populer seperti ${p.usage.games.map((g) => `<strong>${escapeHtml(g)}</strong>`).join(', ')}, dan game kompetitif lainnya.</p>` : ''}` : '',
-      p.tagline ? `<p class="pdp-tagline">${escapeHtml(p.tagline)}</p>` : '',
+        <section class="pdp-block">
+          ${p.usage.tips ? '<h3 class="pdp-block__title">Rekomendasi Penggunaan</h3>' : ''}
+          ${p.usage.tips ? `<ul class="inbox">${p.usage.tips.map((t) => `<li>${icon('check')}${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+          ${p.usage.games ? `
+            <p class="pdp-games">Cocok untuk game populer seperti ${p.usage.games.map((g) => `<strong>${escapeHtml(g)}</strong>`).join(', ')}, dan game kompetitif lainnya.</p>` : ''}
+        </section>` : '',
     ].join('') || '<p class="prose">Detail produk segera hadir.</p>';
 
     const specRows = [['Kategori', categories[p.category]], ...(p.specs || [])];
@@ -1642,6 +1959,13 @@
       </dl>`;
 
     const toko = store && store.tokopedia;
+    // The figures are copied by hand from this product's Tokopedia listing; the card says so,
+    // and says when (store.metricsUpdated in data.js), so a buyer knows how fresh they are.
+    const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const updated = (() => {
+      const [y, m, d] = String((store && store.metricsUpdated) || '').split('-').map(Number);
+      return y && m && d ? `${d} ${MONTHS_ID[m - 1]} ${y}` : '';
+    })();
     const summary = p.rating ? `
       <div class="rating-summary">
         <p class="rating-summary__score">${p.rating}<span>/5</span></p>
@@ -1649,11 +1973,19 @@
           <span class="stars" aria-hidden="true">${starGlyphs(starsOf(p.rating))}</span>
           <p>${[p.ratingCount && `${num(p.ratingCount)} ulasan`, p.sold && `${soldLabel(p.sold)} terjual`].filter(Boolean).join(' · ') || 'Rating pembeli'}</p>
         </div>
+        <p class="rating-summary__source">
+          ${icon('badge-check', 'icon icon--sm')}
+          <span>Rating, ulasan, dan jumlah terjual diambil dari toko resmi Nexura di Tokopedia${toko ? ` (<a href="${toko}" target="_blank" rel="noopener">lihat tokonya</a>)` : ''}.${updated ? ` Terakhir diperbarui ${updated}.` : ''}</span>
+        </p>
       </div>` : '';
+    // Reviews with a Tokopedia screenshot show as the screenshot itself, as on the home page;
+    // a product with none yet keeps its written reviews.
+    const shotReviews = mine.filter((r) => r.screenshot);
     // Real reviews only, filed under the listing they were written on (see data.js). A product
     // with none here points to the store rather than padding the tab.
     panel('ulasan').innerHTML = mine.length ? `
       ${summary}
+      ${shotReviews.length ? `<div class="review-list review-list--shots" data-review-shots>${shotReviews.map((r) => reviewShotHTML(r)).join('')}</div>` : `
       <div class="review-list">${mine.map((r) => `
         <figure class="review review--static">
           <span class="stars" role="img" aria-label="${r.rating} dari 5 bintang">${starGlyphs(r.rating)}</span>
@@ -1663,7 +1995,7 @@
             ${r.variant ? `<span class="review__meta">${escapeHtml(variantLabel(p))}: ${escapeHtml(r.variant)}</span>` : ''}
           </figcaption>
         </figure>`).join('')}
-      </div>
+      </div>`}
       ${toko ? `<p class="pdp-note">Ulasan pilihan dari pembeli di Tokopedia. <a class="link-btn" href="${toko}" target="_blank" rel="noopener">Lihat semua ulasan</a></p>` : ''}`
       : `${summary}
       <div class="catalog-empty">
@@ -1672,18 +2004,171 @@
         <p class="catalog-empty__text">Baca ulasan pembeli ${escapeHtml(p.short)} langsung di toko Tokopedia kami.</p>
         ${toko ? `<a class="btn btn--secondary" href="${toko}" target="_blank" rel="noopener">Buka Tokopedia</a>` : ''}
       </div>`;
+    // The screenshot cards pop (stars lift, sticker springs up) as each comes into view; the
+    // grid doesn't move, so an IntersectionObserver is enough here. Once popped, they stay.
+    const shotGrid = $('[data-review-shots]', panel('ulasan'));
+    if (shotGrid) {
+      wireReviewZoom(shotGrid);
+      const cardsIn = $$('.review-shot', shotGrid);
+      if (reducedMotion.matches || !('IntersectionObserver' in window)) cardsIn.forEach((c) => c.classList.add('is-popped'));
+      else {
+        const io = new IntersectionObserver((entries) => entries.forEach((en) => {
+          if (en.isIntersecting) { en.target.classList.add('is-popped'); io.unobserve(en.target); }
+        }), { threshold: 0.7 });
+        cardsIn.forEach((c) => io.observe(c));
+      }
+    }
+
+    /* Bandingkan: this product side by side with one other from its own category, and only its
+       own, since a fan cooler and a screen protector share no specs worth lining up. Two columns
+       keep every value readable on a phone. Each column is headed by the product's photo, which
+       opens its page; the other product is swapped from the dropdown over it. Specs line up by label, with the
+       listings' differing names merged via `compareLabels` in data.js. */
+    const rivals = products.filter((q) => q.category === p.category && q.id !== p.id)
+      // in stock first, then best sellers: the likeliest alternative a buyer is weighing
+      .sort((a, b) => (a.stock === 'out') - (b.stock === 'out') || a.popular - b.popular);
+    if (!rivals.length) {
+      $('#tab-bandingkan', pdp).hidden = true;
+    } else {
+      let rival = rivals[0];
+      const aliases = compareLabels || {};
+      const STOCK_TEXT = { in: 'Tersedia', low: 'Stok terakhir', out: 'Stok habis' };
+      const box = panel('bandingkan');
+      const specsOf = (q) => {
+        const m = new Map();
+        (q.specs || []).forEach(([k, v]) => { const key = aliases[k] || k; if (!m.has(key)) m.set(key, v); });
+        // The variant list counts as a spec, under the listing's own word for it ("Warna"),
+        // so YinYang's written-out colours line up with Vortex's picker colours.
+        const vs = q.colors || [];
+        if (vs.length && !m.has(variantLabel(q))) m.set(variantLabel(q), vs.map((c) => c.label).join(', '));
+        return m;
+      };
+      const none = '<span aria-hidden="true">—</span><span class="sr-only">Tidak ada data</span>';
+
+      function cardOf(q, self) {
+        const image = q.cover || imageOf(q, colorOf(q) && colorOf(q).id);
+        const name = escapeHtml(q.short);
+        const photo = `
+              <picture>
+                <source type="image/webp" srcset="${img(image)}">
+                <img src="${imgFallback(image)}" width="800" height="800" loading="lazy" decoding="async" alt="">
+              </picture>`;
+        return `
+          <div class="cmp__prod" role="columnheader">
+            ${self
+              ? `<p class="cmp__pick cmp__pick--self">${name}</p>`
+              : `<div class="cmp__dd" data-cmp-dd>
+                  <button class="cmp__pick" type="button" id="cmp-pick" aria-haspopup="listbox" aria-expanded="false" aria-controls="cmp-list" aria-label="Bandingkan dengan: ${name}">
+                    <span class="cmp__pick-name">${name}</span>${icon('chevron-down', 'icon cmp__chev')}
+                  </button>
+                  <ul class="menu cmp__list" id="cmp-list" role="listbox" aria-label="Bandingkan dengan">${rivals.map((r) => `
+                    <li class="menu__item cmp__opt" role="option" tabindex="-1" aria-selected="${r === q}" data-cmp-opt="${r.id}">
+                      ${icon('check', 'icon menu__check')}
+                      <span class="cmp__opt-name">${escapeHtml(r.short)}</span>
+                      ${r.stock === 'out' ? '<span class="cmp__opt-note">Stok habis</span>' : ''}
+                    </li>`).join('')}
+                  </ul>
+                </div>`}
+            ${self || q.stock === 'out'
+              // sold out has no page to open, the same as its card on /produk/
+              ? `<div class="cmp__media">${photo}</div>`
+              : `<a class="cmp__media" href="${detailUrl(q)}" aria-label="Lihat ${name}">${photo}</a>`}
+          </div>`;
+      }
+
+      function renderCompare() {
+        const cols = [p, rival];
+        const maps = cols.map(specsOf);
+        const rows = [
+          ['Harga', cols.map((q) => rupiah(priceOf(q, colorOf(q) && colorOf(q).id)))],
+          ['Rating', cols.map((q) => (q.rating ? `${q.rating}/5${q.ratingCount ? ` (${num(q.ratingCount)} ulasan)` : ''}` : null))],
+          ['Terjual', cols.map((q) => (q.sold ? soldLabel(q.sold) : null))],
+          ['Stok', cols.map((q) => STOCK_TEXT[q.stock] || null)],
+          ...[...new Set(maps.flatMap((m) => [...m.keys()]))].map((k) => [k, maps.map((m) => m.get(k) ?? null)]),
+        ].filter(([, vals]) => vals.some((v) => v != null));
+
+        box.innerHTML = `
+          <div class="cmp" role="table" aria-label="Perbandingan ${escapeHtml(p.short)} dan ${escapeHtml(rival.short)}">
+            <div class="cmp__row cmp__row--head" role="row">
+              <span class="cmp__corner" role="columnheader"><span class="sr-only">Fitur</span></span>
+              ${cardOf(p, true)}${cardOf(rival, false)}
+            </div>
+            ${rows.map(([k, vals]) => `
+              <div class="cmp__row" role="row">
+                <span class="cmp__label" role="rowheader">${escapeHtml(k)}</span>
+                ${vals.map((v) => `<span class="cmp__cell" role="cell">${v == null ? none : escapeHtml(v)}</span>`).join('')}
+              </div>`).join('')}
+          </div>`;
+      }
+
+      /* The picker: a button that opens a listbox drawn as the site's own menus (the products
+         page's sort menu) rather than the browser's native list. Arrows, Home/End move through
+         it, Enter/Space pick, Escape closes and hands focus back, Tab or a click outside just
+         closes. The box re-renders on a pick, so focus goes to the new button. */
+      const dd = () => $('[data-cmp-dd]', box);
+      const isOpen = () => dd() && dd().classList.contains('is-open');
+      const opts = () => $$('[data-cmp-opt]', box);
+      function openList(at) {
+        dd().classList.add('is-open');
+        $('#cmp-pick', box).setAttribute('aria-expanded', 'true');
+        const list = opts();
+        (at === 'last' ? list[list.length - 1] : list.find((o) => o.getAttribute('aria-selected') === 'true') || list[0]).focus();
+      }
+      function closeList(restoreFocus = true) {
+        if (!isOpen()) return;
+        dd().classList.remove('is-open');
+        $('#cmp-pick', box).setAttribute('aria-expanded', 'false');
+        if (restoreFocus) $('#cmp-pick', box).focus();
+      }
+      function choose(id) {
+        if (id !== rival.id) {
+          rival = byId[id];
+          renderCompare();
+          announce(`Membandingkan dengan ${rival.short}.`);
+        }
+        closeList(false);
+        $('#cmp-pick', box).focus();
+      }
+
+      box.addEventListener('click', (e) => {
+        const opt = e.target.closest('[data-cmp-opt]');
+        if (opt) { choose(opt.dataset.cmpOpt); return; }
+        if (e.target.closest('#cmp-pick')) { if (isOpen()) closeList(); else openList(); }
+      });
+      box.addEventListener('keydown', (e) => {
+        if (e.target.id === 'cmp-pick' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+          e.preventDefault();
+          openList(e.key === 'ArrowUp' ? 'last' : 'selected');
+          return;
+        }
+        if (!e.target.closest('[data-cmp-opt]')) return;
+        const list = opts();
+        const i = list.indexOf(document.activeElement);
+        const focusAt = (n) => { e.preventDefault(); list[(n + list.length) % list.length].focus(); };
+        if (e.key === 'ArrowDown') focusAt(i + 1);
+        else if (e.key === 'ArrowUp') focusAt(i - 1);
+        else if (e.key === 'Home') focusAt(0);
+        else if (e.key === 'End') focusAt(list.length - 1);
+        else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(list[i].dataset.cmpOpt); }
+        else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeList(); }
+        else if (e.key === 'Tab') closeList(false);
+      });
+      document.addEventListener('click', (e) => { if (isOpen() && !dd().contains(e.target)) closeList(false); });
+      renderCompare();
+    }
+
     /* Tabs — the WAI-ARIA tabs pattern with automatic activation: arrows move and select,
-       Home/End jump. The bar sticks under the buy bar, so every panel is one tap away from
+       Home/End jump. The bar sticks under the navbar, so every panel is one tap away from
        anywhere on the page; switching brings the new panel's top into view. */
     const tabsBox = $('[data-tabs]', pdp);
     const tabList = $('[role="tablist"]', tabsBox);
-    const tabs = $$('[role="tab"]', tabList);
-    const buybar = $('[data-buybar]', pdp);
+    // a tab with nothing to show (Bandingkan for a product alone in its category) is hidden
+    const tabs = $$('[role="tab"]', tabList).filter((t) => !t.hidden);
 
     // Only scrolls when the reader is already below the tab bar's resting place (or `force`),
     // so picking a tab near the top of the page never yanks it.
     const revealTabs = (force) => {
-      const top = tabsBox.getBoundingClientRect().top + window.scrollY - header.offsetHeight - buybar.offsetHeight;
+      const top = tabsBox.getBoundingClientRect().top + window.scrollY - header.offsetHeight;
       if (force || window.scrollY > top + 1) window.scrollTo({ top, behavior: behavior() });
     };
 
@@ -1755,7 +2240,8 @@
      ------------------------------------------------------------------ */
   {
     const marquee = $('[data-reviews]');
-    const list = reviews || [];
+    // the home page shows the reviews flagged for it in data.js, in that order
+    const list = (reviews || []).filter((r) => r.home);
     const stats = social || {};
 
     const setStat = (sel, value) => { const el = $(sel); if (el && value) el.textContent = value; };
@@ -1773,31 +2259,67 @@
     if (marquee && list.length) {
       // The duplicate half is what the loop scrolls into, so it is hidden from AT and from
       // the reduced-motion rail rather than read out twice.
-      const card = (r, dup) => `
-        <figure class="review${dup ? ' review--dup' : ''}"${dup ? ' aria-hidden="true"' : ''}>
-          <span class="stars"${dup ? '' : ` role="img" aria-label="${r.rating} dari 5 bintang"`}>${starGlyphs(r.rating)}</span>
-          <blockquote class="review__quote">“${escapeHtml(r.text)}”</blockquote>
-          <figcaption class="review__by">
-            ${r.name ? `<span class="review__name">${escapeHtml(r.name)}</span>` : ''}
-            <span class="review__meta">${escapeHtml([r.product, r.variant].filter(Boolean).join(' · '))}</span>
-          </figcaption>
-        </figure>`;
+      const card = reviewShotHTML;
 
-      const half = Math.ceil(list.length / 2);
-      const rows = [list.slice(0, half), list.slice(half)];
-      // Seconds per card rather than a fixed duration, so adding quotes in data.js makes the
-      // row longer instead of faster. The two rates differ so the rows never march in step.
-      const PACE = [7.5, 9];
+      const shots = list.filter((r) => r.screenshot);
+      // Seconds per card rather than a fixed duration, so adding reviews in data.js makes the
+      // row longer instead of faster.
+      const PACE = 11;
+      // The reviews split over two rows at every width, alternating, the second drifting the
+      // other way.
+      const second = $('[data-reviews-second]', marquee);
+      const renderRows = () => {
+        const rows = [shots.filter((_, k) => k % 2 === 0), shots.filter((_, k) => k % 2 === 1)];
+        second.hidden = false;
+        $$('[data-reviews-row]', marquee).forEach((row, i) => {
+          const set = rows[i] || [];
+          row.innerHTML = set.length ? set.map((r) => card(r, false)).join('') + set.map((r) => card(r, true)).join('') : '';
+          row.style.setProperty('--mq-dur', (set.length * PACE).toFixed(1) + 's');
+        });
+      };
+      // A card pops (stars lift, sticker springs up) once both its stars and its sticker are
+      // wholly on screen and clear of the row's faded ends (7% each side, so 8% here) and out of
+      // the screen's bottom fifth, so the whole pop is seen, on a phone and on a desktop, in the
+      // row drifting left and in the one drifting right; and again on every later pass, as the
+      // rows loop. It settles once both parts have left that area entirely, so the sticker,
+      // which grows as it pops, can't flicker it at the edge. An IntersectionObserver can't do
+      // this: the rows move by a CSS animation, which it never re-checks, so cards would only
+      // pop when the page scrolled. Instead the cards are measured about ten times a second,
+      // and only while the section is on screen.
+      let checking = 0;
+      const inside = (r, z) => r.left >= z.l && r.right <= z.r && r.top >= z.t && r.bottom <= z.b;
+      const outside = (r, z) => r.right <= z.l || r.left >= z.r || r.bottom <= z.t || r.top >= z.b;
+      const check = () => {
+        const W = innerWidth, H = innerHeight;
+        const z = { l: W * 0.08, r: W * 0.92, t: 0, b: H * 0.8 };
+        $$('.review-shot', marquee).forEach((c) => {
+          const rs = [$('.review-shot__stars', c), $('.review-shot__tag', c)].filter(Boolean).map((e) => e.getBoundingClientRect());
+          if (rs.every((r) => inside(r, z))) c.classList.add('is-popped');
+          else if (rs.every((r) => outside(r, z))) c.classList.remove('is-popped');
+        });
+      };
+      const loop = () => {
+        if (marquee.classList.contains('is-offscreen') || document.hidden) { checking = 0; return; }
+        check();
+        checking = setTimeout(loop, 100);
+      };
+      const watch = () => {
+        if (reducedMotion.matches) { $$('.review-shot', marquee).forEach((c) => c.classList.add('is-popped')); return; }
+        if (!checking) loop();
+      };
+      // the section's own observer (below) flips .is-offscreen; restart the checks when it clears
+      new MutationObserver(() => { if (!marquee.classList.contains('is-offscreen')) watch(); })
+        .observe(marquee, { attributes: true, attributeFilter: ['class'] });
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) watch(); });
 
-      $$('[data-reviews-row]', marquee).forEach((row, i) => {
-        const set = rows[i] || [];
-        if (!set.length) return;
-        row.innerHTML = set.map((r) => card(r, false)).join('') + set.map((r) => card(r, true)).join('');
-        row.style.setProperty('--mq-dur', (set.length * PACE[i]).toFixed(1) + 's');
-      });
+      renderRows();
+      watch();
       marquee.hidden = false;
 
-      // Stops both rows while the section is off screen. The margin starts them again just
+      // tapping a card opens it full size; the rows stop while it is open
+      wireReviewZoom(marquee, (open) => marquee.classList.toggle('is-zoomed', open));
+
+      // Stops the row while the section is off screen. The margin starts them again just
       // before they scroll into view, so they are never caught standing still.
       if ('IntersectionObserver' in window) {
         new IntersectionObserver(
@@ -1810,4 +2332,256 @@
 
   // Close the desktop-only search panel state if the viewport grows
   desktop.addEventListener('change', () => { header.classList.remove('is-search-open'); searchToggle.setAttribute('aria-expanded', 'false'); if (openDrawer === menuDrawer && desktop.matches) hideDrawer(menuDrawer, false); });
+
+  /* ------------------------------------------------------------------
+     Teknologi cards (phones): copy behind a show-more button
+     ------------------------------------------------------------------ */
+  /* The button only shows below 600 (CSS); there the card's copy opens as a bubble above it.
+     One open at a time; a tap anywhere else or Escape closes it, Escape handing focus back. */
+  const techGrid = $('.tech-grid');
+  if (techGrid) {
+    let openedAt = 0;
+    const setOpen = (btn, open) => {
+      btn.closest('.tech-card').classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      $('span', btn).textContent = open ? 'Tutup' : 'Lihat detail';
+    };
+    const closeAll = (except) => $$('[data-tech-more][aria-expanded="true"]', techGrid)
+      .forEach((b) => { if (b !== except) setOpen(b, false); });
+
+    techGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-tech-more]');
+      if (!btn) return;
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      closeAll(btn);
+      setOpen(btn, open);
+      openedAt = techGrid.scrollLeft;
+    });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.tech-card.is-open')) closeAll(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const btn = $('[data-tech-more][aria-expanded="true"]', techGrid);
+      if (!btn) return;
+      setOpen(btn, false);
+      btn.focus();
+    });
+    // Swiping the rail on to the next card closes the bubble; a nudge of a few pixels (the snap
+    // settling after a tap) does not.
+    techGrid.addEventListener('scroll', () => { if (Math.abs(techGrid.scrollLeft - openedAt) > 40) closeAll(); }, { passive: true });
+
+    /* Phones: the cards as a coverflow (CSS under .tech-grid.is-flow), stepped through by the
+       sliding dots under it, the same dots and 5s fill as the home rails. It loops: each card's
+       place is its distance from the current one around the ring, -1 left, 0 middle, 1 right,
+       2 parked out of sight on the right (with four cards one is always parked). A card leaving
+       on the left glides out to -2 first and only then jumps, unseen, to the parked spot on the
+       right, so it never sweeps back across behind the middle. Only the middle card can be
+       reached; the rest are inert. It pauses with a finger, pointer or focus on it, while a
+       detail bubble is open, and off screen. From 600 up the grid comes back untouched. */
+    const techCtrl = $('[data-tech-ctrl]');
+    const phone = window.matchMedia('(max-width: 599px)');
+    if (techCtrl) {
+      const cards = $$('.tech-card', techGrid);
+      const dotsBox = $('[data-rail-dots]', techCtrl);
+      dotsBox.innerHTML = cards.map((_, k) =>
+        `<button type="button" aria-label="Ke kartu ${k + 1} dari ${cards.length}"></button>`).join('');
+      const dots = $$('button', dotsBox);
+      techCtrl.style.setProperty('--rail-autoplay', RAIL_AUTOPLAY + 'ms');
+      let current = 0, hovered = false, focused = false, touching = false, visible = false;
+
+      const setPaused = () => techCtrl.classList.toggle('is-paused',
+        hovered || focused || touching || !visible || !!$('.tech-card.is-open', techGrid));
+
+      const n = cards.length;
+      // distance around the ring, from -1 up to 2 for four cards
+      const ring = (k, i) => { let d = (k - i + n) % n; if (d > n / 2) d -= n; return d; };
+      const place = (c, off, snap = false) => {
+        if (snap) c.classList.add('is-snapping');
+        c.style.setProperty('--off', String(off));
+        c.style.setProperty('--far', off === 0 ? '0' : '1');
+        c.style.setProperty('--z', String(off === 0 ? 3 : Math.abs(off) === 1 ? 2 : 1));
+        c.dataset.cf = off === 0 ? 'middle' : Math.abs(off) === 1 ? 'side' : 'parked';
+        // A side card stays clickable (a tap brings it to the middle) but out of the tab order
+        // and hidden from screen readers; a parked one is out of reach altogether.
+        c.inert = Math.abs(off) > 1;
+        const side = off !== 0;
+        c.tabIndex = side ? -1 : 0;
+        c.toggleAttribute('aria-hidden', side);
+        $$('button', c).forEach((b) => { b.tabIndex = side ? -1 : 0; });
+        if (snap) { void c.offsetWidth; c.classList.remove('is-snapping'); }
+      };
+      const timers = new Map();
+      const show = (i, first = false) => {
+        current = i;
+        closeAll();
+        cards.forEach((c, k) => {
+          clearTimeout(timers.get(c));
+          const was = c.style.getPropertyValue('--off') === '' ? null : Number(c.style.getPropertyValue('--off'));
+          const off = ring(k, i);
+          if (first || was === null) { place(c, off, true); return; }
+          if (off === 2 && was < 0) {
+            // left the row on the left: out to -2, then across to the parked spot unseen
+            place(c, -2);
+            timers.set(c, setTimeout(() => place(c, 2, true), 620));
+          } else if (off === -1 && was === 2) {
+            // stepping back: the parked card comes in from the left, not across the middle
+            place(c, -2, true);
+            requestAnimationFrame(() => place(c, -1));
+          } else {
+            place(c, off);
+          }
+        });
+        dots.forEach((d, k) => (k === i ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+        setPaused();
+      };
+      const reset = () => cards.forEach((c) => {
+        clearTimeout(timers.get(c));
+        ['--off', '--far', '--z'].forEach((v) => c.style.removeProperty(v));
+        delete c.dataset.cf; c.inert = false;
+        c.tabIndex = 0; c.removeAttribute('aria-hidden');
+        $$('button', c).forEach((b) => b.removeAttribute('tabindex'));
+      });
+
+      const apply = () => {
+        techGrid.classList.toggle('is-flow', phone.matches);
+        techCtrl.hidden = !phone.matches;
+        if (phone.matches) show(current, true); else reset();
+      };
+
+      dotsBox.addEventListener('click', (e) => {
+        const d = e.target.closest('button');
+        if (d) show(dots.indexOf(d));
+      });
+      // A tap on a side card brings it to the middle. Capture phase, so the tap never reaches
+      // the card's own "Lihat detail" while it is still to one side.
+      techGrid.addEventListener('click', (e) => {
+        if (!phone.matches) return;
+        const c = e.target.closest('.tech-card');
+        if (!c || c.dataset.cf !== 'side') return;
+        e.preventDefault(); e.stopPropagation();
+        show(cards.indexOf(c));
+      }, true);
+      dotsBox.addEventListener('animationend', (e) => {
+        if (e.animationName !== 'dot-progress' || reducedMotion.matches || !phone.matches) return;
+        if (techCtrl.classList.contains('is-paused') || document.hidden || openDrawer) return;
+        show((current + 1) % cards.length);
+      });
+      // a bubble opening or closing changes whether the stack may move on
+      techGrid.addEventListener('click', () => requestAnimationFrame(setPaused));
+      document.addEventListener('click', () => requestAnimationFrame(setPaused));
+
+      const zone = [techGrid, techCtrl];
+      zone.forEach((el) => {
+        el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { hovered = true; setPaused(); } });
+        el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { hovered = false; setPaused(); } });
+        el.addEventListener('focusin', () => { focused = true; setPaused(); });
+        el.addEventListener('focusout', (e) => { if (!zone.some((z) => z.contains(e.relatedTarget))) { focused = false; setPaused(); } });
+      });
+      techGrid.addEventListener('touchstart', () => { touching = true; setPaused(); }, { passive: true });
+      techGrid.addEventListener('touchend', () => { touching = false; setPaused(); }, { passive: true });
+      new IntersectionObserver(([en]) => { visible = en.isIntersecting; setPaused(); }, { threshold: 0.5 }).observe(techGrid);
+
+      phone.addEventListener('change', apply);
+      apply();
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Tentang Kami: light beams behind the opening
+     ------------------------------------------------------------------ */
+  /* A port of the "Beams Background" React component to plain canvas. Thirty soft columns of
+     light lean across the section and drift upward; each pulses gently and, once it has risen
+     off the top, comes back in from the bottom in one of three lanes so the light stays spread.
+     Recoloured from the original's cyan-blue (hue 190-260) to the brand's violet-to-magenta
+     (hue ~265-300, #8E48C4 to #DB4DFF). The blur is CSS on the canvas, so the canvas itself is
+     drawn at a quarter of the screen's resolution: the blur hides it and the drawing gets far
+     cheaper. It sizes to its section, stops while off screen or in a background tab, and draws
+     one still frame for readers who ask for reduced motion. */
+  const beamsBox = $('[data-beams]');
+  const beamsCanvas = beamsBox && $('canvas', beamsBox);
+  const beamsCtx = beamsCanvas && beamsCanvas.getContext('2d');
+  if (beamsCtx) {
+    const COUNT = 30;
+    const SCALE = 0.25;
+    const HUE = [265, 300];
+    let w = 0, h = 0, beams = [], frame = 0, last = 0, visible = true;
+    // Beam widths were made for a desktop screen; on a phone the same widths overlap into one
+    // even wash under the blur. They scale with the section's width instead (down to 40%).
+    let k = 1;
+
+    const makeBeam = () => ({
+      x: Math.random() * w * 1.5 - w * 0.25,
+      y: Math.random() * h * 1.5 - h * 0.25,
+      width: (30 + Math.random() * 60) * k,
+      length: h * 2.5,
+      angle: -35 + Math.random() * 10,
+      speed: 0.6 + Math.random() * 1.2,
+      opacity: 0.12 + Math.random() * 0.16,
+      hue: HUE[0] + Math.random() * (HUE[1] - HUE[0]),
+      pulse: Math.random() * Math.PI * 2,
+      pulseSpeed: 0.02 + Math.random() * 0.03,
+    });
+    function resetBeam(beam, i) {
+      const lane = w / 3;
+      beam.y = h + 100;
+      beam.x = (i % 3) * lane + lane / 2 + (Math.random() - 0.5) * lane * 0.5;
+      beam.width = (100 + Math.random() * 100) * k;
+      beam.speed = 0.5 + Math.random() * 0.4;
+      beam.hue = HUE[0] + (i * (HUE[1] - HUE[0])) / COUNT;
+      beam.opacity = 0.2 + Math.random() * 0.1;
+    }
+    function drawBeam(b) {
+      // x1.9: the original's strength, which its full-resolution canvas and lighter page lost here
+      // and narrower beams carry less light, so they burn brighter in step (up to x1.5 on a phone)
+      const a = Math.min(1, b.opacity * (0.8 + Math.sin(b.pulse) * 0.2) * 1.9 * (1 + (1 - k) * 0.8));
+      const c = (k) => `hsla(${b.hue}, 85%, 62%, ${a * k})`;
+      beamsCtx.save();
+      beamsCtx.translate(b.x, b.y);
+      beamsCtx.rotate((b.angle * Math.PI) / 180);
+      const g = beamsCtx.createLinearGradient(0, 0, 0, b.length);
+      g.addColorStop(0, c(0)); g.addColorStop(0.1, c(0.5)); g.addColorStop(0.4, c(1));
+      g.addColorStop(0.6, c(1)); g.addColorStop(0.9, c(0.5)); g.addColorStop(1, c(0));
+      beamsCtx.fillStyle = g;
+      beamsCtx.fillRect(-b.width / 2, 0, b.width, b.length);
+      beamsCtx.restore();
+    }
+    function paint(step) {
+      beamsCtx.setTransform(1, 0, 0, 1, 0, 0);
+      beamsCtx.clearRect(0, 0, beamsCanvas.width, beamsCanvas.height);
+      beamsCtx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+      beams.forEach((b, i) => {
+        b.y -= b.speed * step;
+        b.pulse += b.pulseSpeed * step;
+        if (b.y + b.length < -100) resetBeam(b, i);
+        drawBeam(b);
+      });
+    }
+    function size() {
+      const r = beamsBox.getBoundingClientRect();
+      w = r.width; h = r.height;
+      k = Math.min(1, Math.max(0.4, w / 1280));
+      beamsCanvas.width = Math.max(1, Math.round(w * SCALE));
+      beamsCanvas.height = Math.max(1, Math.round(h * SCALE));
+      beams = Array.from({ length: COUNT }, makeBeam);
+      if (reducedMotion.matches) paint(0);
+    }
+    // Movement is per 60th of a second, so the drift is the same speed on any refresh rate.
+    function tick(t) {
+      const step = last ? Math.min((t - last) / (1000 / 60), 3) : 1;
+      last = t;
+      paint(step);
+      frame = requestAnimationFrame(tick);
+    }
+    const run = () => {
+      cancelAnimationFrame(frame); frame = 0; last = 0;
+      if (reducedMotion.matches) { paint(0); return; }
+      if (visible && !document.hidden) frame = requestAnimationFrame(tick);
+    };
+
+    size();
+    run();
+    new ResizeObserver(() => { size(); if (!frame) run(); }).observe(beamsBox);
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; run(); }).observe(beamsBox);
+    document.addEventListener('visibilitychange', run);
+    reducedMotion.addEventListener('change', run);
+  }
 })();

@@ -28,15 +28,14 @@
  *   description  paragraphs for the Detail Produk tab
  *   showcase   banner images stacked edge to edge under the description so they read as one
  *              long image, as { image, alt }; each is <image>.jpg in assets/img
- *   features   { icon, title, text }; icon is a symbol id from the page's sprite, without "i-"
- *   notice     shown first in Detail Produk as a callout (a usage warning); a string, or a
- *              list of strings for several
+ *   notice     a usage note, shown as plain text after the description ("Catatan: …"); a
+ *              string, or a list of strings for several
  *   phoneModel true when the buyer must type their phone model before adding to the cart
  *   inBox      what is in the box, one line each
  *   usage      { tips: [lines], games: [names] } for "Rekomendasi penggunaan"
- *   sections   extra headed blocks after the features, as { title, text }
+ *   sections   extra headed blocks after the showcase, as { title, text }
  *   cover      card image when the product's first variant is not the best shot for a card
- *   tagline    closing line of Detail Produk
+ *   tagline    the product's closing line (kept as copy; not shown on the page)
  *   specs      [label, value] rows for the Spesifikasi tab. Kategori and the variant list are
  *              added automatically
  *
@@ -61,6 +60,19 @@ window.NEXURA = {
     'fan-cooler': 'Pendingin HP dengan mode AI dan layar suhu, biar FPS tetap stabil walau main berjam-jam.',
     'sarung-jempol': 'Anti keringat dan ultra sensitif, biar geseran jempol tetap mulus dan aim makin presisi.',
     'hydrogel': 'Pelindung layar anti gores untuk semua tipe HP, tetap responsif buat push rank.',
+  },
+  // The Bandingkan tab lines specs up by label, but listings name the same spec differently
+  // ("Daya" / "Power" / "Power maksimal"). Each alias here is shown under the name it points at.
+  // A label not listed keeps its own row. The Spesifikasi tab still shows each listing's wording.
+  compareLabels: {
+    'Power maksimal': 'Daya',
+    'Power': 'Daya',
+    'Bilah kipas': 'Jumlah bilah',
+    'Cooling system': 'Mode pendinginan',
+    'Mode': 'Mode pendinginan',
+    'Display': 'Layar',
+    'Metode pemasangan': 'Pemasangan',
+    'Kompatibel': 'Kompatibilitas',
   },
 
   products: [
@@ -100,23 +112,9 @@ window.NEXURA = {
         { image: 'c-iceglow-hitam', alt: 'IceGlow NXI01 warna hitam' },
       ],
       // Copy from the brand's own listing text (10 Oct 2026).
-      notice: 'Disarankan menggunakan adaptor minimal 18–20 watt.',
       description: [
         'NEXURA ICEGLOW NXI01 Phone Cooler – Pendingin HP Gaming AI 15W. Quickly Frozen, gaming tetap stabil!',
         'Tersedia 3 warna: Hitam, Ungu Gelap, dan Pink.',
-      ],
-      features: [
-        { icon: 'zap', title: '15W AI Power Cooling', text: 'Pendingin generasi terbaru dengan AI Smart Technology yang mampu menyesuaikan daya pendinginan secara otomatis sesuai suhu HP, menjaga performa tetap stabil dan aman.' },
-        { icon: 'cpu', title: 'AI Smart Cooling Mode', text: 'Sistem AI mendeteksi suhu HP secara real-time dan mengatur kecepatan kipas & daya pendinginan otomatis untuk efisiensi maksimal.' },
-        { icon: 'gauge', title: 'Overclock Fan Speed Control (0–100)', text: 'Kontrol kecepatan kipas yang halus dan presisi untuk mengatur tingkat pendinginan sesuai kebutuhan.' },
-        { icon: 'fan', title: '8000 RPM High Speed Fan', text: 'Kipas 7 Turbine Blades berkecepatan tinggi untuk aliran udara besar dan pendinginan cepat.' },
-        { icon: 'thermometer', title: 'Digital LED Display', text: 'Menampilkan informasi suhu, power, dan mode pendinginan secara real-time.' },
-        { icon: 'magnet', title: 'Magnetic & Back Clip System (2in1)', text: 'Bisa digunakan dengan magnet kuat atau clip belakang, stabil dan kompatibel dengan berbagai ukuran smartphone.' },
-        { icon: 'layers', title: 'Material Aluminium Alloy Premium', text: 'Membantu pelepasan panas lebih cepat dan meningkatkan efisiensi pendinginan.' },
-        { icon: 'sparkles', title: 'Rainbow RGB Light Effect', text: 'Efek RGB dinamis yang memperkuat aura gaming setup.' },
-        { icon: 'mic', title: 'Cocok untuk Livestreaming', text: 'Kipas tetap stabil dan tidak mengganggu audio saat live streaming atau recording.' },
-        { icon: 'smartphone', title: 'Kompatibilitas Universal', text: 'Mendukung iPhone, Android, dan tablet.' },
-        { icon: 'shield-check', title: 'Garansi 1 Bulan', text: 'Sesuai syarat & ketentuan yang berlaku.' },
       ],
       usage: {
         tips: [
@@ -187,16 +185,6 @@ window.NEXURA = {
         'Pasangnya pakai magnet atau back clip, dan ada tiga warna, ungu, putih, dan hitam, biar cocok sama aura setup kamu.',
         'Paketnya lengkap: magnetic pad, kabel Type-C ke Type-C, back clip holder, dan carbon pouch.',
       ],
-      features: [
-        { icon: 'zap', title: 'Daya 27W', text: 'Tenaga pendingin besar buat sesi main yang panjang.' },
-        { icon: 'snowflake', title: 'Cepat dingin', text: 'Bagian belakang HP cepat terasa dingin.' },
-        { icon: 'gauge', title: '3 level kecepatan', text: 'Pilih level kipas, langsung kelihatan di layar digital.' },
-        { icon: 'fan', title: '7 bilah kipas', text: 'Berputar sampai 5000 RPM.' },
-        { icon: 'layers', title: 'Aluminium alloy', text: 'Bodi aluminium yang kokoh.' },
-        { icon: 'magnet', title: 'Magnet & back clip', text: 'Dua cara pasang, dua-duanya ada di paket.' },
-        { icon: 'sparkles', title: 'Lampu RGB rainbow', text: 'Efek cahaya pelangi di balik kipas.' },
-        { icon: 'gift', title: 'Carbon pouch gratis', text: 'Pouch besar buat bawa cooler ke mana-mana.' },
-      ],
       inBox: ['1 unit Frostbyte', 'Magnetic pad', 'Kabel USB Type-C ke Type-C', 'Back clip holder', 'Carbon pouch'],
       specs: [
         ['Model', 'NXC01'],
@@ -232,7 +220,7 @@ window.NEXURA = {
       alt: 'Sarung jempol Nexura Vortex warna ungu, biru, dan merah',
       rating: '4,7',
       sold: 100000,
-      // TODO: material, thickness and pack contents (one sleeve or a pair) are not on the listing.
+      // TODO: thickness is not on the listing.
       gallery: [
         { image: 'p-vortex', alt: 'Sarung jempol Vortex warna ungu, biru, dan merah' },
         { image: 'g-vortex-fitur', alt: 'Dua jempol memakai Vortex saat main game di HP' },
@@ -244,17 +232,19 @@ window.NEXURA = {
         { image: 'c-vortex-ungu', alt: 'Vortex warna Violet Purple (ungu)' },
       ],
       description: [
-        'Vortex adalah sarung jempol gaming Nexura buat kamu yang main lama tanpa jempol licin. Bahannya menyerap keringat dan nggak ninggalin bekas mengilap di layar, jadi geseran jempol tetap mulus.',
-        'Ringan, ultra sensitif, dan tanpa ghost touch, jadi aim dan combo tetap presisi. Ada tiga warna: merah, biru, dan ungu.',
+        'Level Up Your Aura. Precision in Every Swipe. Buat setiap gerakan jadi lebih akurat dan responsif dengan Sarung Jempol Gaming NEXURA Vortex Series.',
+        'Didesain khusus untuk para gamer mobile yang haus kemenangan, Vortex Series hadir dengan desain modern, material premium, dan performa tinggi yang mendukung gameplay kompetitif! Ada tiga warna: merah, biru, dan ungu.',
       ],
-      features: [
-        { icon: 'pointer', title: 'Ultra sensitif', text: 'Sentuhan langsung terbaca, gampang ngunci target.' },
-        { icon: 'hand', title: 'No ghost touch', text: 'Layar cuma merespons sentuhan yang kamu maksud.' },
-        { icon: 'droplets', title: 'Menyerap keringat', text: 'Jempol tetap kering, layar nggak jadi mengilap.' },
-        { icon: 'feather', title: 'Ringan', text: 'Hampir nggak kerasa, jempol bebas bergerak.' },
+      showcase: [
+        { image: 'd-vortex-1', alt: 'Vortex thumb sleeve for gaming warna ungu, biru, dan merah; get your Vortex sets: kemasan isi 2 pcs plus sepasang sarung jempol' },
+        { image: 'd-vortex-2', alt: 'Tiga warna Vortex: Blue Pulse, Violet Purple, dan Crimson Spiral, dengan ikon premium quality, ultra sensitive, lightweight, sweat absorbent, dan no ghost touch' },
       ],
+      inBox: ['2 pcs sarung jempol (untuk kiri & kanan)'],
       specs: [
         ['Jenis', 'Sarung jempol gaming (thumb sleeve)'],
+        ['Material', 'Silver fiber'],
+        ['Kompatibel', 'Semua jenis layar sentuh'],
+        ['Ukuran', 'All size, elastis dan nyaman untuk semua ukuran jempol'],
         ['Fitur', 'Ultra sensitif, no ghost touch, menyerap keringat'],
       ],
     },
@@ -293,20 +283,9 @@ window.NEXURA = {
         { image: 'g-hgmatte-shock', alt: 'Ilustrasi perisai yang menahan benturan di layar HP' },
         { image: 'g-hgmatte-coverage', alt: 'Lembar Hydrogel Matte menutup layar HP sampai tepi' },
       ],
-      notice: 'Wajib tulis tipe HP kamu saat memesan. Tanpa tipe HP, pesanan dikirim tanpa potongan.',
       description: [
         'NEXURA Hydrogel Matte Screen adalah pelindung layar premium dengan lapisan anti silau (matte finish), cocok untuk kamu yang sering main game atau menggunakan HP dalam waktu lama. Desain khusus gaming grade membuat layar tetap responsif, fingerprint tetap terbaca, dan bebas pantulan cahaya berlebih.',
         'Dengan ketebalan ±0,15mm dan teknologi Nano Repair, goresan halus bisa hilang otomatis. Selain itu, dilengkapi lapisan Shockproof + Hydrophobic yang menjaga layar tetap aman, jernih, dan bersih.',
-      ],
-      features: [
-        { icon: 'sun-dim', title: 'Matte Anti Glare', text: 'Nyaman dipakai di luar ruangan & bebas pantulan cahaya.' },
-        { icon: 'pointer', title: 'Touch Sensitive', text: 'Sentuhan responsif, cocok untuk gaming.' },
-        { icon: 'fingerprint', title: 'Fingerprint Unlocking Sensitive', text: 'Sensor sidik jari tetap berfungsi normal.' },
-        { icon: 'shield', title: 'Shock Proof & Explosion Proof', text: 'Perlindungan ekstra dari benturan & pecah.' },
-        { icon: 'bandage', title: 'Nano Repair (Pulih Otomatis)', text: 'Goresan halus hilang otomatis.' },
-        { icon: 'droplets', title: 'Hydrophobic Layer', text: 'Anti air, minyak, dan sidik jari.' },
-        { icon: 'smartphone', title: 'Full Coverage', text: 'Menutup layar penuh hingga ke tepian.' },
-        { icon: 'feather', title: 'Real Touch Experience', text: 'Ketebalan ±0,15mm, tetap tipis & nyaman.' },
       ],
       inBox: [
         '1 pcs Nexura Hydrogel Matte Screen Protector + bonus 1 varian yang sama',
@@ -325,7 +304,6 @@ window.NEXURA = {
         ['Perlindungan', 'Shock proof & explosion proof, Nano Repair, hydrophobic'],
         ['Sidik jari', 'Mendukung sensor sidik jari di layar'],
         ['Kompatibilitas', 'Semua tipe smartphone (cantumkan tipe HP saat order)'],
-        ['Isi', '2 lembar (beli 1 dapat 1 varian yang sama)'],
       ],
     },
     {
@@ -357,16 +335,6 @@ window.NEXURA = {
         'FrostSpire NXC10 dari seri Nexura Cooler Frost: pendingin HP 27W dengan desain premium dan Mode AI.',
         'Kecepatan kipas bisa di-overclock dari 0 sampai 100, suhunya tampil di layar digital, dan aliran udaranya diarahkan supaya hawa panas nggak nyembur ke tangan kamu.',
         'Ada dua warna, hitam dan silver, plus bonus carbon pouch besar di setiap pembelian.',
-      ],
-      features: [
-        { icon: 'zap', title: 'Daya 27W', text: 'Tenaga pendingin besar buat sesi main yang panjang.' },
-        { icon: 'cpu', title: 'Mode AI', text: 'Kecepatan kipas menyesuaikan otomatis dengan suhu HP.' },
-        { icon: 'gauge', title: 'Overclock 0–100', text: 'Atur kecepatan kipas sampai batas atasnya.' },
-        { icon: 'wind', title: 'Aliran udara aman', text: 'Hawa panas nggak nyembur ke tangan saat main.' },
-        { icon: 'thermometer', title: 'Layar digital', text: 'Suhu tampil langsung di bodi cooler.' },
-        { icon: 'snowflake', title: 'Cepat dingin', text: 'Bagian belakang HP cepat terasa dingin.' },
-        { icon: 'sparkles', title: 'Lampu RGB rainbow', text: 'Cincin cahaya pelangi di sekeliling kipas.' },
-        { icon: 'gift', title: 'Carbon pouch gratis', text: 'Pouch besar buat bawa cooler ke mana-mana.' },
       ],
       specs: [
         ['Model', 'NXC10'],
@@ -411,20 +379,10 @@ window.NEXURA = {
         { image: 'g-hgclear-shock', alt: 'Ilustrasi perisai yang menahan benturan di layar HP' },
         { image: 'g-hgclear-coverage', alt: 'Jari memasang lembar hydrogel sampai tepi layar' },
       ],
-      notice: 'Wajib tulis tipe HP kamu saat memesan. Tanpa tipe HP, pesanan dikirim tanpa potongan.',
       description: [
         'NEXURA Hydrogel Clear HD adalah pelindung layar berbahan Premium Hydrogel Film dengan ketebalan ±0,15mm yang dirancang khusus untuk gaming & aktivitas harian.',
         'Menggunakan teknologi Self Healing & Nano Repair Layer, goresan ringan akan hilang dengan sendirinya, layar tetap mulus seperti baru.',
         'Finishing HD Clear membuat layar tetap jernih tanpa mengurangi sensitivitas sentuhan. Cocok untuk kamu yang butuh respons cepat saat bermain game maupun penggunaan sehari-hari.',
-      ],
-      features: [
-        { icon: 'bandage', title: 'Self Healing Technology', text: 'Goresan halus hilang otomatis.' },
-        { icon: 'shield', title: 'Shock Proof', text: 'Melindungi layar dari benturan ringan & goresan.' },
-        { icon: 'pointer', title: 'Touch Sensitive', text: 'Respons sentuhan super cepat, cocok untuk gaming.' },
-        { icon: 'droplets', title: 'Hydrophobic Layer', text: 'Anti air, anti minyak, lebih mudah dibersihkan.' },
-        { icon: 'eye', title: 'HD Clarity', text: 'Tampilan layar tetap jernih & vivid.' },
-        { icon: 'smartphone', title: 'Full Coverage', text: 'Menutup seluruh layar hingga ke tepian.' },
-        { icon: 'feather', title: 'Real Touch Experience', text: 'Ketebalan ideal ±0,15mm, serasa tanpa pelindung.' },
       ],
       inBox: [
         '2 pcs Nexura Hydrogel Screen Protector (Clear HD) + bonus 1 varian yang sama',
@@ -479,23 +437,10 @@ window.NEXURA = {
         { image: 'g-hgprivacy-hydrophobic', alt: 'Butiran air di atas layar berlapis Hydrogel Privacy Matte' },
         { image: 'g-hgprivacy-repair', alt: 'Layar HP dengan goresan halus yang hilang di sisi berlapis hydrogel' },
       ],
-      notice: [
-        'Wajib tulis tipe HP kamu saat memesan. Tanpa tipe HP, pesanan dikirim tanpa potongan.',
-        'Lapisan privacy membuat sensor sidik jari di layar jadi kurang responsif.',
-      ],
+      notice: 'Lapisan privacy membuat sensor sidik jari di layar jadi kurang responsif.',
       description: [
         'NEXURA Hydrogel Privacy Matte adalah pelindung layar premium dengan lapisan anti-intip + anti-silau (matte) yang membuat layar hanya terlihat jelas ketika dilihat lurus dari depan, sekaligus mengurangi pantulan cahaya & sidik jari agar tetap nyaman digunakan di luar ruangan maupun saat gaming.',
         'Dengan ketebalan hanya ±0,15mm, Hydrogel Gaming Grade ini memberikan pengalaman geser lebih halus, visual lebih lembut (soft matte), serta proteksi penuh dari goresan, gesekan, dan benturan ringan.',
-      ],
-      features: [
-        { icon: 'lock', title: 'Privacy Filter (Anti Spy)', text: 'Layar hanya terlihat dari depan, gelap dari samping.' },
-        { icon: 'sun-dim', title: 'Matte Anti-Glare', text: 'Mengurangi pantulan, nyaman dipakai indoor/outdoor.' },
-        { icon: 'pointer', title: 'Smooth Touch Sensitive', text: 'Sentuhan super responsif, stabil untuk gaming.' },
-        { icon: 'bandage', title: 'Nano Repair (Pulih Otomatis)', text: 'Goresan halus hilang sendiri dari waktu ke waktu.' },
-        { icon: 'shield', title: 'Shock & Scratch Resistant', text: 'Melindungi dari gesekan & benturan ringan.' },
-        { icon: 'droplets', title: 'Hydrophobic + Oleophobic', text: 'Anti air, anti minyak, tidak gampang kotor.' },
-        { icon: 'smartphone', title: 'Full Coverage', text: 'Menutup layar hingga ke tepian (tersedia Case Friendly & Full Screen).' },
-        { icon: 'feather', title: 'Ultra Thin 0,15mm', text: 'Tipis, lembut, dan tetap akurat merespon sentuhan.' },
       ],
       inBox: [
         '2 pcs Nexura Hydrogel Privacy Matte Screen Protector',
@@ -549,15 +494,7 @@ window.NEXURA = {
       description: [
         'NEXURA YinYang Series – Premium Thumb Sleeves (4 pcs). Gear Your Aura – Swing Your Thumb Like a Pro.',
         'Rasakan pengalaman bermain seperti PRO dengan NEXURA YinYang Series, sarung jempol gaming premium dengan desain naga Yin & Yang yang melambangkan keseimbangan, presisi, dan kekuatan.',
-        'Didesain khusus untuk pemain kompetitif di game seperti MLBB, PUBG Mobile, CODM, Free Fire, Honor of Kings, dan semua game mobile yang butuh akurasi tinggi.',
-      ],
-      features: [
-        { icon: 'badge-check', title: 'Premium Quality Fabric', text: 'Menggunakan bahan serat kain impor pilihan, lebih kuat, lebih elastis, dan nyaman dipakai berjam-jam tanpa bikin gerah.' },
-        // TODO: "3x lipat" is the listing's own claim; keep only if there is a test behind it.
-        { icon: 'pointer', title: 'Ultra Responsive Sensitivity', text: 'Teknologi kain terbaru membuat setiap gerakan lebih presisi, aim lebih stabil, dan respon sentuhan meningkat 3x lipat dibanding sarung jempol biasa.' },
-        { icon: 'feather', title: 'Super Lightweight', text: 'Ringan seperti bulu — tidak mengganggu gerakan jempol, ideal untuk fast flick, micro-movement, dan drag shoot panjang.' },
-        { icon: 'droplets', title: 'Sweat Absorbent Technology', text: 'Anti licin dan menyerap keringat, membuat layar tetap bersih tanpa silau atau slip.' },
-        { icon: 'trophy', title: 'Pro Level Experience', text: 'Didukung kualitas bahan premium untuk pengalaman bermain kelas turnamen.' },
+        'Didesain khusus untuk pemain kompetitif yang butuh akurasi tinggi.',
       ],
       sections: [
         {
@@ -570,10 +507,10 @@ window.NEXURA = {
         '2 warna dalam satu set: Red-Gold Dragon & Blue-Ice Dragon',
         'Kotak premium edisi YinYang Dragon',
       ],
+      usage: { games: ['Mobile Legends', 'PUBG Mobile', 'CODM', 'Free Fire', 'Honor of Kings'] },
       tagline: 'Gear Your Aura – Swing Your Thumb Like a Pro.',
       specs: [
         ['Seri', 'YinYang Series, Limited Edition'],
-        ['Isi', '4 pcs dalam 1 box'],
         ['Warna', 'Red-Gold Dragon & Blue-Ice Dragon (2 pcs per warna)'],
         ['Material', 'Serat kain impor, elastis'],
         ['Fitur', 'Ultra responsive, super lightweight, sweat absorbent'],
@@ -613,13 +550,6 @@ window.NEXURA = {
         'NEXURA Vortex Edition – Sarung Jempol Gaming. Level Up Your Aura. Precision in Every Swipe.',
         'Buat setiap gerakan jadi lebih akurat dan responsif dengan Sarung Jempol Gaming NEXURA Vortex Series. Didesain khusus untuk para gamer mobile yang haus kemenangan, Vortex Series hadir dengan desain modern, material premium, dan performa tinggi yang mendukung gameplay kompetitif!',
       ],
-      features: [
-        { icon: 'pointer', title: 'Ultra Sensitive Touch', text: 'Nikmati kontrol maksimal tanpa delay — setiap sentuhan presisi seperti tanpa penghalang.' },
-        { icon: 'fingerprint', title: 'No Ghost Touch', text: 'Aman dari sentuhan ganda atau input error. Main lebih tenang, performa lebih stabil.' },
-        { icon: 'droplets', title: 'Sweat Absorbent Technology', text: 'Menyerap keringat secara efektif untuk kenyamanan ekstra selama sesi permainan panjang.' },
-        { icon: 'feather', title: 'Lightweight & Premium Material', text: 'Terasa ringan dan adem di jempol, tidak mudah longgar, dan kuat untuk pemakaian jangka panjang.' },
-        { icon: 'sparkles', title: 'Stylish Look with Signature Colors', text: 'Tiga warna khas Nexura: Crimson Spiral, Blue Pulse, dan Violet Eclipse (Limited Edition).' },
-      ],
       sections: [
         {
           title: 'Kenapa pilih NEXURA?',
@@ -634,7 +564,6 @@ window.NEXURA = {
       specs: [
         ['Seri', 'Vortex Edition'],
         ['Material', 'Silver Fiber'],
-        ['Isi', '6 pcs sarung jempol 3 warna (kiri & kanan) & Pouch Carbon'],
         ['Warna', 'Crimson Spiral, Blue Pulse, Violet Eclipse (Limited Edition)'],
         ['Ukuran', 'All size – elastis dan nyaman dipakai semua ukuran jempol'],
         ['Kompatibel', 'Semua jenis layar sentuh'],
@@ -668,16 +597,6 @@ window.NEXURA = {
       description: [
         'FrostNova NX005 adalah phone cooler gaming 30W dengan AI Tech, kipas 7 turbine blades berkecepatan 5000–5600 RPM, dan layar real-time untuk daya dan suhu.',
         'Tersedia 2 warna, Ungu Gelap dan Putih, dengan bonus carbon pouch besar.',
-      ],
-      features: [
-        { icon: 'zap', title: 'Power 30W', text: 'Tenaga pendingin besar untuk sesi gaming panjang.' },
-        { icon: 'cpu', title: 'AI Tech', text: 'Pendinginan menyesuaikan suhu HP.' },
-        { icon: 'snowflake', title: 'Can Freeze Quickly', text: 'Cepat bikin bagian belakang HP dingin.' },
-        { icon: 'fan', title: '7 Turbine Blades', text: 'Berputar 5000–5600 RPM.' },
-        { icon: 'thermometer', title: 'Real Time Power & Temp Display', text: 'Daya dan suhu tampil langsung di bodi cooler.' },
-        { icon: 'magnet', title: 'Strong Magnetism', text: 'Menempel mantap di belakang HP.' },
-        { icon: 'sparkles', title: 'Rainbow Light Effect', text: 'Lampu RGB pelangi.' },
-        { icon: 'gift', title: 'Free Large Carbon Pouch', text: 'Pouch besar buat bawa cooler ke mana-mana.' },
       ],
       specs: [
         ['Model', 'NX005'],
@@ -717,23 +636,10 @@ window.NEXURA = {
       gallery: [
         { image: 'p-hydrogel-privacy-hd', alt: 'Hydrogel Privacy HD, pelindung layar gaming, beli 1 dapat 2 dengan toolkit' },
       ],
-      notice: [
-        'Wajib tulis tipe HP kamu saat memesan. Tanpa tipe HP, pesanan dikirim tanpa potongan.',
-        'Lapisan privacy membuat sensor sidik jari di layar jadi kurang responsif.',
-      ],
+      notice: 'Lapisan privacy membuat sensor sidik jari di layar jadi kurang responsif.',
       description: [
         'NEXURA Hydrogel Privacy HD adalah pelindung layar anti-intip dengan finishing Clear+: layar tetap jernih dari depan dan gelap dari samping, super licin buat gaming.',
         'Beli 1 dapat 1 varian yang sama, plus toolkit pemasangan.',
-      ],
-      features: [
-        { icon: 'lock', title: 'Anti Spy', text: 'Layar hanya terlihat jelas dari depan.' },
-        { icon: 'eye', title: 'Clear+', text: 'Tampilan tetap jernih dari depan.' },
-        { icon: 'shield', title: 'Explosion-Proof & Shock-Proof', text: 'Melindungi layar dari benturan.' },
-        { icon: 'smartphone', title: 'Full Coverage', text: 'Menutup layar sampai tepi.' },
-        { icon: 'pointer', title: 'Touch Sensitive', text: 'Sentuhan tetap responsif buat gaming.' },
-        { icon: 'droplets', title: 'Hydrophobic & Oleophobic', text: 'Anti air dan anti minyak.' },
-        { icon: 'bandage', title: 'Nano Repair', text: 'Goresan halus pulih sendiri.' },
-        { icon: 'gift', title: 'Buy 1 Get 1', text: 'Dua lembar varian yang sama, plus toolkit.' },
       ],
       inBox: ['2 lembar Hydrogel Privacy HD (varian yang sama)', 'Toolkit pemasangan'],
       specs: [
@@ -771,22 +677,10 @@ window.NEXURA = {
       gallery: [
         { image: 'p-hydrogel-privacy-std', alt: 'Hydrogel Privacy, pelindung layar gaming, beli 1 dapat 2 dengan toolkit' },
       ],
-      notice: [
-        'Wajib tulis tipe HP kamu saat memesan. Tanpa tipe HP, pesanan dikirim tanpa potongan.',
-        'Lapisan privacy membuat sensor sidik jari di layar jadi kurang responsif.',
-      ],
+      notice: 'Lapisan privacy membuat sensor sidik jari di layar jadi kurang responsif.',
       description: [
         'NEXURA Hydrogel Privacy adalah pelindung layar anti-intip untuk gaming: layar hanya terlihat jelas dari depan, tahan air, dan goresan halus pulih sendiri.',
         'Beli 1 dapat 1 varian yang sama, plus toolkit pemasangan.',
-      ],
-      features: [
-        { icon: 'lock', title: 'Anti Spy', text: 'Layar hanya terlihat jelas dari depan.' },
-        { icon: 'gauge', title: 'Perfect for Gaming', text: 'Licin dan responsif untuk sesi main panjang.' },
-        { icon: 'bandage', title: 'Self Healing', text: 'Goresan halus pulih sendiri.' },
-        { icon: 'shield', title: 'Shock Proof', text: 'Melindungi layar dari benturan.' },
-        { icon: 'pointer', title: 'Touch Sensitive', text: 'Sentuhan tetap responsif.' },
-        { icon: 'droplets', title: 'Hydrophobic', text: 'Tahan air, layar tetap bersih.' },
-        { icon: 'gift', title: 'Buy 1 Get 1', text: 'Dua lembar varian yang sama, plus toolkit.' },
       ],
       inBox: ['2 lembar Hydrogel Privacy (varian yang sama)', 'Toolkit pemasangan'],
       specs: [
@@ -840,16 +734,7 @@ window.NEXURA = {
       description: [
         'NEXURA Reflex Cosmic Series. Level Up Your Aura. Reflect Your Skill.',
         'Rasakan pengalaman bermain yang lebih responsif, ringan, dan presisi dengan NEXURA Reflex Cosmic Series. Hadir dengan konsep cosmic reflective color, sarung jempol ini bukan cuma nyaman dipakai, tapi juga punya tampilan futuristik yang standout saat terkena cahaya.',
-        'Didesain khusus untuk gamer mobile yang butuh kontrol maksimal di setiap swipe, tap, dan drag. Cocok untuk main Mobile Legends, PUBG Mobile, Free Fire, CODM, Honor of Kings, Fortnite, dan game kompetitif lainnya.',
-      ],
-      features: [
-        { icon: 'pointer', title: 'Ultra Sensitive', text: 'Respons sentuhan lebih cepat dan akurat.' },
-        { icon: 'feather', title: 'Lightweight', text: 'Ringan dipakai, tidak mengganggu pergerakan jempol.' },
-        { icon: 'droplets', title: 'Sweat Absorbent', text: 'Membantu menyerap keringat agar layar tetap nyaman digunakan.' },
-        { icon: 'fingerprint', title: 'No Ghost Touch', text: 'Kontrol lebih stabil saat bermain.' },
-        { icon: 'hand', title: 'Flexible & Elastic', text: 'Nyaman untuk berbagai ukuran jempol.' },
-        { icon: 'sparkles', title: 'Reflective Design', text: 'Efek warna menyala saat terkena cahaya.' },
-        { icon: 'badge-check', title: 'Premium Quality', text: 'Material lembut, kuat, dan nyaman untuk gaming lama.' },
+        'Didesain khusus untuk gamer mobile yang butuh kontrol maksimal di setiap swipe, tap, dan drag.',
       ],
       sections: [
         {
@@ -867,11 +752,11 @@ window.NEXURA = {
         { image: 'd-reflex-3', alt: 'Reflex sweat absorbent; isi kotak: sepasang finger sleeve Nexura Reflex' },
       ],
       inBox: ['2 pcs sarung jempol, kiri & kanan'],
+      usage: { games: ['Mobile Legends', 'PUBG Mobile', 'Free Fire', 'CODM', 'Honor of Kings', 'Fortnite'] },
       tagline: 'High Quality, Low Price. Karena semua gamer pantas tampil maksimal.',
       specs: [
         ['Seri', 'Reflex Cosmic Series'],
         ['Material', 'Silver Fiber + Reflective Fabric'],
-        ['Isi', '2 pcs, kiri & kanan'],
         ['Ukuran', 'All size, elastis dan nyaman'],
         ['Kompatibel', 'Semua jenis layar sentuh smartphone'],
         ['Cocok untuk', 'Gaming, scrolling, editing, dan penggunaan harian'],
@@ -884,6 +769,9 @@ window.NEXURA = {
   store: {
     whatsapp: '6212345678901',
     tokopedia: 'https://www.tokopedia.com/nexura-gear',
+    // Tanggal rating, jumlah ulasan, dan terjual di data produk terakhir disalin dari Tokopedia
+    // (tahun-bulan-tanggal). Ganti setiap kali angkanya diperbarui; tampil di tab Ulasan.
+    metricsUpdated: '2026-10-16',
   },
 
   /*
@@ -972,41 +860,71 @@ window.NEXURA = {
    * teksnya.
    */
   reviews: [
+    // Ulasan beranda: dua puluh ini, urut seperti yang ditampilkan. Di beranda yang tampil
+    // adalah tangkapan layar aslinya dari Tokopedia (`screenshot`, assets/img/reviews/
+    // <nama>.webp), apa adanya, dipotong per ulasan dan diberi ruang putih di bawah supaya
+    // ukurannya sama semua (620 x 304). `text` adalah isinya kata per kata seperti di
+    // tangkapan layar (termasuk "…" kalau Tokopedia memotongnya), dipakai sebagai teks
+    // alternatif gambar dan di halaman produk. `highlight` adalah potongan kata per kata dari
+    // `text` itu sendiri, yang muncul sebagai stiker di atas tangkapan layarnya.
+    { rating: 5, name: 'D***z', product: 'Hydrogel Matte', variant: 'Case Friendly', home: true, screenshot: 'ulasan-01', highlight: 'presisi banget',
+      text: 'Kejernihan lensa: bagus dan nyaman di lihat Kualitas pengerjaan: mantap presisi banget responsif buat sentuh sentuh hydrogel mattenya agak kurang tapi masih mantul sentuh…' },
+    { rating: 5, name: 'K***m', product: 'Hydrogel Matte', variant: 'Fullscreen', home: true, screenshot: 'ulasan-02', highlight: 'lancar banget',
+      text: 'Kejernihan lensa: Jernih Kualitas pengerjaan: Sangat bagus Performa: Buat gaming lancar banget, layar HP juga langsung licin banget' },
+    { rating: 5, name: 'L***f', product: 'Hydrogel Matte', variant: 'Case Friendly', home: true, screenshot: 'ulasan-03', highlight: 'Gacorr licinnn',
+      text: 'Performa: Gacorr licinnn bangett kayaa udahh pakee bedakkk minnn kerenn bangett nihh hydrogel nexura next beli lagi di sini mungkin sekali kali bakalan beli Fan colerr sa…' },
+    { rating: 5, name: 'O***x', product: 'Hydrogel Matte', variant: 'Case Friendly', home: true, screenshot: 'ulasan-04', highlight: 'bagus banget',
+      text: 'bagus banget bisa sidik jari di layar, responsif, sama jernih banget, mana hydrogel nya di kasih 2 lagi jadi kalo semisalkan yang pertama gagal bisa pake yang ke2' },
+    { rating: 5, name: 'I***o', product: 'Hydrogel Matte', variant: 'Case Friendly', home: true, screenshot: 'ulasan-05', highlight: 'Jernih banget',
+      text: 'Kualitas pengerjaan: Sangat mudah Kejernihan lensa: Jernih banget dan licin buat main game' },
+    { rating: 5, name: 'X***u', product: 'IceGlow', variant: 'Hitam', home: true, screenshot: 'ulasan-06', highlight: 'Semuanya bagus',
+      text: 'Semuanya bagus, minus nya mungkin ada kesalahan pada jepitan nya' },
+    { rating: 5, name: 'F***w', product: 'IceGlow', variant: 'Hitam', home: true, screenshot: 'ulasan-07', highlight: 'kualitas keren',
+      text: 'Kejernihan lensa: Bagus Kualitas pengerjaan: Sangat wort it untuk harga segini udah dapet kualitas keren' },
+    { rating: 5, name: 'U***j', product: 'IceGlow', variant: 'Ungu Gelap', home: true, screenshot: 'ulasan-08', highlight: 'dingin bet',
+      text: 'Mantap collernya dingin bet Performa sistem: Bagus bangetttt' },
+    { rating: 5, name: 'S***h', product: 'IceGlow', variant: 'Hitam', home: true, screenshot: 'ulasan-09', highlight: 'GK nyesel',
+      text: 'Gacor barang nya GK nyesel deh beli di nexura gacor produk nya' },
+    { rating: 5, name: 'M***q', product: 'IceGlow', variant: 'Hitam', home: true, screenshot: 'ulasan-10', highlight: 'produk sesuai deskripsi',
+      text: 'Alhamdulillah pesanan yg ditunggu2 akhirnya dateng juga meski lama menunggu...produk sesuai deskripsi' },
+    { rating: 5, name: 'Y***n', product: 'YinYang Series', home: true, screenshot: 'ulasan-11', highlight: 'responsif',
+      text: 'sistem atau objeknya sangat baik sekali dijempol, sentuhan objekny menyentuh display HP saya sangat pas , nyaman, responsif, pkoknya cobain sendiri aja, nexura bikin kual…' },
+    { rating: 5, name: 'H***w', product: 'YinYang Series', home: true, screenshot: 'ulasan-12', highlight: 'Bagus premium bet',
+      text: 'Performa sistem: Enak bet pas nyaman Kualitas pengerjaan: Bagus premium bet sesuai sama di live/foto Sumpah nexura klo bkin produk ga pernah gagal design nya mewah,kece,e…' },
+    { rating: 5, name: 'N***m', product: 'YinYang Series', home: true, screenshot: 'ulasan-13', highlight: 'bahannya lembut',
+      text: 'bahannya lembut nyaman luar dalem untuk di pake jangka panjang ini enak si,apalagi buat main 2-3jam ata 5 jam,jujur kalo kalian ngiranya ini bakal licin buat main game fp…' },
+    { rating: 5, name: 'X***a', product: 'YinYang Series', home: true, screenshot: 'ulasan-14', highlight: 'bintang 5',
+      text: 'Sarung jempol YINYANG ini bagus bahannya lebih lembut dan juga enak dipakai tidak sesak ke jempol jadi main lebih enak mantap saya kasih bintang 5' },
+    { rating: 5, name: 'R***s', product: 'YinYang Series', home: true, screenshot: 'ulasan-15', highlight: 'Sangat makjosss',
+      text: 'Performa sistem: Sangan bagus dan licin dan nyaman di pakai enak lagi Kualitas pengerjaan: Sangat makjosss enak banget kalau pakai in ke mana mana pun elegan dan macem ma…' },
+    { rating: 5, name: 'D***x', product: 'Vortex', variant: 'Ungu (Violet Purple)', home: true, screenshot: 'ulasan-16', highlight: 'sensinya bagus',
+      text: 'Kualitas pengerjaan: Lumayan licin, nyaman di jempol, tekstur nya halus, sensinya bagus, warnanya pas dan cocok buat yang suka warna agak gelap, cocok deh brand NEXURA in…' },
+    { rating: 5, name: 'E***r', product: 'Vortex', variant: 'Merah (Crimson Spiral)', home: true, screenshot: 'ulasan-17', highlight: 'bahan tebel',
+      text: 'Kualitas sangat bagus, responsif, bahan tebel, enak di pake di jari, bisa buat main game apa aja, dll' },
+    { rating: 5, name: 'B***q', product: 'Vortex', variant: 'Merah (Crimson Spiral)', home: true, screenshot: 'ulasan-18', highlight: 'nyaman di jari',
+      text: 'Sarung tangan ini sangat enak di pakai dan nyaman di jari, tidak membuat gerah atau gatal, kain nya juga tidak kasar ,harganya juga terjangkau,saya sangat nyaman ketika b…' },
+    { rating: 5, name: 'H***v', product: 'Vortex', variant: 'Biru (Blue Pulse)', home: true, screenshot: 'ulasan-19', highlight: 'licin parah',
+      text: 'Kualitas pengerjaan: jaitanya rapih kaya ga ada sambungan Performa sistem: licin parah, enak si responsif,tp belum terbiasa aja, biasa pakai merk sebelah, pake merk ini k…' },
+    { rating: 5, name: 'T***a', product: 'Vortex', variant: 'Biru (Blue Pulse)', home: true, screenshot: 'ulasan-20', highlight: 'Nyaman licin',
+      text: 'Performa sistem: Nyaman licin saat di pakek Kualitas pengerjaan: Bagus rapih Barang mendarat dengan baik kurir ramah langganan barang sesuai iklan sarung jempol nexura se…' },
+
+    // Ulasan lain: hanya tampil di halaman produknya masing-masing.
     { rating: 5, name: 'O***p', product: 'IceGlow', variant: 'Hitam',
-      text: 'Pengirimannya cepet, padahal baru kemarin check out besoknya udah sampe. Coolernya juga bagus banget, dingin sampe case aku berembun. Pokoknya top markotop.' },
-    { rating: 5, name: 'K***m', product: 'Hydrogel Matte', variant: 'Fullscreen',
-      text: 'Buat gaming lancar banget, layar HP juga langsung licin banget.' },
-    { rating: 5, name: 'X***a', product: 'YinYang Series',
-      text: 'Sarung jempol YinYang ini bagus, bahannya lebih lembut dan enak dipakai, nggak sesak ke jempol. Jadi main lebih enak, mantap saya kasih bintang 5.' },
-    { rating: 5, name: 'S***h', product: 'IceGlow', variant: 'Hitam',
-      text: 'Gacor barangnya, nggak nyesel deh beli di Nexura. Gacor produknya.' },
-    { rating: 5, name: 'O***x', product: 'Hydrogel Matte', variant: 'Case Friendly',
-      text: 'Bagus banget, bisa sidik jari di layar, responsif, sama jernih banget. Mana hydrogelnya dikasih 2 lagi, jadi kalau yang pertama gagal bisa pakai yang kedua.' },
-    { rating: 5, name: 'H***w', product: 'YinYang Series',
-      text: 'Sumpah, Nexura kalau bikin produk nggak pernah gagal. Desainnya mewah, kece, elegan bet.' },
-    { rating: 5, name: 'U***j', product: 'IceGlow', variant: 'Ungu Gelap',
-      text: 'Mantap, coolernya dingin bet. Performanya bagus bangetttt.' },
+      text: 'Pengiriman nya cepet padahal baru kemarin check out besoknya udah sampe lagi,coolernya juga bagus banget dingin sampe case aku berembun pokoknya top markotop' },
+    { rating: 5, name: 'Q***m', product: 'YinYang Series',
+      text: 'Mantap min! Karena sarung jempol ini bikin Gameplay jadi makin jago ! Karena Bikin tambah Responsif sarung tangan ini Bismillah dapet wdp;)' },
+    { rating: 5, name: 'T***m', product: 'Vortex', variant: 'Ungu (Violet Purple)',
+      text: 'Mantap min gara gara pake sarjem dari nexura gw jadi MVP, Mantap min meskipun harganya cuma duapuluh an ribu tapi responsif 🔥👑' },
     { rating: 5, name: 'V***e', product: 'Hydrogel Privacy', variant: 'Case Friendly',
       text: 'Sumpah bikin nagih kalau pakai ini. Sambil ngopi, gulir-gulir layar jadi mantap.' },
     { rating: 5, name: 'K***l', product: 'YinYang Series',
       text: 'Produk sesuai. Sarung jempolnya sangat responsif dan bahannya nyaman.' },
-
-    { rating: 5, name: 'L***f', product: 'Hydrogel Matte', variant: 'Case Friendly',
-      text: 'Gacor, licin banget, kayak udah pakai bedak. Keren banget nih hydrogel Nexura, next beli lagi di sini.' },
-    { rating: 5, name: 'F***w', product: 'IceGlow', variant: 'Hitam',
-      text: 'Sangat worth it. Untuk harga segini udah dapet kualitas keren.' },
-    { rating: 5, name: 'N***m', product: 'YinYang Series',
-      text: 'Bahannya lembut, nyaman luar dalam, buat dipakai jangka panjang ini enak. Apalagi buat main 2–3 jam atau 5 jam.' },
     { rating: 5, name: 'Z***z', product: 'Hydrogel Matte', variant: 'Case Friendly',
       text: 'Akhirnya yang ditunggu-tunggu datang juga. Emang sebagus itu sih nih hydrogel, bikin licin dan lincah pas main game. Langsung saja bintang lima.' },
     { rating: 5, name: 'H***j', product: 'IceGlow', variant: 'Hitam',
       text: 'Barang datang sesuai pesanan, tokonya amanah.' },
-    { rating: 5, name: 'Q***m', product: 'YinYang Series',
-      text: 'Mantap min! Sarung jempol ini bikin gameplay jadi makin jago, bikin tambah responsif.' },
     { rating: 5, name: 'N***p', product: 'Hydrogel Matte', variant: 'Fullscreen',
       text: 'Sesuai yang diiklankan. Cocok buat yang main game, layar fast respon. Rekomendasi banget.' },
-    { rating: 5, name: 'Y***n', product: 'YinYang Series',
-      text: 'Sentuhan di display HP saya sangat pas, nyaman, responsif. Pokoknya cobain sendiri aja, Nexura bikin kualitas premium nggak main-main.' },
     { rating: 5, name: 'Y***e', product: 'Hydrogel Matte', variant: 'Case Friendly',
       text: 'Bagus, licin, dapat 2 pula. Kekurangan ketutup sama kelebihan. Worth it!!' },
   ],

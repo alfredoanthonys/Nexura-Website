@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap">
   <!-- The headline is Draco, set with font-display: block, so it is fetched before first paint. -->
   <link rel="preload" as="font" type="font/otf" href="../assets/fonts/draco.otf" crossorigin>
-  <link rel="stylesheet" href="../assets/css/styles.css?v=20261014120000">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20261017500000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -144,7 +144,7 @@
           </li>
           <!-- Existing pages per PRD 8.1; update the paths if they differ -->
           <li><a class="nav__link" href="../tentang-kami">Tentang Kami</a></li>
-          <li><a class="nav__link" href="../bantuan">Bantuan</a></li>
+          <li><a class="nav__link" href="../bantuan">Hubungi Kami</a></li>
         </ul>
       </nav>
 
@@ -164,10 +164,10 @@
         <button class="icon-btn nav__account" type="button" aria-label="Akun">
           <svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>
         </button>
-        <button class="icon-btn nav__cart" type="button" aria-label="Keranjang, kosong" aria-controls="cart-drawer" aria-expanded="false" data-cart-open>
+        <a class="icon-btn nav__cart" href="../keranjang/" aria-label="Keranjang, kosong" aria-current="page" data-cart-open>
           <svg class="icon" aria-hidden="true"><use href="#i-cart"/></svg>
           <span class="cart-badge" data-cart-badge hidden>0</span>
-        </button>
+        </a>
       </div>
     </div>
   </header>
@@ -176,13 +176,6 @@
     <!-- ============ PAGE HEAD ============ -->
     <header class="page-head page-head--plain">
       <div class="container">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <ol>
-            <li><a href="../">Beranda</a></li>
-            <li class="breadcrumb__sep" role="presentation" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></li>
-            <li><span aria-current="page">Keranjang</span></li>
-          </ol>
-        </nav>
         <h1 class="section-title page-title">Keranjang</h1>
       </div>
     </header>
@@ -226,8 +219,29 @@
             </ul>
           </section>
 
+          <!-- Phones and tablets: Total diskon under the docked total opens Rincian promo, a
+               breakdown that grows up out of the bar over a dimmed page, as the marketplaces do. -->
+          <div class="cart-promo-scrim" data-promo-scrim hidden></div>
           <div class="cart-pay" data-pay-dock>
-            <p class="cart-pay__total"><span>Total</span><strong class="price" data-sum-total>Rp0</strong></p>
+            <section class="cart-promo" id="cart-promo" aria-labelledby="cart-promo-title" data-promo-sheet hidden>
+              <div class="cart-promo__head">
+                <button class="icon-btn" type="button" aria-label="Tutup rincian promo" data-promo-close>
+                  <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+                </button>
+                <h2 class="cart-promo__title" id="cart-promo-title">Rincian promo</h2>
+              </div>
+              <dl class="cart-promo__rows">
+                <div><dt>Total harga sebelum promo</dt><dd class="price" data-promo-gross>Rp0</dd></div>
+                <div><dt>Diskon produk</dt><dd class="price cart-promo__minus" data-promo-disc>-Rp0</dd></div>
+              </dl>
+            </section>
+            <div class="cart-pay__total">
+              <p class="cart-pay__line"><span class="cart-pay__label">Total</span><strong class="price" data-sum-total>Rp0</strong></p>
+              <button class="cart-pay__disc" type="button" aria-expanded="false" aria-controls="cart-promo" data-promo-toggle hidden>
+                Total diskon <span class="price" data-promo-disc-short>Rp0</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+              </button>
+            </div>
             <button class="btn btn--primary btn--block" type="button" data-cartpage-checkout>Beli (0)</button>
             <p class="cart-pay__hint" data-pay-hint hidden>Centang produk yang mau dibeli dulu.</p>
           </div>
@@ -242,16 +256,6 @@
       </div>
     </div>
 
-    <!-- ============ TAMBAH PRODUK LAINNYA ============ -->
-    <!-- Best sellers not already in the cart. main.js fills the grid with the home page's cards. -->
-    <section class="section section--more" aria-labelledby="lainnya-title">
-      <div class="container">
-        <header class="section-head">
-          <h2 class="section-title" id="lainnya-title">Tambah Produk Lainnya</h2>
-        </header>
-        <div class="product-grid" data-cartpage-more></div>
-      </div>
-    </section>
   </main>
 
   <!-- ============ FOOTER ============ -->
@@ -333,7 +337,7 @@
         <a class="menu-cat menu-cat--all" href="../produk/" data-filter="all" aria-current="page"><span class="menu-cat__name">Lihat Semua</span><svg class="icon icon--sm menu-cat__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg></a>
       </div>
       <a class="menu-list__item" href="../tentang-kami">Tentang Kami</a>
-      <a class="menu-list__item" href="../bantuan">Bantuan</a>
+      <a class="menu-list__item" href="../bantuan">Hubungi Kami</a>
     </nav>
     <div class="drawer__foot">
       <!-- The bar only carries the account icon from 768 up, where the burger is gone; below that
@@ -344,39 +348,10 @@
     </div>
   </div>
 
-  <!-- ============ CART DRAWER ============ -->
-  <div class="drawer drawer--right" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" inert data-cart-drawer>
-    <div class="drawer__head">
-      <h2 class="drawer__title" id="cart-title">Keranjang</h2>
-      <button class="icon-btn icon-btn--round" type="button" aria-label="Tutup keranjang" data-drawer-close>
-        <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
-      </button>
-    </div>
-    <div class="drawer__body">
-      <ul class="cart-list" data-cart-list role="list"></ul>
-      <div class="cart-empty" data-cart-empty>
-        <svg class="icon cart-empty__icon" aria-hidden="true"><use href="#i-bag"/></svg>
-        <p class="cart-empty__title">Keranjang kamu kosong</p>
-        <p class="cart-empty__text">Pilih gear buat sesi push rank berikutnya.</p>
-        <button class="btn btn--primary" type="button" data-drawer-close>Lanjut Belanja</button>
-      </div>
-    </div>
-    <div class="drawer__foot" data-cart-foot>
-      <div class="cart-total">
-        <span>Estimasi total:</span>
-        <strong class="price" data-cart-total>Rp0</strong>
-      </div>
-      <div class="cart-actions">
-        <button class="btn btn--primary" type="button" data-checkout>Checkout</button>
-        <a class="btn btn--secondary" href="../keranjang/" data-view-cart><span>Lihat Keranjang (<span data-cart-count>0</span>)</span></a>
-      </div>
-    </div>
-  </div>
-
   <div class="backdrop" data-backdrop hidden></div>
   <div class="sr-only" aria-live="polite" data-live></div>
 
-  <script src="../assets/js/data.js?v=20261011009000"></script>
-  <script src="../assets/js/main.js?v=20261014120000"></script>
+  <script src="../assets/js/data.js?v=20261017440000"></script>
+  <script src="../assets/js/main.js?v=20261017440000"></script>
 </body>
 </html>

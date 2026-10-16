@@ -21,11 +21,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap">
   <link rel="preload" as="font" type="font/otf" href="assets/fonts/draco.otf" crossorigin>
-  <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-iceglow-m.jpg" media="(max-width: 599px)">
-  <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-iceglow.jpg"
-        imagesrcset="assets/img/hero-iceglow-1280.jpg 1280w, assets/img/hero-iceglow.jpg 1672w"
-        imagesizes="100vw" media="(min-width: 600px)">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20261014120000">
+  <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora-m.jpg" media="(max-width: 599px)">
+  <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora.jpg" media="(min-width: 600px)">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261017500000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -146,7 +144,7 @@
           </li>
           <!-- Existing pages per PRD 8.1; update the paths if they differ -->
           <li><a class="nav__link" href="tentang-kami">Tentang Kami</a></li>
-          <li><a class="nav__link" href="bantuan">Bantuan</a></li>
+          <li><a class="nav__link" href="bantuan">Hubungi Kami</a></li>
         </ul>
       </nav>
 
@@ -166,10 +164,10 @@
         <button class="icon-btn nav__account" type="button" aria-label="Akun">
           <svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>
         </button>
-        <button class="icon-btn nav__cart" type="button" aria-label="Keranjang, kosong" aria-controls="cart-drawer" aria-expanded="false" data-cart-open>
+        <a class="icon-btn nav__cart" href="keranjang/" aria-label="Keranjang, kosong" data-cart-open>
           <svg class="icon" aria-hidden="true"><use href="#i-cart"/></svg>
           <span class="cart-badge" data-cart-badge hidden>0</span>
-        </button>
+        </a>
       </div>
     </div>
   </header>
@@ -178,57 +176,23 @@
     <span id="top" class="anchor-top" aria-hidden="true"></span>
 
     <!-- ============ HERO SLIDER ============ -->
-    <section class="hero" aria-roledescription="carousel" aria-label="Produk unggulan" data-hero>
+    <section class="hero" aria-label="Produk unggulan">
       <div class="hero__track" data-hero-track>
-        <article class="hero__slide hero__slide--iceglow" aria-roledescription="slide" aria-label="1 dari 2">
+        <article class="hero__slide hero__slide--glow3">
           <picture class="hero__media">
-            <!-- Phones get a portrait cut of the banner with its own headline and CTA laid out
-                 for the narrow screen, instead of a crop of the wide one. -->
-            <source media="(max-width: 599px)" srcset="assets/img/hero-iceglow-m.jpg" width="1024" height="1536">
-            <img src="assets/img/hero-iceglow.jpg"
-                 srcset="assets/img/hero-iceglow-1280.jpg 1280w, assets/img/hero-iceglow.jpg 1672w"
+            <source media="(max-width: 599px)" srcset="assets/img/hero-es-serut-m.jpg" width="1093" height="1375">
+            <img src="assets/img/aurora.jpg"
                  sizes="100vw"
                  width="1672" height="941" fetchpriority="high"
-                 alt="Tiga fan cooler Nexura IceGlow NXI01 warna pink, ungu, dan hitam dengan lampu RGB, plus carbon pouch gratis">
+                 alt="">
           </picture>
           <div class="hero__content">
-            <!-- The artwork carries the IceGlow lockup, lead and CTA, so the live heading is
-                 kept for screen readers and search only. -->
             <div class="hero__text hero__text--on-art">
-              <h1 class="hero__title">IceGlow NXI01</h1>
+              <h1 class="hero__title">Gear Gaming Nexura</h1>
             </div>
           </div>
-          <a class="hero__slide-link" href="produk/detail/?id=iceglow" aria-label="Lihat produk IceGlow NXI01"></a>
+          <a class="hero__slide-link" href="produk/" aria-label="Lihat produk Nexura"></a>
         </article>
-
-        <article class="hero__slide hero__slide--creator" aria-roledescription="slide" aria-label="2 dari 2">
-          <picture class="hero__media">
-            <source media="(max-width: 599px)" srcset="assets/img/hero-creator-m.jpg?v=3" width="941" height="1411">
-            <img src="assets/img/hero-creator.jpg"
-                 srcset="assets/img/hero-creator-1280.jpg 1280w, assets/img/hero-creator.jpg 1678w"
-                 sizes="100vw"
-                 width="1672" height="941" loading="lazy" decoding="async"
-                 alt="Jeje Adriel memegang fan cooler Nexura Vortex dengan lampu RGB di kamar gaming bernuansa ungu, bertuliskan Main Seharian, Tetap Dingin">
-          </picture>
-          <div class="hero__content">
-            <!-- Same deal as slide 1: the artwork carries the headline, endorsement and CTA. -->
-            <div class="hero__text hero__text--on-art">
-              <h2 class="hero__title">Main Seharian, Tetap Dingin</h2>
-            </div>
-          </div>
-          <a class="hero__slide-link" href="produk/?kategori=fan-cooler" aria-label="Lihat produk fan cooler Nexura"></a>
-        </article>
-      </div>
-
-      <button class="hero__arrow hero__arrow--prev" type="button" aria-label="Slide sebelumnya" data-hero-prev>
-        <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg>
-      </button>
-      <button class="hero__arrow hero__arrow--next" type="button" aria-label="Slide berikutnya" data-hero-next>
-        <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
-      </button>
-      <div class="hero__dots" data-hero-dots>
-        <button type="button" aria-label="Ke slide 1" aria-current="true"><span class="hero__dot-track"><span class="hero__dot-fill"></span></span></button>
-        <button type="button" aria-label="Ke slide 2"><span class="hero__dot-track"><span class="hero__dot-fill"></span></span></button>
       </div>
     </section>
 
@@ -238,7 +202,14 @@
         <header class="section-head">
           <h2 class="section-title" id="produk-title">Produk Andalan</h2>
         </header>
-        <div class="product-grid product-grid--rail" id="produk-grid" data-product-grid></div>
+        <div class="product-grid product-grid--rail" id="produk-grid" data-product-grid data-rail></div>
+        <div class="rail-ctrl" data-rail-ctrl="produk-grid">
+          <div class="rail-dots" role="group" aria-label="Pilih posisi Produk Andalan" data-rail-dots></div>
+          <div class="rail-nav">
+            <button class="rail-arrow" type="button" aria-controls="produk-grid" aria-label="Sebelumnya" data-rail-prev><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+            <button class="rail-arrow" type="button" aria-controls="produk-grid" aria-label="Berikutnya" data-rail-next><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -257,117 +228,131 @@
           </div>
           <span class="video__meta">
             <strong class="clip__name">Jeje Adriel</strong>
-            <span class="clip__role">Streamer &amp; Ex-Pro Mobile Legends Player</span>
+            <span class="clip__role">Streamer &amp; Ex-Pro MLBB</span>
           </span>
         </div>
 
         <header class="section-head section-head--sub" id="clips">
           <h3 class="section-title section-title--sub">Clip dari Live Mereka</h3>
         </header>
+        <!-- Saved, not shown: the moving strip that was the sub-heading here. To bring it back,
+             move it out of the template in place of the sub-head above. Its styles stay. -->
+        <template data-saved="clip-strip">
+        <div class="clip-strip">
+          <div class="clip-strip__track" aria-hidden="true"><span class="clip-strip__group"><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span></span><span class="clip-strip__group"><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span></span></div>
+        </div>
+        </template>
 
         <!-- TODO: replace each href with the clip's own Instagram/TikTok URL -->
-        <ul class="clips" role="list">
+        <ul class="clips" id="clips-rail" role="list" data-rail>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Jeje Adriel pakai IceGlow (buka di Instagram)">
-              <picture><source type="image/webp" srcset="assets/img/clip-jeje.webp"><img src="assets/img/clip-jeje.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Jeje Adriel menunjukkan kotak IceGlow saat live"></picture>
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Jeje Adriel (buka di Instagram)">
+              <img src="assets/img/creator-jeje.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Jeje memegang fan cooler Nexura FrostByte dan kotaknya">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
                 <strong class="clip__name">Jeje Adriel</strong>
-                <span class="clip__role">Streamer &amp; Ex-Pro Mobile Legends Player</span>
+                <span class="clip__role">Streamer &amp; Ex-Pro MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Tazz pakai Vortex (buka di Instagram)">
-              <picture><source type="image/webp" srcset="assets/img/clip-tazz.webp"><img src="assets/img/clip-tazz.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Tazz memakai sarung jempol Vortex saat live"></picture>
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Tazz (buka di Instagram)">
+              <img src="assets/img/creator-tazz.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Tazz memakai sarung jempol Nexura sambil menunjukkan Mobile Legends di HP">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
                 <strong class="clip__name">Tazz</strong>
-                <span class="clip__role">Streamer &amp; Pro Mobile Legends Player</span>
+                <span class="clip__role">Streamer &amp; Pro MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Alviro pakai Vortex (buka di Instagram)">
-              <picture><source type="image/webp" srcset="assets/img/clip-alviro.webp"><img src="assets/img/clip-alviro.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Alviro memakai sarung jempol Vortex saat live"></picture>
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Alviro (buka di Instagram)">
+              <img src="assets/img/creator-alviro.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Alviro memakai sarung jempol Nexura di kedua jempol">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
                 <strong class="clip__name">Alviro</strong>
-                <span class="clip__role">Streamer Mobile Legends</span>
+                <span class="clip__role">Streamer MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Cadera pakai Vortex (buka di Instagram)">
-              <picture><source type="image/webp" srcset="assets/img/clip-cadera.webp"><img src="assets/img/clip-cadera.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Cadera menunjukkan paket Nexura saat live"></picture>
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Cadera (buka di Instagram)">
+              <img src="assets/img/creator-cadera.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Cadera mengacungkan dua jempol yang memakai sarung jempol Nexura">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
                 <strong class="clip__name">Cadera</strong>
-                <span class="clip__role">Streamer &amp; Pro Mobile Legends Player</span>
+                <span class="clip__role">Streamer &amp; Pro MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Ivann pakai Vortex (buka di Instagram)">
-              <img src="assets/img/clip-vortex-handcam.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Ivann handcam dengan kemasan sarung jempol Nexura Vortex di layar">
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Ivan (buka di Instagram)">
+              <img src="assets/img/creator-ivan.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Ivan memegang tiga kemasan hydrogel Nexura">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
-                <strong class="clip__name">Ivann</strong>
-                <span class="clip__role">Streamer Mobile Legends</span>
+                <strong class="clip__name">Ivan</strong>
+                <span class="clip__role">Streamer MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Cadera pakai Reflex (buka di Instagram)">
-              <img src="assets/img/clip-reflex.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Cadera memegang finger sleeve Nexura Reflex saat main Mobile Legends">
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Cadera (buka di Instagram)">
+              <img src="assets/img/creator-cadera.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Cadera mengacungkan dua jempol yang memakai sarung jempol Nexura">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
                 <strong class="clip__name">Cadera</strong>
-                <span class="clip__role">Streamer &amp; Pro Mobile Legends Player</span>
+                <span class="clip__role">Streamer &amp; Pro MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Rine pakai Vortex (buka di Instagram)">
-              <img src="assets/img/clip-vortex-lobby.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Rine menunjukkan dua sarung jempol Vortex di lobby Mobile Legends">
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Rinee (buka di Instagram)">
+              <img src="assets/img/creator-rinee.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Rinee mengacungkan dua jempol yang memakai sarung jempol Nexura">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
-                <strong class="clip__name">Rine</strong>
-                <span class="clip__role">Streamer &amp; Pro Mobile Legends Player</span>
+                <strong class="clip__name">Rinee</strong>
+                <span class="clip__role">Streamer &amp; Pro MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Tazz pakai YinYang Series (buka di Instagram)">
-              <img src="assets/img/clip-yinyang.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Tazz memakai sarung jempol Nexura YinYang Series saat live">
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Tazz (buka di Instagram)">
+              <img src="assets/img/creator-tazz.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Tazz memakai sarung jempol Nexura sambil menunjukkan Mobile Legends di HP">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
                 <strong class="clip__name">Tazz</strong>
-                <span class="clip__role">Streamer &amp; Pro Mobile Legends Player</span>
+                <span class="clip__role">Streamer &amp; Pro MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Cadera bahas FrostByte NXC01 (buka di Instagram)">
-              <img src="assets/img/clip-frostbyte.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Cadera membahas phone cooler Nexura FrostByte NXC01 saat draft pick">
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Kabuki (buka di Instagram)">
+              <img src="assets/img/creator-kabuki.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Kabuki memegang enam kemasan sarung jempol Nexura Reflex">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
-                <strong class="clip__name">Cadera</strong>
-                <span class="clip__role">Streamer &amp; Pro Mobile Legends Player</span>
+                <strong class="clip__name">Kabuki</strong>
+                <span class="clip__role">Streamer &amp; Pro MLBB</span>
               </span>
             </a>
           </li>
           <li class="clip">
-            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Ivann bahas kombinasi Hydrogel dan Vortex (buka di Instagram)">
-              <img src="assets/img/clip-kombinasi.jpg" width="738" height="1312" loading="lazy" decoding="async" alt="Ivann membahas kombinasi anti gores Hydrogel dan sarung jempol Vortex">
+            <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Ivan (buka di Instagram)">
+              <img src="assets/img/creator-ivan.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Ivan memegang tiga kemasan hydrogel Nexura">
               <span class="play-btn" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
               <span class="clip__meta">
-                <strong class="clip__name">Ivann</strong>
-                <span class="clip__role">Streamer Mobile Legends</span>
+                <strong class="clip__name">Ivan</strong>
+                <span class="clip__role">Streamer MLBB</span>
               </span>
             </a>
           </li>
         </ul>
+        <div class="rail-ctrl" data-rail-ctrl="clips-rail">
+          <div class="rail-dots" role="group" aria-label="Pilih posisi clip" data-rail-dots></div>
+          <div class="rail-nav">
+            <button class="rail-arrow" type="button" aria-controls="clips-rail" aria-label="Sebelumnya" data-rail-prev><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+            <button class="rail-arrow" type="button" aria-controls="clips-rail" aria-label="Berikutnya" data-rail-next><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -375,38 +360,46 @@
     <section class="section" id="teknologi" aria-labelledby="teknologi-title">
       <div class="container">
         <header class="section-head">
-          <h2 class="section-title" id="teknologi-title">Teknologi&nbsp;Ter-<br class="br-phone">Nyata</h2>
+          <h2 class="section-title" id="teknologi-title">Teknologi<br class="br-phone"> <span class="nowrap">Ter-Nyata</span></h2>
         </header>
 
         <div class="tech-grid">
           <article class="tech-card tech-card--wide" tabindex="0" style="--pos: 50% 34%; --zoom: 1.05">
             <picture class="tech-card__media"><source type="image/webp" srcset="assets/img/t-frozen.webp"><img src="assets/img/t-frozen.jpg" width="896" height="896" loading="lazy" decoding="async" alt="Fan cooler IceGlow ungu menempel di HP dengan lampu RGB menyala"></picture>
             <div class="tech-card__body">
-              <h3 class="tech-card__title">Adem Beneran</h3>
-              <p class="tech-card__text">Kipas overclock 0&ndash;100 dan pendingin yang cepat beku. Biar HP nggak gampang drop pas lagi ranked.</p>
+              <h3 class="tech-card__title">8000 RPM Cooling</h3>
+              <button class="tech-card__more" type="button" aria-expanded="false" aria-controls="tech-copy-1" data-tech-more><span>Lihat detail</span></button>
+              <p class="tech-card__text" id="tech-copy-1">Kipas yang bisa di-overclock dari 0&ndash;100 bikin HP cepat adem, jadi FPS nggak gampang drop pas lagi ranked.</p>
             </div>
           </article>
           <article class="tech-card" tabindex="0" style="--pos: 50% 26%; --zoom: 1.3; --origin: 50% 24%">
             <picture class="tech-card__media"><source type="image/webp" srcset="assets/img/t-display.webp"><img src="assets/img/t-display.jpg" width="896" height="896" loading="lazy" decoding="async" alt="Layar digital fan cooler menampilkan suhu minus 15 derajat"></picture>
             <div class="tech-card__body">
               <h3 class="tech-card__title">Digital Display</h3>
-              <p class="tech-card__text">Suhu dan level kipas kebaca langsung di layar, jadi lu tahu HP lagi seadem apa.</p>
+              <button class="tech-card__more" type="button" aria-expanded="false" aria-controls="tech-copy-2" data-tech-more><span>Lihat detail</span></button>
+              <p class="tech-card__text" id="tech-copy-2">Suhu dan level kipas kebaca langsung di layar, jadi lu tahu HP lagi seadem apa.</p>
             </div>
           </article>
           <article class="tech-card" tabindex="0" style="--pos: 50% 42%; --zoom: 1.28; --origin: 50% 42%">
             <picture class="tech-card__media"><source type="image/webp" srcset="assets/img/t-sensitive.webp"><img src="assets/img/t-sensitive.jpg" width="896" height="896" loading="lazy" decoding="async" alt="Dua jempol memakai sarung jempol Vortex saat main Mobile Legends"></picture>
             <div class="tech-card__body">
               <h3 class="tech-card__title">Jempol Nggak Licin</h3>
-              <p class="tech-card__text">Bahan tipis yang nyerap keringat. Swipe tetap presisi walau tangan basah pas clutch.</p>
+              <button class="tech-card__more" type="button" aria-expanded="false" aria-controls="tech-copy-3" data-tech-more><span>Lihat detail</span></button>
+              <p class="tech-card__text" id="tech-copy-3">Bahan tipis yang nyerap keringat. Swipe tetap presisi walau tangan basah pas clutch.</p>
             </div>
           </article>
           <article class="tech-card tech-card--wide" tabindex="0" style="--pos: 50% 36%; --zoom: 1.05">
             <picture class="tech-card__media"><source type="image/webp" srcset="assets/img/t-ai.webp"><img src="assets/img/t-ai.jpg" width="896" height="896" loading="lazy" decoding="async" alt="Ilustrasi chip AI di atas papan sirkuit ungu"></picture>
             <div class="tech-card__body">
               <h3 class="tech-card__title">AI Tech</h3>
-              <p class="tech-card__text">Kecepatan kipas diatur otomatis sesuai suhu HP. Lu fokus main, sisanya urusan AI.</p>
+              <button class="tech-card__more" type="button" aria-expanded="false" aria-controls="tech-copy-4" data-tech-more><span>Lihat detail</span></button>
+              <p class="tech-card__text" id="tech-copy-4">Kecepatan kipas diatur otomatis sesuai suhu HP. Lu fokus main, sisanya urusan AI.</p>
             </div>
           </article>
+        </div>
+        <!-- Phones only: steps through the stacked cards above (main.js). -->
+        <div class="rail-ctrl tech-ctrl" data-tech-ctrl hidden>
+          <div class="rail-dots" role="group" aria-label="Pilih kartu teknologi" data-rail-dots></div>
         </div>
       </div>
     </section>
@@ -416,10 +409,13 @@
       <div class="container">
         <header class="section-head">
           <h2 class="section-title" id="ulasan-title">Apa Kata Pembeli</h2>
-          <p class="section-sub">Bukan kata kami, ini kata yang udah beli.</p>
         </header>
       </div>
 
+      <!-- Saved, not shown: the stats band (produk terjual, rating, ulasan). A <template> is
+           never rendered, so this keeps it ready; to bring it back, move the band out of the
+           template. Its styles (.stats-band, .stats) and main.js's fill (NEXURA.social) stay. -->
+      <template data-saved="stats-band">
       <!-- Runs edge to edge, so the figures read as a band drawn across the page rather than
            as one more card. Values live in NEXURA.social (assets/js/data.js). -->
       <div class="stats-band">
@@ -441,13 +437,15 @@
           </div>
         </dl>
       </div>
+      </template>
 
-      <!-- Two rows drifting opposite ways. Full-bleed on purpose: a card is always entering
-           and leaving, which is what reads as movement. main.js fills them from
-           NEXURA.reviews and hands each row its own duplicate half for the seamless loop. -->
+      <!-- One row drifting sideways (one, so the section fits a screen). Full-bleed on purpose:
+           a card is always entering and leaving, which is what reads as movement. main.js fills
+           it from NEXURA.reviews and hands it a duplicate half for the seamless loop. -->
       <div class="marquee" data-reviews hidden>
         <div class="marquee__viewport"><div class="marquee__row" data-reviews-row></div></div>
-        <div class="marquee__viewport"><div class="marquee__row marquee__row--rev" data-reviews-row></div></div>
+        <!-- the second row, running the other way (main.js fills both) -->
+        <div class="marquee__viewport" data-reviews-second hidden><div class="marquee__row marquee__row--reverse" data-reviews-row></div></div>
       </div>
     </section>
 
@@ -458,12 +456,12 @@
     <section class="cta-banner" aria-labelledby="cta-title">
       <h2 class="sr-only" id="cta-title">Cobain sekarang, dapatkan sensi real pro player</h2>
       <picture class="cta-banner__media">
-        <source media="(max-width: 767px)" srcset="assets/img/cta-pro-player-mobile.jpg" width="941" height="1672">
-        <img src="assets/img/cta-pro-player.jpg"
-             srcset="assets/img/cta-pro-player-1280.jpg 1280w, assets/img/cta-pro-player.jpg 1672w"
+        <source media="(max-width: 767px)" srcset="assets/img/aurora-tall.jpg" width="530" height="941">
+        <img src="assets/img/aurora.jpg"
+             srcset="assets/img/aurora-1280.jpg 1280w, assets/img/aurora.jpg 1672w"
              sizes="100vw"
              width="1672" height="941" loading="lazy" decoding="async"
-             alt="Empat pemain memegang sarung jempol, fan cooler, dan hydrogel Nexura, bertuliskan Cobain sekarang, dapatkan sensi real pro player">
+             alt="">
       </picture>
       <a class="cta-banner__link" href="produk/" aria-label="Lihat produk Nexura"></a>
     </section>
@@ -548,7 +546,7 @@
         <a class="menu-cat menu-cat--all" href="produk/" data-filter="all"><span class="menu-cat__name">Lihat Semua</span><svg class="icon icon--sm menu-cat__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg></a>
       </div>
       <a class="menu-list__item" href="tentang-kami">Tentang Kami</a>
-      <a class="menu-list__item" href="bantuan">Bantuan</a>
+      <a class="menu-list__item" href="bantuan">Hubungi Kami</a>
     </nav>
     <div class="drawer__foot">
       <!-- The bar only carries the account icon from 768 up, where the burger is gone; below that
@@ -559,39 +557,10 @@
     </div>
   </div>
 
-  <!-- ============ CART DRAWER ============ -->
-  <div class="drawer drawer--right" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" inert data-cart-drawer>
-    <div class="drawer__head">
-      <h2 class="drawer__title" id="cart-title">Keranjang</h2>
-      <button class="icon-btn icon-btn--round" type="button" aria-label="Tutup keranjang" data-drawer-close>
-        <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
-      </button>
-    </div>
-    <div class="drawer__body">
-      <ul class="cart-list" data-cart-list role="list"></ul>
-      <div class="cart-empty" data-cart-empty>
-        <svg class="icon cart-empty__icon" aria-hidden="true"><use href="#i-bag"/></svg>
-        <p class="cart-empty__title">Keranjang kamu kosong</p>
-        <p class="cart-empty__text">Pilih gear buat sesi push rank berikutnya.</p>
-        <button class="btn btn--primary" type="button" data-drawer-close>Lanjut Belanja</button>
-      </div>
-    </div>
-    <div class="drawer__foot" data-cart-foot>
-      <div class="cart-total">
-        <span>Estimasi total:</span>
-        <strong class="price" data-cart-total>Rp0</strong>
-      </div>
-      <div class="cart-actions">
-        <button class="btn btn--primary" type="button" data-checkout>Checkout</button>
-        <a class="btn btn--secondary" href="keranjang/" data-view-cart><span>Lihat Keranjang (<span data-cart-count>0</span>)</span></a>
-      </div>
-    </div>
-  </div>
-
   <div class="backdrop" data-backdrop hidden></div>
   <div class="sr-only" aria-live="polite" data-live></div>
 
-  <script src="assets/js/data.js?v=20261011009000"></script>
-  <script src="assets/js/main.js?v=20261014120000"></script>
+  <script src="assets/js/data.js?v=20261017440000"></script>
+  <script src="assets/js/main.js?v=20261017440000"></script>
 </body>
 </html>
