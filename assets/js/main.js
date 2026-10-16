@@ -65,34 +65,29 @@
     title.classList.add('is-worded');
   });
 
-  /* Beranda: GameSir's scroll motion (gamesir.com's MotionReveal, read from its own code). Each
-     block slides into place the first time it comes 80px into view: 0.85s on cubic-bezier(.22,
-     1, .36, 1), from 20px to one side ("slide-left" / "slide-right"), from 96% ("scale"), or
-     from 20px lower; it stays fully opaque, so it moves rather than appears. Section headlines
-     alternate sides; a row of cards takes left / scale / scale / right across its four
-     columns (three columns: left / scale / right), each 60ms after the last (at most 420ms).
-     The hero rises 20px over 1s on load. Once in place, a block stays. Skipped for readers who
-     ask for reduced motion. Uses the translate / scale properties, so it composes with any
-     transform a block already has. */
+  /* Beranda: a simple show-up. Each block fades in while rising 16px the first time it comes
+     80px into view; a row of cards goes one after another, 60ms apart. The hero is left as it
+     is. Once landed, the block loses its motion attribute. Skipped for readers who ask for
+     reduced motion. */
   if ($('main.home') && !reducedMotion.matches && 'IntersectionObserver' in window) {
-    const set = (el, variant, delay = 0) => {
-      el.dataset.motion = variant;
+    const set = (el, delay = 0) => {
+      el.dataset.motion = 'show';
       if (delay) el.style.setProperty('--motion-delay', `${Math.min(delay, 0.42)}s`);
+      const done = (e) => {
+        if (e.target !== el || e.propertyName !== 'opacity') return;
+        el.removeEventListener('transitionend', done);
+        delete el.dataset.motion; el.classList.remove('is-in'); el.style.removeProperty('--motion-delay');
+      };
+      el.addEventListener('transitionend', done);
     };
-    const four = (k) => (k % 4 === 0 ? 'slide-left' : k % 4 === 3 ? 'slide-right' : 'scale');
-    const three = (k) => (k % 3 === 0 ? 'slide-left' : k % 3 === 1 ? 'scale' : 'slide-right');
 
-    $$('.home .section-head').forEach((h, k) => set(h, k % 2 ? 'slide-right' : 'slide-left'));
-    $$('.home .video, .home .cta-banner').forEach((el) => set(el, 'scale'));
-    $$('.home .rail-ctrl, .home .marquee').forEach((el) => set(el, 'fade'));
+    $$('.home .section-head, .home .video, .home .cta-banner, .home .rail-ctrl, .home .marquee').forEach((el) => set(el));
     // product rail and clips: per card, by its column in view
-    $$('.home .product-grid > *, .home .clips > .clip').forEach((c, k) => set(c, four(k), (k % 4) * 0.06));
-    // Teknologi: per card from 600 up (its grid); on a phone it is a coverflow, so the block moves
+    $$('.home .product-grid > *, .home .clips > .clip').forEach((c, k) => set(c, (k % 4) * 0.06));
+    // Teknologi: per card from 600 up (its grid); on a phone it is a coverflow, so the block shows up whole
     const techCards = $$('.home .tech-card');
-    if (window.matchMedia('(min-width: 600px)').matches) techCards.forEach((c, k) => set(c, three(k), k * 0.06));
-    else { const tg = $('.home .tech-grid'); if (tg) set(tg, 'scale'); }
-    const hero = $('.home .hero');
-    if (hero) set(hero, 'hero');
+    if (window.matchMedia('(min-width: 600px)').matches) techCards.forEach((c, k) => set(c, k * 0.06));
+    else { const tg = $('.home .tech-grid'); if (tg) set(tg); }
 
     // A rail's cards past its right edge never cross the screen (the rail clips them), so a
     // rail is watched as a whole and brings all its cards in together.

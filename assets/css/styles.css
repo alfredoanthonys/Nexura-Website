@@ -2379,6 +2379,8 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   font-size: 1.0625rem; font-weight: 600; text-align: left; color: var(--text-soft);
 }
 .menu-list__item:hover { background: var(--ink-800); color: var(--text); }
+/* Tentang Kami / Hubungi Kami have no page yet: no href, but they still read as links. */
+.nav__link[aria-disabled="true"], .menu-list__item[aria-disabled="true"] { cursor: pointer; }
 /* Produk is a heading over its categories, not a toggle: they are always showing. */
 .menu-list__label {
   display: flex; align-items: center; min-height: 52px; padding: 0 var(--s-3);
@@ -3201,16 +3203,9 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 }
 
 /* ---------- Beranda scroll motion (main.js) ---------- */
-/* GameSir's reveal: blocks slide 20px (or scale up from 96%) into place on first view, staying
-   opaque, 0.85s on cubic-bezier(.22, 1, .36, 1); "fade" goes from 85% opacity. */
+/* A simple show-up on first view: a block fades in while rising 16px into place, 500ms ease-out. */
 [data-motion] {
-  transition: translate 850ms cubic-bezier(.22, 1, .36, 1) var(--motion-delay, 0s),
-    scale 850ms cubic-bezier(.22, 1, .36, 1) var(--motion-delay, 0s),
-    opacity 850ms cubic-bezier(.22, 1, .36, 1) var(--motion-delay, 0s);
+  transition: opacity 500ms ease-out var(--motion-delay, 0s),
+    translate 500ms ease-out var(--motion-delay, 0s);
 }
-[data-motion="slide-left"]:not(.is-in) { translate: -20px 0; }
-[data-motion="slide-right"]:not(.is-in) { translate: 20px 0; }
-[data-motion="scale"]:not(.is-in) { scale: .96; }
-[data-motion="fade"]:not(.is-in) { opacity: .85; }
-[data-motion="hero"] { transition-duration: 1s; }
-[data-motion="hero"]:not(.is-in) { translate: 0 20px; }
+[data-motion]:not(.is-in) { opacity: 0; translate: 0 16px; }

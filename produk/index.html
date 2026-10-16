@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap">
   <!-- The headline is Draco, set with font-display: block, so it is fetched before first paint. -->
   <link rel="preload" as="font" type="font/otf" href="../assets/fonts/draco.otf" crossorigin>
-  <link rel="stylesheet" href="../assets/css/styles.css?v=20261017500000">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20261017590000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -142,8 +142,8 @@
             </div>
           </li>
           <!-- Existing pages per PRD 8.1; update the paths if they differ -->
-          <li><a class="nav__link" href="../tentang-kami">Tentang Kami</a></li>
-          <li><a class="nav__link" href="../bantuan">Hubungi Kami</a></li>
+          <li><a class="nav__link" aria-disabled="true">Tentang Kami</a></li>
+          <li><a class="nav__link" aria-disabled="true">Hubungi Kami</a></li>
         </ul>
       </nav>
 
@@ -362,8 +362,8 @@
         </a>
         <a class="menu-cat menu-cat--all" href="../produk/" data-filter="all" aria-current="page"><span class="menu-cat__name">Lihat Semua</span><svg class="icon icon--sm menu-cat__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg></a>
       </div>
-      <a class="menu-list__item" href="../tentang-kami">Tentang Kami</a>
-      <a class="menu-list__item" href="../bantuan">Hubungi Kami</a>
+      <a class="menu-list__item" aria-disabled="true">Tentang Kami</a>
+      <a class="menu-list__item" aria-disabled="true">Hubungi Kami</a>
     </nav>
     <div class="drawer__foot">
       <!-- The bar only carries the account icon from 768 up, where the burger is gone; below that
@@ -378,6 +378,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="../assets/js/data.js?v=20261017440000"></script>
-  <script src="../assets/js/main.js?v=20261017440000"></script>
+  <script src="../assets/js/main.js?v=20261017590000"></script>
 </body>
 </html>
