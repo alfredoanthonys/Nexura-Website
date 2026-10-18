@@ -244,7 +244,7 @@ s { text-decoration-thickness: 1px; }
 .nav__links { display: none; }
 .nav__actions { justify-self: end; display: flex; align-items: center; gap: 0; }
 /* Phones keep search + cart only; account lives in the drawer, where there is room to label it. */
-.nav__divider, .nav__account { display: none; }
+.nav__account { display: none; }
 
 .cart-badge {
   position: absolute; top: 5px; right: 3px;
@@ -258,44 +258,61 @@ s { text-decoration-thickness: 1px; }
 .cart-badge.is-bump { animation: bump 300ms var(--ease); }
 @keyframes bump { 40% { transform: scale(1.25); } }
 
-/* Search: inline on desktop, a panel under the bar on mobile/tablet */
-.search {
-  position: absolute; left: 0; right: 0; top: 100%;
-  padding: var(--s-3) var(--gutter); background: var(--ink-950);
-  border-bottom: 1px solid var(--line);
-  display: none;
+/* Search: a card dropped from the top of the screen over a dimmed page, opened from the
+   navbar's icon. A modal <dialog>, so it renders in the top layer, clear of the header's
+   blur (which would otherwise trap a fixed child inside the bar). */
+.search-dialog {
+  width: min(960px, calc(100% - 2 * var(--gutter))); max-width: none; max-height: calc(100dvh - 32px);
+  margin: 16px auto auto; padding: 0; overflow: hidden;
+  background: var(--ink-900); color: var(--text);
+  border: 1px solid var(--line-strong); border-radius: var(--r-lg);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .55);
 }
-.site-header.is-search-open .search { display: block; }
-.search__icon { position: absolute; left: calc(var(--gutter) + 12px); top: 50%; translate: 0 -50%; color: var(--faint); width: 20px; height: 20px; pointer-events: none; }
+.search-dialog[open] { display: flex; flex-direction: column; animation: search-in 220ms var(--ease-nav, ease-out); }
+.search-dialog::backdrop { background: rgba(10, 4, 15, .7); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+@keyframes search-in { from { opacity: 0; translate: 0 -12px; } }
+@media (prefers-reduced-motion: reduce) { .search-dialog[open] { animation: none; } }
+/* The page underneath stays put while the card is open. */
+html:has(.search-dialog[open]) { overflow: hidden; }
+@media (min-width: 768px) { .search-dialog { margin-top: 40px; } }
+
+.search { display: flex; flex-direction: column; min-height: 0; padding: var(--s-4); }
+@media (min-width: 768px) { .search { padding: var(--s-6); } }
+.search__bar { display: flex; align-items: center; gap: var(--s-2); }
+@media (min-width: 768px) { .search__bar { gap: var(--s-4); } }
+.search__field { position: relative; flex: 1; min-width: 0; }
+.search__icon { position: absolute; left: 16px; top: 50%; translate: 0 -50%; color: var(--faint); width: 22px; height: 22px; pointer-events: none; }
 .search__input {
-  width: 100%; height: 44px; padding: 0 var(--s-4) 0 42px;
-  background: transparent; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  width: 100%; height: 52px; padding: 0 var(--s-4) 0 50px;
+  background: var(--ink-950); border: 1px solid var(--line-strong); border-radius: var(--r-md);
   font-size: var(--fs-body); color: var(--text);
   transition: border-color var(--t-fast) ease-out, box-shadow var(--t-fast) ease-out;
 }
+@media (min-width: 768px) { .search__input { height: 60px; font-size: 1.0625rem; } }
 .search__input::placeholder { color: var(--faint); }
-/* At rest the outline is a plain grey border. Hovered or in use it turns into the navbar
-   underline's gradient. A border can't take a gradient and keep its radius, and the field has
-   no fill to paint one under, so the gradient ring is the form's ::before: masked down to a 1px
-   band, laid exactly over the input (the form's padding on mobile, flush on desktop), faded in
-   while the grey border fades out. */
-.search::before {
-  content: ""; position: absolute; inset: var(--s-3) var(--gutter); padding: 1px;
-  border-radius: var(--r-sm); background: linear-gradient(90deg, #8E48C4, #DB4DFF);
+/* In use, the outline turns into the navbar underline's gradient. A border can't take a
+   gradient and keep its radius, so the ring is the field's ::before: masked down to a 2px band
+   over the input's edge, faded in while the grey border fades out. */
+.search__field::before {
+  content: ""; position: absolute; inset: 0; padding: 2px;
+  border-radius: var(--r-md); background: linear-gradient(90deg, #8E48C4, #DB4DFF);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
   opacity: 0; transition: opacity var(--t-fast) ease-out;
   pointer-events: none;
 }
-.search:has(.search__input:is(:hover, :focus))::before { opacity: 1; }
+.search__field:has(.search__input:is(:hover, :focus))::before { opacity: 1; }
 .search__input:is(:hover, :focus) { border-color: transparent; }
-.search__input:focus { outline: none; box-shadow: 0 0 0 3px rgba(219, 77, 255, .22); }
+.search__input:focus { outline: none; box-shadow: 0 0 0 4px rgba(219, 77, 255, .16); }
 .search__input::-webkit-search-cancel-button { filter: invert(.7); }
+.search__close { flex: none; color: var(--mute); }
+.search__close:hover { color: var(--text); }
+.search__close .icon { width: 22px; height: 22px; }
+
+.search__hint { margin: 0; padding: var(--s-8) var(--s-4) var(--s-6); text-align: center; font-size: var(--fs-sm); color: var(--faint); }
 .search__results {
-  position: absolute; left: var(--gutter); right: var(--gutter); top: calc(100% - 4px);
-  background: var(--ink-900); border: 1px solid var(--line-strong); border-radius: var(--r-md);
-  padding: var(--s-2); box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
-  max-height: min(420px, 70vh); overflow-y: auto;
+  margin: var(--s-4) 0 0; padding: 0; list-style: none;
+  min-height: 0; max-height: min(460px, 60dvh); overflow-y: auto; overscroll-behavior: contain;
 }
 .search__option {
   display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: var(--s-3);
@@ -315,7 +332,9 @@ s { text-decoration-thickness: 1px; }
 }
 
 @media (min-width: 768px) {
-  .nav { grid-template-columns: auto 1fr auto; gap: var(--s-7); padding-inline: var(--gutter-wide); }
+  /* Equal side columns, so the links sit at the bar's true centre with the logo and the
+     actions at either end. */
+  .nav { grid-template-columns: 1fr auto 1fr; gap: var(--s-7); padding-inline: var(--gutter-wide); }
   .nav__burger { display: none; }
   .nav__logo img { height: 32px; }
   .nav__links { display: block; }
@@ -350,6 +369,11 @@ s { text-decoration-thickness: 1px; }
     transition: opacity var(--t-fast) ease-out, translate var(--t-fast) ease-out, visibility 0s linear var(--t-fast);
   }
   .nav__dropdown.is-open .dropdown { opacity: 1; visibility: visible; translate: 0 0; transition-delay: 0s; }
+  /* Bantuan: plain text links, no pictures, so a narrower panel. */
+  .dropdown--plain { width: 200px; }
+  /* Hovered, the label turns violet the way Produk's category names do. */
+  .dropdown--plain a { transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out; }
+  .dropdown.dropdown--plain a:hover { color: var(--violet-400); }
   .dropdown a {
     display: flex; align-items: center; min-height: 44px; padding: 0 var(--s-3);
     border-radius: var(--r-sm); font-size: var(--fs-sm); font-weight: 500; color: var(--text-soft);
@@ -380,22 +404,7 @@ s { text-decoration-thickness: 1px; }
   .dropdown__all { margin-top: var(--s-1); border-top: 1px solid var(--line); border-radius: 0 0 var(--r-sm) var(--r-sm) !important; color: var(--lilac-300) !important; }
 
   .nav__actions { gap: var(--s-2); }
-  .nav__divider { display: block; width: 1px; height: 24px; background: var(--line-strong); margin-right: var(--s-2); }
   .nav__account { display: inline-grid; }
-}
-
-/* The inline search bar needs room it does not have on tablet, so below 1024 the toggle
-   button stays and .search keeps its default full-width dropdown-panel form. */
-@media (min-width: 1024px) {
-  .nav__search-toggle { display: none; }
-  .search {
-    position: relative; display: block; inset: auto; padding: 0; background: none; border: 0;
-    width: clamp(220px, 22vw, 340px); margin-right: var(--s-3);
-  }
-  .search__icon { left: 12px; }
-  .search::before { inset: 0; }
-  .search__input { height: 40px; font-size: var(--fs-sm); }
-  .search__results { left: 0; right: auto; width: max(100%, 360px); top: calc(100% + 8px); }
 }
 
 /* ---------- Hero ---------- */
@@ -607,10 +616,6 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .nav { gap: var(--s-5); }
   .nav__link { padding: 0 10px; }
 }
-/* Narrow desktop still carries the inline bar, so it has to give up width. */
-@media (min-width: 1024px) and (max-width: 1199px) {
-  .search { width: 190px; margin-right: var(--s-1); }
-}
 
 /* ---------- Sections ---------- */
 .section { padding-block: var(--section-y) calc(var(--section-y) + var(--head-y)); }
@@ -679,6 +684,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   --unslant: 28.7deg;
   font-family: "Draco", var(--font);
   font-weight: 400;
+  /* all capitals, as the headlines always read (Draco had no lowercase) */
+  text-transform: uppercase; letter-spacing: .01em;
   font-size: clamp(1.25rem, .55rem + 3vw, 2.5rem);
   line-height: 1.1;
   /* Draco's capitals start ~5px below the line box's top at 40px, so the space above a section
@@ -693,6 +700,11 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    only the squeeze, so a wrapped headline's lines no longer step sideways. The squeeze still
    applies after each word's skew, the same order as above. */
 .section-title.is-worded { transform: scaleX(var(--squeeze)); }
+/* A section headline's box also runs .287em (~14px at 48px) past Draco's baseline, so the air
+   under it read larger than it was set. Taking that back out lets the gap under it measure to
+   the type, which keeps it at half the air above. A margin rather than text-box-trim's end
+   edge: Safari applies the trim late, seconds after load, so the gap would jump. */
+.section-head .section-title:not(.section-title--sub) { margin-bottom: -.287em; }
 .section-title__w { display: inline-block; transform: skewX(var(--unslant)); }
 /* A heading inside a section, under its headline ("Clip dari Live Mereka" under Apa Kata
    Streamers): the same Draco, at about 60% of the headline's size, so it reads as a part of the
@@ -738,6 +750,9 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .product-grid--rail {
   grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - var(--s-3)) / 2);
   overflow-x: hidden;
+  /* 8px of room left of the column, so the first card's discount ribbon isn't cut by the
+     rail's edge; the 24px gap between cards keeps the card before from showing in it. */
+  margin-left: -8px; padding-left: 8px;
 }
 /* The rail's edge clips anything drawn outside a card, so focus rings sit just inside them. */
 .product-grid--rail .more-card:focus-visible, .clip__link:focus-visible { outline-offset: -2px; }
@@ -747,12 +762,34 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .product-card {
   position: relative; display: flex; flex-direction: column;
   background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md);
-  overflow: hidden; scroll-margin-top: calc(var(--header-h) + 24px);
+  scroll-margin-top: calc(var(--header-h) + 24px);
   transition: border-color var(--t-fast) ease-out, box-shadow var(--t-fast) ease-out;
 }
 .product-card.is-entering { animation: card-in 300ms var(--ease) both; }
 @keyframes card-in { from { opacity: 0; translate: 0 8px; } }
-.product-card__media { position: relative; aspect-ratio: 1; background: var(--ink-800); overflow: hidden; }
+/* The card itself doesn't clip, so the discount ribbon can hang off its edge; the picture
+   rounds its own top corners instead. */
+.product-card__media {
+  position: relative; aspect-ratio: 1; background: var(--ink-800); overflow: hidden;
+  border-radius: calc(var(--r-md) - 1px) calc(var(--r-md) - 1px) 0 0;
+}
+/* Discount ribbon: over the picture's top-left corner, running in from 6px past the card's
+   left edge and folding back round that edge (the darker tail under its end). Laid over the
+   card rather than in its flow, so the name and price sit where they do without it. */
+.product-card__off {
+  --out: 6px;
+  position: absolute; top: 26px; left: calc(-1px - var(--out)); z-index: 2;
+  pointer-events: none;
+  padding: 2px 9px 2px calc(var(--out) + 6px);
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #D93A4E, #EE5B6B); color: #fff;
+  box-shadow: 0 3px 8px rgba(12, 3, 16, .35);
+  font-size: 12px; font-weight: 800; line-height: 1.4; font-variant-numeric: tabular-nums;
+}
+.product-card__off::before {
+  content: ""; position: absolute; left: 0; top: 100%;
+  border-top: var(--out) solid #8A1E2C; border-left: var(--out) solid transparent;
+}
 /* No resting zoom: the near-white rim some screenshots carried is cropped out of the files
    themselves now, so the whole card art shows, Nexura mark and captions included. */
 .product-card__media img {
@@ -763,16 +800,19 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .product-card.is-out .product-card__media img { filter: saturate(.55) brightness(.6); }
 /* Centred over the dimmed picture. The card carries no link while sold out, so it also drops
    the hover lift and zoom below. */
-/* The ticker tab's surface in a disc: violet-600 into violet-700 along its 115deg cut, a white
-   sheen across the top, the violet-500 rim, and a faint violet halo ring around it. Type is
-   the ticker's: uppercase 800, tracked, two short lines. */
+/* A disc in the site's purple-to-pink: the selected chip's sweep (#6A2E9E into #B33AC6, both
+   dark enough for white type) with a white sheen across the top, a rim in the navbar line's
+   brighter pair, and a faint pink halo ring around it. Type is uppercase 800, tracked, two
+   short lines. */
 .sold-out {
   position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 1;
   display: grid; place-items: center; width: clamp(64px, 28%, 100px); aspect-ratio: 1; border-radius: 50%;
+  /* the fill clipped to the padding box, the rim's gradient showing through the clear border */
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 52%),
-    linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
-  border: 1px solid var(--violet-500);
+    linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 52%) padding-box,
+    linear-gradient(120deg, #6A2E9E 0%, #B33AC6 100%) padding-box,
+    linear-gradient(120deg, #8E48C4, #DB4DFF) border-box;
+  border: 1px solid transparent;
   box-shadow: 0 0 0 5px rgba(219, 77, 255, .16), 0 10px 26px rgba(12, 3, 16, .6);
   color: #fff; font-size: clamp(9px, .45rem + .4vw, 12px); font-weight: 800; line-height: 1.15;
   letter-spacing: .1em; text-transform: uppercase; text-align: center;
@@ -953,13 +993,44 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 .catalog { padding-block: var(--s-4) var(--s-8); }
 
-/* One line at every width. Positioned and lifted so the Filter menu opens over the cards,
-   whose stretched links sit at z-index 1. */
+/* A panel over the grid: count on the left, search and Filter on the right. Positioned
+   and lifted so the menus open over the cards, whose stretched links sit at z-index 1 and
+   discount ribbons at 2. On a phone it wraps: count and Filter on the first line, the search
+   full width under them. */
 .catalog-bar {
-  position: relative; z-index: 2;
-  display: flex; align-items: center; gap: var(--s-3);
-  margin-bottom: var(--s-4);
+  position: relative; z-index: 3;
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2);
+  margin-bottom: var(--s-5); padding: var(--s-3);
+  background: var(--ink-925); border: 1px solid var(--line); border-radius: var(--r-lg);
 }
+.catalog-bar__count { flex: 1 1 0; min-width: 0; margin: 0 0 0 var(--s-1); font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.catalog-bar__count strong { color: var(--text); font-weight: 600; }
+@media (max-width: 767px) {
+  .catalog-bar .catalog-search { order: 1; flex-basis: 100%; }
+}
+/* Phones: no search line in the bar, just the count and Filter. The navbar's search icon still
+   finds any product. */
+@media (max-width: 599px) {
+  .catalog-bar .catalog-search { display: none; }
+}
+@media (min-width: 768px) {
+  .catalog-bar { flex-wrap: nowrap; gap: var(--s-3); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5); }
+  .catalog-bar__count { margin: 0; }
+}
+
+/* Takes whatever width the controls leave, at the Filter button's 40px height and 8px corner. */
+.catalog-search { position: relative; flex: 0 1 360px; min-width: 0; }
+.catalog-search__icon { position: absolute; left: 12px; top: 50%; translate: 0 -50%; width: 18px; height: 18px; color: var(--faint); pointer-events: none; }
+.catalog-search__input {
+  width: 100%; height: 40px; padding: 0 var(--s-3) 0 38px;
+  background: var(--ink-900); border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  font-size: var(--fs-sm); color: var(--text);
+  transition: border-color var(--t-fast) ease-out, box-shadow var(--t-fast) ease-out;
+}
+.catalog-search__input::placeholder { color: var(--faint); }
+.catalog-search__input:hover { border-color: #664878; }
+.catalog-search__input:focus { outline: none; border-color: #8E48C4; box-shadow: 0 0 0 3px rgba(219, 77, 255, .22); }
+.catalog-search__input::-webkit-search-cancel-button { filter: invert(.7); }
 
 /* The chips scroll sideways once they run out of room, and the Filter button stays put beside
    them. The padding/margin pair gives focus rings room inside the scroller without moving the
@@ -1009,10 +1080,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   border-color: transparent; color: #fff;
 }
 
-/* Filter leads the row, with a hairline after it like the nav's divider before its account
-   icon: the button sits with the chips but reads as a different kind of control. */
+/* Wraps the button and its menu, so the menu can hang from the button. */
 .filter-menu { position: relative; flex: none; display: flex; align-items: center; gap: var(--s-3); }
-.filter-menu::after { content: ""; width: 1px; height: 24px; background: var(--line-strong); }
 /* Not a chip: it opens a menu rather than toggling a category, so it is drawn the way the site
    draws buttons, not the way it draws chips. Three cues carry that, the standard ones design
    systems use to separate a menu button from filter chips:
@@ -1034,10 +1103,10 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   background: var(--violet-400); box-shadow: 0 0 0 2px var(--ink-950);
 }
 
-/* Same panel as the navbar's Produk dropdown, left-aligned under its button, which starts the
-   row, so it drops away from the chips rather than over them. */
+/* Same panel as the navbar's Produk dropdown, right-aligned under its button: Filter ends the
+   bar, so the panel drops back over the grid rather than off the edge. */
 .menu {
-  position: absolute; left: 0; top: calc(100% + 8px); width: 236px;
+  position: absolute; right: 0; top: calc(100% + 8px); width: 236px;
   padding: var(--s-1); background: var(--ink-900);
   border: 1px solid var(--line-strong); border-radius: var(--r-md);
   box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
@@ -1124,7 +1193,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 .shop-banner__title {
   /* sized to the copy column (cqi), so "Gear Buat" always fits one line and the title sets on
-     two lines at every width, up to 46px */
+     two lines at every width, up to 36px */
   font-size: min(2.875rem, 9.6cqi); line-height: 1.05;
   transform-origin: left; text-align: left;
   /* the squeezed headline's box is 1/.63 of the column, so its lines wrap where the squeezed
@@ -1270,10 +1339,11 @@ html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 52px); }
 .pdp-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-3); }
 .pdp-price .price { font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem); letter-spacing: -.02em; line-height: 1.1; }
 .pdp-price .price-was { font-size: var(--fs-body); }
-/* The category pill's violet, so the saving reads as brand news rather than as an alarm. */
+/* The brand's pink, the far end of the purple-to-pink sweep, so the saving reads as brand news
+   rather than as an alarm. #B33AC6 holds 4.8:1 under the white type. */
 .pdp-off {
   align-self: center; padding: 3px 8px; border-radius: 6px;
-  background: var(--violet-700); color: var(--lilac-200);
+  background: #B33AC6; color: #fff;
   font-size: var(--fs-xs); font-weight: 700; font-variant-numeric: tabular-nums;
 }
 
@@ -1884,11 +1954,12 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
 
 /* Phones show the cards as a coverflow rather than a sideways swipe: one card in the middle,
    the same card as everywhere else, with the cards either side peeking in behind it, smaller,
-   darker and greyed. The sliding dots under it (main.js) move
+   darker and greyed. The sliding dots and the prev/next arrows under it (main.js) move
    the row one card along: everything glides together, the right-hand card into the middle.
    It loops, so there is always a card on each side. main.js sets --off on each card (0 middle,
    -1 left, 1 right, 2 / -2 parked out of sight), --far (0 middle, 1 anywhere else), --z for
-   the layering, and data-cf for its state; there is no swipe.
+   the layering, and data-cf for its state; there is no swipe, and the side cards don't take
+   a tap: the arrows are the way on.
    Without the script (.is-flow missing) the cards stack down the page. The copy sits on the
    art, as it does from 600 up. */
 @media (max-width: 599px) {
@@ -1905,7 +1976,7 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
     transition: transform 600ms cubic-bezier(.22, 1, .36, 1), filter 600ms cubic-bezier(.22, 1, .36, 1),
       opacity 450ms ease;
   }
-  .tech-grid.is-flow .tech-card[data-cf="side"] { filter: grayscale(.75) brightness(.42); cursor: pointer; }
+  .tech-grid.is-flow .tech-card[data-cf="side"] { filter: grayscale(.75) brightness(.42); pointer-events: none; }
   /* off the middle a card is only its picture: the title fades out with the move */
   .tech-grid.is-flow .tech-card__body { transition: opacity 450ms ease; }
   .tech-grid.is-flow .tech-card:not([data-cf="middle"]) .tech-card__body { opacity: 0; }
@@ -1951,7 +2022,7 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
   .tech-card.is-open .tech-card__text { opacity: 1; visibility: visible; translate: 0 0; transition-delay: 0s; }
 }
 
-/* the stack's dots: phones only */
+/* the stack's dots and arrows: phones only */
 @media (min-width: 600px) { .tech-ctrl { display: none; } }
 
 @media (min-width: 600px) {
@@ -2016,9 +2087,10 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
 }
 /* Edge to edge, in the same surface as the ticker's "Mobile gaming gear #1" tab: violet-600
    running into violet-700 along the tab's own 115deg cut, lit by a white sheen along the top,
-   with the tab's violet-500 rim as the top and bottom edge. The two read as one family. */
+   with the tab's violet-500 rim as the top and bottom edge. Kept slim: a strip of proof under
+   the heading, not a section of its own. */
 .stats-band {
-  position: relative; isolation: isolate; margin-top: var(--s-5);
+  position: relative; isolation: isolate; margin-top: var(--s-4);
   background: linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
   border-block: 1px solid var(--violet-500);
 }
@@ -2029,25 +2101,23 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
   background-image: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 52%);
 }
 /* The band spans the viewport; the figures inside it stop at the same 1600 the nav and
-   footer stop at, so they never drift apart on a wide screen.
-   Each label sits right under its own number rather than on a row shared with the others:
-   the stars make 4,8 taller, and a shared row left a gap under 40rb+ and 10rb+. Each cell
-   is centred in the band's height, so the shorter two sit level with the middle of 4,8. */
+   footer stop at, so they never drift apart on a wide screen. */
 .stats {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 1600px; margin: 0 auto; padding: var(--s-4) var(--gutter);
+  max-width: 1600px; margin: 0 auto; padding: var(--s-5) var(--gutter) var(--s-4);
 }
 .stat {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-1);
+  --stat-num: clamp(1.625rem, 1.1rem + 1.9vw, 2.5rem);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   text-align: center; padding-inline: var(--s-2);
 }
 .stat + .stat { border-left: 1px solid rgba(255, 255, 255, .18); }
 /* Reordered rather than source order: a <dl> has to keep dt before dd, and the number
-   belongs on top. */
+   belongs first. */
 .stat__value {
   order: -1;
-  display: grid; justify-items: center; gap: var(--s-2); margin: 0;
-  font-size: clamp(1.625rem, 1rem + 2.6vw, 2.75rem); font-weight: 800;
+  display: flex; align-items: center; gap: 6px; margin: 0;
+  font-size: var(--stat-num); font-weight: 800;
   line-height: 1.05; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
 }
 /* lilac-200 rather than lilac-300: the token exists for exactly this case, where the lighter
@@ -2059,24 +2129,55 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
 .stars { display: flex; gap: 2px; color: var(--violet-400); }
 .stars .icon { width: 15px; height: 15px; fill: currentColor; stroke: none; }
 .stars .is-off { color: var(--line-strong); }
-.stat__value .stars .icon { width: 18px; height: 18px; }
-/* Phones: a row of five stars under 4,8 made the numbers' row taller than the other two
-   figures need, leaving a gap under 40rb+ and 10rb+ that set their labels adrift. One star
-   beside the figure says "rating" just as well and keeps all three cells the same shape. */
-@media (max-width: 599px) {
-  .stat__value:has(.stars) { display: flex; align-items: center; gap: 6px; }
-  .stat__value .stars .icon { width: .62em; height: .62em; }
-  .stat__value .stars .icon:not(:first-child) { display: none; }
-}
+/* One star beside 4,8 says "rating" as well as five, and keeps all three figures one line tall. */
+.stat__value .stars .icon { width: .62em; height: .62em; }
+.stat__value .stars .icon:not(:first-child) { display: none; }
 
-@media (min-width: 600px) {
-  .stats { padding-block: var(--s-5); }
-  .stat { padding-inline: var(--s-4); gap: var(--s-2); }
-  .stat__label { font-size: var(--fs-sm); }
+/* Where the rating comes from and when it was counted, in small type under the figures. The
+   marketplace wordmarks sit on a white chip in their own colours, so they read as the shops'
+   real logos. */
+.stats-source {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 4px var(--s-2);
+  max-width: 1600px; margin: 0 auto; padding: var(--s-4) var(--gutter);
+  /* the hairline between the figures and the source, drawn inside the gutters so it lines
+     up with the figures rather than running off the edge of the screen */
+  background: linear-gradient(rgba(255, 255, 255, .18), rgba(255, 255, 255, .18))
+    top center / calc(100% - 2 * var(--gutter)) 1px no-repeat;
+  font-size: var(--fs-2xs); color: var(--lilac-200); line-height: 1.3; text-align: center;
 }
-@media (min-width: 1024px) {
-  .stats { padding-block: var(--s-6); }
-  .stat { padding-inline: var(--s-5); }
+.stats-source strong { color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* The big figures and the words around them centred on one line, not sat on a shared
+   baseline, which left "dari" and "ulasan di" hanging low beside the numbers. */
+.stats-source__claim { display: inline-flex; align-items: center; gap: .3em; white-space: nowrap; }
+.stats-source__mps { display: inline-flex; align-items: center; gap: 6px; }
+.mp {
+  display: inline-flex; align-items: center; gap: 3px; height: 20px;
+  padding: 3px 6px; border-radius: 4px; background: #fff;
+}
+.mp img { display: block; height: 100%; width: auto; }
+/* Tokopedia's wordmark has no bag of its own, unlike Shopee's, so its Toped bag goes in front;
+   a touch taller than the letters, the way it sits in the app icon. */
+.mp .mp__bag { height: 18px; margin-block: -2px; }
+/* Shopee's mark carries its bag inside the same image, so its letters only fill half the
+   height; sized up to match the Tokopedia lettering. */
+.mp .mp__shopee { height: 19px; margin-block: -3px; }
+/* TikTok Shop has no wordmark file here: its note glyph from the sprite, set in black beside
+   the name, the way the shop badge reads in the Tokopedia app. */
+.mp--tiktok { color: #000; font-size: 12px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.mp--tiktok svg { width: 14px; height: 14px; }
+.stats-source__asof { opacity: .8; }
+
+/* Wider screens: each label beside its number, so the strip is a single line of figures. */
+@media (min-width: 768px) {
+  /* Both boxes centred at line-height 1, where Inter's box middle falls on its cap middle,
+     so the label's capitals line up with the figure. The label is mostly lowercase, though,
+     and reads low at that point, so it comes up a further .12em to centre its x-height. */
+  .stat { flex-direction: row; align-items: center; gap: var(--s-3); }
+  .stat__value { order: 0; line-height: 1; }
+  .stat__label { order: 1; font-size: var(--fs-sm); line-height: 1; transform: translateY(-.12em); }
+  .stats-source { font-size: var(--fs-sm); padding-block: var(--s-5); }
+  .stats { padding-block: var(--s-6) var(--s-5); }
 }
 
 /* Runs the full width of the page rather than the container: the rows have to leave and
@@ -2146,14 +2247,15 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   transform-origin: center;
 }
 .review-shot__stars .icon.is-off { fill: #D9D9D9; stroke: #C4C4C4; }
-/* Popped, each star in turn spins up out of the page (a quarter turn back, overshooting to
-   1.75x, settling at 1.5x and glowing), then keeps twinkling: a slow pulse of size and glow,
-   offset star to star so a ripple runs along the row. --i staggers both. Leaving view drops the
-   animation and they settle back onto the screenshot's own stars. */
+/* Popped, each star in turn bursts up out of the page: a quarter turn back as it overshoots to
+   2.4x, holding big at 2.1x and glowing for about a second and a half so the row reads from
+   across the section, then easing down to 1.5x. From there it keeps twinkling: a slow pulse of
+   size and glow, offset star to star so a ripple runs along the row. --i staggers both. Leaving
+   view drops the animation and they settle back onto the screenshot's own stars. */
 .review-shot.is-popped .review-shot__stars .icon:not(.is-off) {
   animation:
-    star-pop 620ms cubic-bezier(.34, 1.56, .64, 1) calc(var(--i, 0) * 80ms) both,
-    star-twinkle 2.4s ease-in-out calc(700ms + var(--i, 0) * 180ms) infinite;
+    star-pop 2.4s cubic-bezier(.34, 1.56, .64, 1) calc(var(--i, 0) * 90ms) both,
+    star-twinkle 2.4s ease-in-out calc(2.4s + var(--i, 0) * 180ms) infinite;
 }
 .review-shot__stars .icon:nth-child(2) { --i: 1; }
 .review-shot__stars .icon:nth-child(3) { --i: 2; }
@@ -2161,7 +2263,14 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 .review-shot__stars .icon:nth-child(5) { --i: 4; }
 @keyframes star-pop {
   0% { transform: scale(1) rotate(0); filter: none; }
-  45% { transform: scale(1.75) translateY(-10%) rotate(-25deg); }
+  /* the burst */
+  14% { transform: scale(2.4) translateY(-14%) rotate(-25deg); }
+  24%, 70% {
+    transform: scale(2.1) translateY(-12%) rotate(0);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .3)) drop-shadow(0 0 6px rgba(255, 194, 26, .9));
+    animation-timing-function: cubic-bezier(.45, 0, .2, 1);
+  }
+  /* down to where the twinkle starts, so the hand-off is seamless */
   100% {
     transform: scale(1.5) translateY(-8%) rotate(0);
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .25)) drop-shadow(0 0 4px rgba(255, 194, 26, .8));
@@ -2177,7 +2286,8 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .25)) drop-shadow(0 0 9px rgba(255, 214, 80, 1)) brightness(1.12);
   }
 }
-/* A sticker quoting the reviewer, springing up over the top-right corner. No rim: the
+/* A sticker quoting the reviewer, springing up over the top-right corner, level rather than
+   tilted. No rim: the
    purple-pink fill and a soft shadow set it off the white card on their own. */
 .review-shot__tag {
   position: absolute; z-index: 2; top: -11px; right: 14px; pointer-events: none;
@@ -2188,22 +2298,19 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   color: #fff; font-size: clamp(.6875rem, 3.6cqi, .9375rem); font-weight: 800; letter-spacing: .01em; line-height: 1.3; white-space: nowrap;
   box-shadow: 0 6px 14px rgba(12, 3, 16, .35);
   backface-visibility: hidden;
-  transform: scale(.4) rotate(-10deg); opacity: 0;
+  transform: scale(.4); opacity: 0;
   transition: transform 520ms cubic-bezier(.34, 1.56, .64, 1) 300ms, opacity 220ms ease 300ms;
 }
-.review-shot.is-popped .review-shot__tag { transform: scale(1) rotate(-4deg); opacity: 1; }
+.review-shot.is-popped .review-shot__tag { transform: scale(1); opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   .review-shot__tag { transition: none; }
   .review-shot.is-popped .review-shot__stars .icon:not(.is-off) { animation: none; }
 }
-/* The stickers stand 11px proud of the cards' tops, and tilted, sprung and shadowed they reach
+/* The stickers stand 11px proud of the cards' tops, and sprung and shadowed they reach
    past 20px; each row clips sideways (overflow hidden), so it leaves them 26px of room above,
    and the gap between the rows shrinks to match. */
 .marquee:has(.review-shot) { gap: 0; }
-/* With the stats band put away the reviews sit right under the headline: the head's own margin
-   is the gap to the cards, so the row's sticker room (26px) is taken back out of it. */
-#ulasan .marquee { margin-top: -26px; }
 .marquee:has(.review-shot) .marquee__viewport { padding-block: 26px 6px; }
 .review-shot__btn { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
 .review-shot__btn:focus-visible { outline-offset: -3px; }
@@ -2231,6 +2338,36 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   .review { width: 360px; padding: var(--s-5); }
   .review__quote { font-size: var(--fs-body); }
 }
+
+/* Apa Kata Pembeli's frame, after the ValSewa/ValJubel testimonial wall: the rows sit in one
+   inset, rounded panel instead of running the full width, a dark see-through fill over the
+   section's texture and a thin glowing outline in the navbar underline's purple-to-pink. The
+   cards drift inside it and are cut off at its edges (overflow hidden on the rounded box). The
+   outline is a masked ::after ring, since a gradient border would show through the
+   see-through fill. The head's own margin is now the gap to the frame, so the -26px goes; the
+   rows keep their 26px of sticker room inside it, and the frame pads 20px under them so the
+   cards sit 26px off both its top and bottom edges. */
+#ulasan .marquee {
+  position: relative; isolation: isolate; overflow: hidden;
+  margin: 0 var(--gutter); padding-bottom: 20px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(26, 11, 38, .62), rgba(12, 3, 16, .72));
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  box-shadow: 0 0 32px rgba(142, 72, 196, .28), inset 0 0 40px rgba(219, 77, 255, .08);
+}
+#ulasan .marquee::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  padding: 1.5px; border-radius: inherit;
+  background: linear-gradient(135deg, #8E48C4, #DB4DFF 50%, #8E48C4);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+/* With the stats strip back between the head and the frame, the frame takes its own gap
+   under the strip instead of sitting flush against it. */
+#ulasan .stats-band + .marquee { margin-top: var(--s-5); }
+@media (min-width: 600px) { #ulasan .stats-band + .marquee { margin-top: var(--s-6); } }
+@media (min-width: 600px) { #ulasan .marquee { border-radius: 32px; } }
+@media (min-width: 1024px) { #ulasan .marquee { border-radius: 40px; } }
 
 /* With motion off the strip stops being a strip: the duplicate half goes, the drift stops,
    and each row turns into the same swipe rail the clips and tech cards use, so every quote
@@ -2379,14 +2516,22 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   font-size: 1.0625rem; font-weight: 600; text-align: left; color: var(--text-soft);
 }
 .menu-list__item:hover { background: var(--ink-800); color: var(--text); }
-/* Tentang Kami / Hubungi Kami have no page yet: no href, but they still read as links. */
+/* Tentang Kami, Hubungi Kami and FAQ have no page yet: no href, but they still read as links. */
 .nav__link[aria-disabled="true"], .menu-list__item[aria-disabled="true"] { cursor: pointer; }
 /* Produk is a heading over its categories, not a toggle: they are always showing. */
+/* A section heading, not a link: small caps-lock type in the lilac of the site's small labels,
+   so it can't be mistaken for Beranda above it. */
 .menu-list__label {
-  display: flex; align-items: center; min-height: 52px; padding: 0 var(--s-3);
-  font-size: 1.0625rem; font-weight: 600; color: var(--text-soft);
+  display: flex; align-items: center; min-height: 40px; padding: var(--s-2) var(--s-3) 0;
+  font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--lilac-300);
 }
+/* Bantuan's pages, indented under their heading like Produk's categories. */
+.menu-sub { display: grid; gap: var(--s-1); }
+.menu-list__item--sub { min-height: 44px; padding-left: var(--s-5); font-size: 1rem; font-weight: 500; }
 .menu-cats { display: grid; gap: var(--s-1); padding-bottom: var(--s-2); margin-bottom: var(--s-2); border-bottom: 1px solid var(--line); }
+/* the rule only separates the categories from links after them; last in the menu, it goes */
+.menu-cats:last-child { border-bottom: 0; margin-bottom: 0; }
 .menu-cat {
   display: flex; align-items: center; gap: var(--s-3);
   min-height: 64px; padding: var(--s-2) var(--s-3) var(--s-2) var(--s-2); border-radius: var(--r-sm);
@@ -2481,7 +2626,8 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   aspect-ratio: 1; border-radius: var(--r-sm); overflow: hidden; background: var(--ink-800);
 }
 .cp-item__thumb img { width: 100%; height: 100%; object-fit: cover; }
-.cp-item__off {
+/* the checkout's thumbnails carry the same badge (.co-item__off), kept at every width */
+.cp-item__off, .co-item__off {
   position: absolute; top: 4px; left: 4px; padding: 1px 5px; border-radius: 4px;
   background: var(--violet-600); color: #fff;
   font-size: 10px; font-weight: 700; line-height: 1.4; font-variant-numeric: tabular-nums;
@@ -2531,8 +2677,9 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 @media (max-width: 899px) {
   .cart-side { display: contents; }
-  /* A short cart still fills the screen: only a sliver of the footer peeks above the pay dock. */
-  [data-cartpage] { min-height: calc(100svh - var(--header-h) - var(--dock-h, 0px) - 200px); }
+  /* A short cart still fills the screen, so the footer starts below it: none of it shows until
+     you scroll. */
+  [data-cartpage] { min-height: calc(100svh - var(--header-h) - var(--dock-h, 0px)); }
   .cart-pay {
     position: fixed; inset: auto 0 0; z-index: 38;
     border-radius: 0; border-inline: 0; border-bottom: 0;
@@ -2676,7 +2823,8 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .co-order { display: grid; gap: var(--s-4); }
 .co-items { display: grid; gap: var(--s-4); }
 .co-item { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-areas: "thumb info" "thumb price"; column-gap: var(--s-3); row-gap: var(--s-1); }
-.co-item__thumb { grid-area: thumb; width: 64px; height: 64px; border-radius: var(--r-sm); object-fit: cover; background: var(--ink-800); }
+.co-item__thumb { grid-area: thumb; position: relative; display: block; width: 64px; height: 64px; border-radius: var(--r-sm); overflow: hidden; background: var(--ink-800); }
+.co-item__thumb img { width: 100%; height: 100%; object-fit: cover; }
 .co-item__info { grid-area: info; min-width: 0; display: grid; gap: 2px; align-content: start; }
 .co-item__name {
   font-size: var(--fs-sm); line-height: 1.4;
@@ -3176,6 +3324,26 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .find-card:hover .find-card__go { translate: 3px 0; color: var(--text); }
 
 .contact-faq { max-width: 860px; }
+/* FAQ and Hubungi Kami: a centred headline over the page, at Produk Andalan's size (FAQ's set on two
+   lines, "Frequently Asked" over "Questions". The air above the headline is the same as the air
+   under the head (36/44/64), so the head sits evenly between the navbar and the questions. */
+.help-page { padding-block: calc((56px + var(--s-4)) / 2) calc(var(--section-y) * 1.5); }
+@media (min-width: 600px) { .help-page { padding-top: calc((64px + var(--s-5)) / 2); } }
+@media (min-width: 1024px) { .help-page { padding-top: calc((96px + var(--s-6)) / 2); } }
+/* Under the head, what Produk Andalan's headline leaves above its rail. */
+.help-page__head { margin-bottom: calc((56px + var(--s-4)) / 2); text-align: center; }
+@media (min-width: 600px) { .help-page__head { margin-bottom: calc((64px + var(--s-5)) / 2); } }
+@media (min-width: 1024px) { .help-page__head { margin-bottom: calc((96px + var(--s-6)) / 2); } }
+/* Beranda's headline size; on a narrow phone it is capped at 11.5vw so "Frequently Asked" holds
+   its line. */
+.help-page__title {
+  margin: 0 0 0 50%; translate: -50% 0; white-space: nowrap;
+  font-size: min(clamp(1.5rem, .75rem + 3.1vw, 3rem), 6.9vw);
+}
+.help-page__lead { margin: var(--s-3) auto 0; max-width: 48ch; color: var(--mute); text-wrap: balance; }
+/* On Apa Kata Streamers' texture (.section--textured). It starts right under the navbar, whose
+   own gradient rule already marks that edge, so only the bottom rule is drawn. */
+.help-page.section--textured { border-top-width: 0; }
 .faq { border-top: 1px solid var(--line); }
 .faq__item { border-bottom: 1px solid var(--line); }
 .faq__item summary {
@@ -3196,16 +3364,144 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
   .find-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
+/* ---------- Beranda motion (main.js) ---------- */
+/* gamesir.com's reveal: from one of three starts into place, 850ms on its ease. The individual
+   translate and scale properties rather than transform, so the cards' own transforms (the
+   coverflow, image zooms) are left alone. The transition only comes on with .is-revealed, so
+   the start position is taken at once rather than animated to. */
+[data-reveal].is-revealed {
+  transition: translate 850ms cubic-bezier(.22, 1, .36, 1), scale 850ms cubic-bezier(.22, 1, .36, 1);
+}
+[data-reveal="slide-left"]:not(.is-revealed) { translate: -20px 0; }
+[data-reveal="slide-right"]:not(.is-revealed) { translate: 20px 0; }
+[data-reveal="scale"]:not(.is-revealed) { scale: .96; }
+
 /* ---------- Motion preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
 
-/* ---------- Beranda scroll motion (main.js) ---------- */
-/* A simple show-up on first view: a block fades in while rising 16px into place, 500ms ease-out. */
-[data-motion] {
-  transition: opacity 500ms ease-out var(--motion-delay, 0s),
-    translate 500ms ease-out var(--motion-delay, 0s);
+/* ---------- Hubungi Kami ---------- */
+/* Shares the FAQ's head and texture (.help-page). Three blocks: the quick route (WhatsApp, hours,
+   email), the form, and where else to find us. Stacked in that order on a phone; from 1024 the
+   form holds the left column and the other two stand beside it. */
+.contact-page { max-width: 1120px; }
+.contact-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+@media (min-width: 1024px) {
+  .contact-layout { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--s-5) var(--s-6); align-items: start; }
+  .contact-form-card { grid-column: 1; grid-row: 1 / span 2; }
+  .contact-quick, .contact-more { grid-column: 2; }
 }
-[data-motion]:not(.is-in) { opacity: 0; translate: 0 16px; }
+.contact-block__title { margin: 0 0 var(--s-4); font-size: 1.125rem; font-weight: 700; line-height: 1.3; }
+
+/* The quickest route, in the primary button's violet sweep, so it is the first thing seen. */
+.contact-quick { display: grid; gap: var(--s-3); }
+.contact-wa {
+  display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg); color: #fff;
+  background: linear-gradient(120deg, #6A2E9E 0%, #B33AC6 100%);
+  transition: filter var(--t-fast) ease-out;
+}
+.contact-wa:hover { filter: brightness(1.1); }
+.contact-wa__icon { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, .16); }
+.contact-wa__icon .icon { width: 24px; height: 24px; }
+.contact-wa__text { display: grid; gap: 2px; min-width: 0; }
+.contact-wa__title { font-size: 1.0625rem; font-weight: 700; }
+.contact-wa__meta { font-size: var(--fs-sm); color: rgba(255, 255, 255, .85); }
+.contact-wa__go { flex: none; margin-left: auto; transition: translate var(--t-fast) ease-out; }
+.contact-wa:hover .contact-wa__go { translate: 3px 0; }
+.contact-info {
+  display: grid; gap: var(--s-3); margin: 0; padding: var(--s-4) var(--s-5);
+  background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-lg);
+}
+.contact-info div { display: grid; gap: 2px; }
+.contact-info dt { font-size: var(--fs-xs); color: var(--faint); }
+.contact-info dd { margin: 0; font-size: var(--fs-sm); color: var(--text-soft); }
+.contact-info a { color: var(--lilac-300); text-decoration: underline; text-underline-offset: 2px; }
+.contact-info__note { display: block; font-size: var(--fs-xs); color: var(--faint); }
+
+/* The form, on ink-900 so the floating labels' split patch (ink-900 over ink-950) reads as a cut
+   in the border, as it does in the checkout's address dialog. */
+.contact-form-card { padding: var(--s-5); background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-lg); }
+@media (min-width: 768px) { .contact-form-card { padding: var(--s-6); } }
+/* One column held to the card: the topics fieldset would otherwise stretch it to its content. */
+.contact-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+.contact-topics { min-inline-size: 0; }
+.contact-form [hidden] { display: none; }
+.contact-form .pdp-input { height: 48px; }
+.contact-form .contact-form__area { display: block; height: auto; min-height: 140px; padding-top: 14px; line-height: 1.5; resize: vertical; }
+/* Topics as pills, one choice: the category chips' look, selected in their violet sweep. */
+.contact-topics__label { margin-bottom: var(--s-2); padding: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--mute); }
+.contact-topics__list { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.contact-topic { position: relative; }
+.contact-topic input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.contact-topic span {
+  display: inline-flex; align-items: center; height: 38px; padding: 0 var(--s-4); border-radius: 999px;
+  border: 1px solid var(--line-strong); background: var(--ink-950);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-soft);
+  transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.contact-topic:hover span { border-color: #8E48C4; color: var(--text); }
+.contact-topic input:checked + span { background: linear-gradient(120deg, #6A2E9E 0%, #B33AC6 100%) border-box; border-color: transparent; color: #fff; }
+.contact-topic input:focus-visible + span { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+.contact-form__actions { display: grid; gap: var(--s-2); margin-top: var(--s-1); }
+/* Side by side once the card is wide enough for both labels; stacked, WhatsApp first, before. */
+@media (min-width: 768px) { .contact-form__actions { grid-template-columns: 1fr 1fr; } }
+.contact-form__actions .btn { min-width: 0; padding-inline: var(--s-4); }
+.contact-form__actions .btn .icon { margin-right: var(--s-2); }
+.contact-form__privacy { display: flex; align-items: flex-start; gap: var(--s-2); margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--faint); }
+.contact-form__privacy .icon { flex: none; width: 14px; height: 14px; margin-top: 2px; }
+.contact-form__status {
+  margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-sm);
+  background: var(--ink-950); border: 1px solid var(--line-strong);
+  font-size: var(--fs-sm); line-height: 1.5; color: var(--text-soft);
+}
+.contact-form__status a { color: var(--lilac-300); text-decoration: underline; }
+
+/* Two to a row at every width: the side column is too narrow for the draft's four. */
+.contact-more .find-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.contact-more .find-grid + .contact-block__title { margin-top: var(--s-5); }
+.contact-faq-link {
+  display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-5); padding: var(--s-4);
+  border: 1px dashed var(--line-strong); border-radius: var(--r-md);
+  font-size: var(--fs-sm); line-height: 1.5; color: var(--mute);
+  transition: border-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.contact-faq-link strong { color: var(--text); }
+.contact-faq-link .icon { flex: none; margin-left: auto; }
+.contact-faq-link:hover { border-color: #8E48C4; color: var(--text-soft); }
+
+/* ---------- Chat bubble ---------- */
+/* A WhatsApp shortcut pinned bottom-right on every page (main.js adds it). The site's purple-to-
+   pink in a disc with a white speech bubble, a soft pink glow under it. Below the navbar (40)
+   and every overlay (50+), above the pinned bottom bars (38), which it rides above by
+   --chat-lift. Pops in once the page has settled. */
+.chat-bubble {
+  position: fixed; z-index: 39;
+  /* Held well in from the corner (20/32/40px): close enough to find, far enough not to look
+     stuck to the edge of the screen. */
+  --chat-inset: 20px;
+  right: max(var(--chat-inset), env(safe-area-inset-right));
+  bottom: calc(max(var(--chat-inset), env(safe-area-inset-bottom)) + var(--chat-lift, 0px));
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 55%) padding-box,
+    linear-gradient(135deg, #6A2E9E 0%, #B33AC6 100%) padding-box,
+    linear-gradient(135deg, #8E48C4, #DB4DFF) border-box;
+  border: 1px solid transparent;
+  box-shadow: 0 10px 28px rgba(179, 58, 198, .45), 0 4px 10px rgba(12, 3, 16, .5);
+  transition: transform var(--t-fast) ease-out, box-shadow var(--t-fast) ease-out, bottom 200ms ease-out;
+  animation: chat-in 420ms cubic-bezier(.34, 1.56, .64, 1) 600ms backwards;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 768px) { .chat-bubble { --chat-inset: 32px; width: 60px; height: 60px; } }
+@media (min-width: 1024px) { .chat-bubble { --chat-inset: 40px; } }
+.chat-bubble:hover { transform: scale(1.06); box-shadow: 0 12px 32px rgba(219, 77, 255, .55), 0 4px 10px rgba(12, 3, 16, .5); }
+.chat-bubble:active { transform: scale(.96); }
+.chat-bubble:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 3px; }
+.chat-bubble__icon { width: 30px; height: 30px; fill: #9B37B5; }
+.chat-bubble__shape { fill: #fff; }
+@keyframes chat-in { from { opacity: 0; scale: .4; } }
+@media (prefers-reduced-motion: reduce) { .chat-bubble { animation: none; } }
+

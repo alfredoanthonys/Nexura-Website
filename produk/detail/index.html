@@ -21,8 +21,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&display=swap">
   <!-- The headline is Draco, set with font-display: block, so it is fetched before first paint. -->
-  <link rel="preload" as="font" type="font/otf" href="../../assets/fonts/draco.otf" crossorigin>
-  <link rel="stylesheet" href="../../assets/css/styles.css?v=20261017590000">
+  <link rel="stylesheet" href="../../assets/css/styles.css?v=20261018144000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -106,59 +105,35 @@
       <nav class="nav__links" aria-label="Menu utama">
         <ul>
           <li><a class="nav__link" href="../../">Beranda</a></li>
-          <li class="nav__dropdown" data-dropdown>
-            <button class="nav__link" type="button" aria-expanded="false" aria-controls="dropdown-produk">
-              Produk <svg class="icon icon--sm" aria-hidden="true"><use href="#i-chevron-down"/></svg>
-            </button>
-            <div class="dropdown" id="dropdown-produk">
-              <a class="dropdown__item" href="../../produk/?kategori=fan-cooler" data-filter="fan-cooler">
-                <span class="dropdown__thumb">
-                  <img src="../../assets/img/p-iceglow-ungu-160.webp" alt="" width="160" height="160" loading="lazy" decoding="async">
-                </span>
-                <span class="dropdown__text">
-                  <span class="dropdown__name">Fan Cooler</span>
-                </span>
-                <svg class="icon dropdown__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg>
-              </a>
-              <a class="dropdown__item" href="../../produk/?kategori=sarung-jempol" data-filter="sarung-jempol">
-                <span class="dropdown__thumb">
-                  <img src="../../assets/img/p-vortex-160.webp" alt="" width="160" height="160" loading="lazy" decoding="async">
-                </span>
-                <span class="dropdown__text">
-                  <span class="dropdown__name">Sarung Jempol</span>
-                </span>
-                <svg class="icon dropdown__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg>
-              </a>
-              <a class="dropdown__item" href="../../produk/?kategori=hydrogel" data-filter="hydrogel">
-                <span class="dropdown__thumb">
-                  <img src="../../assets/img/p-hydrogel-matte-160.webp" alt="" width="160" height="160" loading="lazy" decoding="async">
-                </span>
-                <span class="dropdown__text">
-                  <span class="dropdown__name">Hydrogel</span>
-                </span>
-                <svg class="icon dropdown__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg>
-              </a>
-              <a href="../../produk/" data-filter="all" class="dropdown__all">Lihat Semua</a>
-            </div>
-          </li>
-          <!-- Existing pages per PRD 8.1; update the paths if they differ -->
-          <li><a class="nav__link" aria-disabled="true">Tentang Kami</a></li>
-          <li><a class="nav__link" aria-disabled="true">Hubungi Kami</a></li>
+          <li><a class="nav__link" href="../../produk/?kategori=fan-cooler" data-filter="fan-cooler">Fan Cooler</a></li>
+          <li><a class="nav__link" href="../../produk/?kategori=sarung-jempol" data-filter="sarung-jempol">Sarung Jempol</a></li>
+          <li><a class="nav__link" href="../../produk/?kategori=hydrogel" data-filter="hydrogel">Hydrogel</a></li>
         </ul>
       </nav>
 
       <div class="nav__actions">
-        <form class="search" role="search" data-search autocomplete="off">
-          <label class="sr-only" for="search-input">Cari produk</label>
-          <svg class="icon search__icon" aria-hidden="true"><use href="#i-search"/></svg>
-          <input class="search__input" id="search-input" type="search" placeholder="Cari produk …"
-                 role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list">
-          <ul class="search__results" id="search-results" role="listbox" aria-label="Hasil pencarian" hidden></ul>
-        </form>
-        <button class="icon-btn nav__search-toggle" type="button" aria-label="Cari produk" aria-expanded="false" data-search-toggle>
+        <!-- Opened from the search icon as a modal dialog, so it sits in the top layer above the
+             page with its own backdrop, keeps focus inside, and closes on Escape (main.js). -->
+        <dialog class="search-dialog" aria-label="Cari produk" data-search-dialog>
+          <form class="search" role="search" data-search autocomplete="off">
+            <div class="search__bar">
+              <div class="search__field">
+                <label class="sr-only" for="search-input">Cari produk</label>
+                <svg class="icon search__icon" aria-hidden="true"><use href="#i-search"/></svg>
+                <input class="search__input" id="search-input" type="search" placeholder="Cari fan cooler, sarung jempol, hydrogel…"
+                       role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list">
+              </div>
+              <button class="icon-btn search__close" type="button" aria-label="Tutup pencarian" data-search-close>
+                <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+              </button>
+            </div>
+            <p class="search__hint" data-search-hint>Ketik nama produk, kategori, atau warna.</p>
+            <ul class="search__results" id="search-results" role="listbox" aria-label="Hasil pencarian" hidden></ul>
+          </form>
+        </dialog>
+        <button class="icon-btn nav__search-toggle" type="button" aria-label="Cari produk" aria-haspopup="dialog" aria-expanded="false" data-search-toggle>
           <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
         </button>
-        <span class="nav__divider" aria-hidden="true"></span>
         <!-- TODO: connect when the account area exists (phase 2+) -->
         <button class="icon-btn nav__account" type="button" aria-label="Akun">
           <svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>
@@ -368,9 +343,9 @@
       </button>
     </div>
     <nav class="drawer__body menu-list" aria-label="Menu utama">
+      <!-- The same links as the desktop bar, in the same order; the three categories under
+           a Produk heading, with their photos. -->
       <a class="menu-list__item" href="../../">Beranda</a>
-      <!-- Open from the start, no accordion: the categories are what most people open the
-           menu for, so they show straight away, with the dropdown's photos. -->
       <p class="menu-list__label" id="menu-produk-label">Produk</p>
       <div class="menu-cats" role="group" aria-labelledby="menu-produk-label">
         <a class="menu-cat" href="../../produk/?kategori=fan-cooler" data-filter="fan-cooler">
@@ -385,10 +360,7 @@
           <span class="menu-cat__thumb"><img src="../../assets/img/p-hydrogel-matte-160.webp" alt="" width="160" height="160" decoding="async"></span>
           <span class="menu-cat__name">Hydrogel</span><svg class="icon icon--sm menu-cat__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg>
         </a>
-        <a class="menu-cat menu-cat--all" href="../../produk/" data-filter="all"><span class="menu-cat__name">Lihat Semua</span><svg class="icon icon--sm menu-cat__chev" aria-hidden="true"><use href="#i-chevron-right"/></svg></a>
       </div>
-      <a class="menu-list__item" aria-disabled="true">Tentang Kami</a>
-      <a class="menu-list__item" aria-disabled="true">Hubungi Kami</a>
     </nav>
     <div class="drawer__foot">
       <!-- The bar only carries the account icon from 768 up, where the burger is gone; below that
@@ -403,6 +375,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="../../assets/js/data.js?v=20261017440000"></script>
-  <script src="../../assets/js/main.js?v=20261017590000"></script>
+  <script src="../../assets/js/main.js?v=20261018144000"></script>
 </body>
 </html>

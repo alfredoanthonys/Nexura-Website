@@ -65,44 +65,57 @@
     title.classList.add('is-worded');
   });
 
-  /* Beranda: a simple show-up. Each block fades in while rising 16px the first time it comes
-     80px into view; a row of cards goes one after another, 60ms apart. The hero is left as it
-     is. Once landed, the block loses its motion attribute. Skipped for readers who ask for
-     reduced motion. */
+  /* Beranda motion, after gamesir.com's home page (its MotionReveal). The first time a block
+     comes into view it eases into place over 850ms on cubic-bezier(.22, 1, .36, 1), from one
+     of three starts: 20px to the left, 20px to the right, or 96% scale. Nothing rises and
+     nothing is hidden first; only position and scale move. Headlines alternate sides down the
+     page, the Produk Andalan rail comes in from the right as one, the video and the clips
+     scale up, and the Teknologi cards take their side from where they sit in the grid (centred
+     ones scale). Once landed, the block loses its motion attribute. Skipped for readers who
+     ask for reduced motion. */
   if ($('main.home') && !reducedMotion.matches && 'IntersectionObserver' in window) {
-    const set = (el, delay = 0) => {
-      el.dataset.motion = 'show';
-      if (delay) el.style.setProperty('--motion-delay', `${Math.min(delay, 0.42)}s`);
+    const set = (el, variant) => { if (el) el.dataset.reveal = variant; };
+    // Clears the motion once the block has landed (translate or scale, whichever it moved by).
+    const reveal = (el) => {
       const done = (e) => {
-        if (e.target !== el || e.propertyName !== 'opacity') return;
+        if (e.target !== el) return;
         el.removeEventListener('transitionend', done);
-        delete el.dataset.motion; el.classList.remove('is-in'); el.style.removeProperty('--motion-delay');
+        delete el.dataset.reveal; el.classList.remove('is-revealed');
       };
       el.addEventListener('transitionend', done);
+      el.classList.add('is-revealed');
     };
+    const sides = ['slide-left', 'slide-right'];
 
-    $$('.home .section-head, .home .video, .home .cta-banner, .home .rail-ctrl, .home .marquee').forEach((el) => set(el));
-    // product rail and clips: per card, by its column in view
-    $$('.home .product-grid > *, .home .clips > .clip').forEach((c, k) => set(c, (k % 4) * 0.06));
-    // Teknologi: per card from 600 up (its grid); on a phone it is a coverflow, so the block shows up whole
-    const techCards = $$('.home .tech-card');
-    if (window.matchMedia('(min-width: 600px)').matches) techCards.forEach((c, k) => set(c, k * 0.06));
-    else { const tg = $('.home .tech-grid'); if (tg) set(tg); }
+    $$('.home .section-head').forEach((h, k) => set(h, sides[k % 2]));
+    set($('#produk-grid'), 'slide-right');
+    set($('[data-rail-ctrl="produk-grid"]'), 'slide-right');
+    set($('.home .video'), 'scale');
+    set($('#clips-rail'), 'scale');
+    set($('[data-rail-ctrl="clips-rail"]'), 'scale');
+    // Teknologi: per card from 600 up, by which third of the grid its middle falls in; on a
+    // phone the cards are a coverflow that moves them itself, so the grid comes in whole.
+    const techGrid = $('.home .tech-grid');
+    if (techGrid && window.matchMedia('(min-width: 600px)').matches) {
+      const g = techGrid.getBoundingClientRect();
+      $$('.tech-card', techGrid).forEach((c) => {
+        const r = c.getBoundingClientRect();
+        const mid = (r.left + r.width / 2 - g.left) / g.width;
+        set(c, mid < 0.4 ? 'slide-left' : mid > 0.6 ? 'slide-right' : 'scale');
+      });
+    } else set(techGrid, 'scale');
+    // reviews: the rows alternate sides, as gamesir's two testimonial rows do
+    $$('.home .marquee__viewport').forEach((v, k) => set(v, sides[k % 2]));
 
-    // A rail's cards past its right edge never cross the screen (the rail clips them), so a
-    // rail is watched as a whole and brings all its cards in together.
-    const rails = $$('.home .product-grid, .home .clips');
+    // Waits until a block is a fifth of the screen in, so the move happens where the reader is
+    // looking rather than at the bottom edge as the block first peeks in.
     const io = new IntersectionObserver((entries) => entries.forEach((en) => {
       if (!en.isIntersecting) return;
-      const t = en.target;
-      (rails.includes(t) ? $$('[data-motion]', t) : [t]).forEach((el) => el.classList.add('is-in'));
-      io.unobserve(t);
-    }), { rootMargin: '0px 0px -80px 0px' });
+      reveal(en.target);
+      io.unobserve(en.target);
+    }), { rootMargin: '0px 0px -20% 0px' });
     // two frames, so the start position paints before the first move
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      rails.forEach((r) => io.observe(r));
-      $$('[data-motion]').filter((el) => !rails.some((r) => r.contains(el))).forEach((el) => io.observe(el));
-    }));
+    requestAnimationFrame(() => requestAnimationFrame(() => $$('[data-reveal]').forEach((el) => io.observe(el))));
   }
 
   const storage = {
@@ -175,7 +188,6 @@
     if (e.key === 'Escape') {
       if (openDrawer) { hideDrawer(); return; }
       closeDropdowns(true);
-      closeSearch(true);
     }
     if (e.key === 'Tab' && openDrawer) {
       const items = focusables(openDrawer);
@@ -250,6 +262,8 @@
   const searchInput = $('#search-input');
   const searchList = $('#search-results');
   const searchToggle = $('[data-search-toggle]');
+  const searchDialog = $('[data-search-dialog]');
+  const searchHint = $('[data-search-hint]');
   let results = [];
   let activeIndex = -1;
 
@@ -266,6 +280,7 @@
 
   function renderResults() {
     const q = searchInput.value.trim();
+    searchHint.hidden = Boolean(q);
     if (!q) { closeSearch(); return; }
     results = runSearch(q);
     activeIndex = results.length ? 0 : -1;
@@ -290,15 +305,10 @@
     } else searchInput.removeAttribute('aria-activedescendant');
   }
 
-  function closeSearch(collapsePanel = false) {
+  function closeSearch() {
     searchList.hidden = true;
     searchInput.setAttribute('aria-expanded', 'false');
     searchInput.removeAttribute('aria-activedescendant');
-    if (collapsePanel && header.classList.contains('is-search-open')) {
-      header.classList.remove('is-search-open');
-      searchToggle.setAttribute('aria-expanded', 'false');
-      searchToggle.focus();
-    }
   }
 
   // A pick opens that product's page; a sold-out product has none to open.
@@ -317,7 +327,21 @@
   searchForm.addEventListener('submit', (e) => { e.preventDefault(); if (activeIndex >= 0) chooseResult(activeIndex); });
   searchList.addEventListener('pointerdown', (e) => e.preventDefault()); // keep focus in the input
   searchList.addEventListener('click', (e) => { const opt = e.target.closest('[data-index]'); if (opt) chooseResult(Number(opt.dataset.index)); });
-  document.addEventListener('click', (e) => { if (!e.target.closest('[data-search]') && !e.target.closest('[data-search-toggle]')) closeSearch(); });
+
+  // The dialog handles Escape and returns focus to the icon itself. A click on its backdrop
+  // lands on the <dialog> element, outside the form, so that closes it too.
+  searchToggle.addEventListener('click', () => {
+    searchDialog.showModal();
+    searchToggle.setAttribute('aria-expanded', 'true');
+    searchInput.select();
+    if (searchInput.value.trim()) renderResults();
+  });
+  $('[data-search-close]', searchDialog).addEventListener('click', () => searchDialog.close());
+  searchDialog.addEventListener('click', (e) => { if (e.target === searchDialog) searchDialog.close(); });
+  searchDialog.addEventListener('close', () => {
+    closeSearch();
+    searchToggle.setAttribute('aria-expanded', 'false');
+  });
 
   /* ------------------------------------------------------------------
      Header retracts on scroll down, returns on scroll up — except on the product page, where
@@ -334,7 +358,7 @@
       const y = Math.max(0, window.scrollY);
       const delta = y - lastY;
       // keep the bar put while an overlay, the search panel or a focused control needs it
-      const pinned = openDrawer || header.classList.contains('is-search-open') || header.contains(document.activeElement);
+      const pinned = openDrawer || searchDialog.open || header.contains(document.activeElement);
       if (pinned || y <= headerH) header.classList.remove('is-hidden');
       else if (Math.abs(delta) > THRESHOLD) header.classList.toggle('is-hidden', delta > 0);
       if (Math.abs(delta) > THRESHOLD) lastY = y;
@@ -347,12 +371,6 @@
     header.addEventListener('focusin', () => header.classList.remove('is-hidden'));
   }
 
-  searchToggle.addEventListener('click', () => {
-    const open = !header.classList.contains('is-search-open');
-    header.classList.toggle('is-search-open', open);
-    searchToggle.setAttribute('aria-expanded', String(open));
-    if (open) searchInput.focus(); else closeSearch();
-  });
 
   /* ------------------------------------------------------------------
      Hero slider (native scroll-snap; JS only adds arrows, dots, autoplay)
@@ -495,6 +513,7 @@
     const out = p.stock === 'out';
     return `
       <article class="product-card${out ? ' is-out' : ''}" id="produk-${p.id}" data-id="${p.id}" data-category="${p.category}">
+          ${p.compareAt && !out ? `<span class="product-card__off"><span class="sr-only">Diskon </span>${Math.round((1 - priceOf(p, color && color.id) / p.compareAt) * 100)}%</span>` : ''}
         <div class="product-card__media">
           <picture>
             <source type="image/webp" srcset="${img(image)}">
@@ -677,18 +696,15 @@
     const catalogGrid = $('[data-catalog-grid]', catalog);
     const rail = $('[data-chip-rail]', catalog);
     const chips = $$('[data-cat]', rail);
-    const menuWrap = $('[data-filter-menu]', catalog);
-    const menuBtn = $('[aria-haspopup="menu"]', menuWrap);
-    const menu = $('[role="menu"]', menuWrap);
-    const allMenuItems = $$('[role^="menuitem"]', menu);
-    // The reset item is hidden while everything is at its default, so the keys skip it then.
-    const menuItems = () => allMenuItems.filter((it) => !it.closest('[hidden]'));
-    const menuReset = $('[data-menu-reset]', menu);
-    const stockItem = $('[data-stock]', menu);
-    const sortItems = $$('[data-sort]', menu);
-    const activeDot = $('[data-filter-dot]', menuBtn);
+    const menuWraps = $$('[data-menu-wrap]', catalog);
+    const menuReset = $('[data-menu-reset]', catalog);
+    const stockItem = $('[data-stock]', catalog);
+    const sortItems = $$('[data-sort]', catalog);
+    const activeDot = $('[data-filter-dot]', catalog);
+    const barCount = $('[data-bar-count]', catalog);
     const empty = $('[data-catalog-empty]', catalog);
     const count = $('[data-catalog-count]', catalog);
+    const searchField = $('[data-catalog-search]', catalog);
     const title = $('[data-page-title]');
     const lead = $('[data-page-lead]');
     const head = $('.page-head');
@@ -702,7 +718,7 @@
       terpopuler: { label: 'Terpopuler', cmp: () => 0 },
     };
     const byPopular = (a, b) => (a.popular || 99) - (b.popular || 99);
-    const DEFAULTS = { category: 'all', sort: 'terpopuler', inStock: false };
+    const DEFAULTS = { category: 'all', sort: 'terpopuler', inStock: false, q: '' };
     const state = { ...DEFAULTS };
 
     // The URL carries the state, so a filtered list can be shared, bookmarked and reloaded, and
@@ -711,10 +727,11 @@
     if (categories[params.get('kategori')]) state.category = params.get('kategori');
     if (SORTS[params.get('urutkan')]) state.sort = params.get('urutkan');
     state.inStock = params.get('stok') === 'tersedia';
+    state.q = params.get('cari') || '';
 
     const compare = (a, b) => SORTS[state.sort].cmp(a, b) || byPopular(a, b);
-    const isDefaultMenu = () => state.sort === DEFAULTS.sort && state.inStock === DEFAULTS.inStock;
-    const isDefault = () => isDefaultMenu() && state.category === DEFAULTS.category;
+    const isDefault = () => state.sort === DEFAULTS.sort && state.inStock === DEFAULTS.inStock
+      && state.category === DEFAULTS.category && !state.q.trim();
     const categoryLabel = () => (state.category === 'all' ? 'Semua Produk' : categories[state.category]);
 
     // Drawn once in the opening order, then only reordered and hidden — the nodes, and the
@@ -728,6 +745,7 @@
       if (state.category !== DEFAULTS.category) q.set('kategori', state.category);
       if (state.sort !== DEFAULTS.sort) q.set('urutkan', state.sort);
       if (state.inStock) q.set('stok', 'tersedia');
+      if (state.q.trim()) q.set('cari', state.q.trim());
       const s = q.toString();
       history.replaceState(null, '', location.pathname + (s ? `?${s}` : ''));
     }
@@ -744,7 +762,10 @@
     }
 
     function apply({ animate = false, url = true } = {}) {
+      // Same matching as the navbar search: every word must appear somewhere in the product.
+      const hits = state.q.trim() ? new Set(runSearch(state.q)) : null;
       const list = products
+        .filter((p) => !hits || hits.has(p))
         .filter((p) => state.category === 'all' || p.category === state.category)
         .filter((p) => !state.inStock || p.stock !== 'out')
         .sort(compare);
@@ -759,13 +780,15 @@
       chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.cat === state.category)));
       stockItem.setAttribute('aria-checked', String(state.inStock));
       sortItems.forEach((it) => it.setAttribute('aria-checked', String(it.dataset.sort === state.sort)));
-      activeDot.hidden = isDefaultMenu();
+      activeDot.hidden = !state.inStock && state.sort === DEFAULTS.sort;
       menuReset.hidden = isDefault();
 
       empty.hidden = list.length > 0;
       count.hidden = list.length === 0;
       $('[data-count-shown]', count).textContent = list.length;
       $('[data-count-total]', count).textContent = products.length;
+      if (searchField.value !== state.q) searchField.value = state.q;
+      barCount.textContent = list.length;
 
       syncHeading();
       if (url) syncUrl();
@@ -804,6 +827,15 @@
     }
     $('[data-catalog-reset]', empty).addEventListener('click', resetFilters);
 
+    // Filters on every keystroke; the count is announced once typing pauses.
+    let searchIdle;
+    searchField.addEventListener('input', () => {
+      state.q = searchField.value;
+      const n = apply();
+      clearTimeout(searchIdle);
+      searchIdle = setTimeout(() => announce(countMessage(n)), 500);
+    });
+
     // The chip rail scrolls sideways on narrow screens. Each end fades only while there is more
     // to scroll that way, so a row that fits shows no fade at all.
     function updateRail() {
@@ -825,56 +857,66 @@
     /* Filter menu — the WAI-ARIA menu button pattern: arrows move, Home/End jump, Escape closes
        and hands focus back, Tab closes and lets focus carry on. The stock toggle is a checkbox
        and leaves the menu open, so a sort can be picked straight after; a sort is a single
-       choice and closes it. */
-    const isMenuOpen = () => menuWrap.classList.contains('is-open');
-    function openMenu(which = 'first') {
-      menuWrap.classList.add('is-open');
-      menuBtn.setAttribute('aria-expanded', 'true');
-      const items = menuItems();
-      (which === 'last' ? items[items.length - 1] : items[0]).focus();
-    }
-    function closeMenu(restoreFocus = true) {
-      if (!isMenuOpen()) return;
-      menuWrap.classList.remove('is-open');
-      menuBtn.setAttribute('aria-expanded', 'false');
-      if (restoreFocus) menuBtn.focus();
-    }
-
-    menuBtn.addEventListener('click', () => (isMenuOpen() ? closeMenu() : openMenu()));
-    menuBtn.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown') { e.preventDefault(); openMenu('first'); }
-      if (e.key === 'ArrowUp') { e.preventDefault(); openMenu('last'); }
-    });
-    menu.addEventListener('keydown', (e) => {
-      const items = menuItems();
-      const i = items.indexOf(document.activeElement);
-      const focusAt = (n) => { e.preventDefault(); items[(n + items.length) % items.length].focus(); };
-      if (e.key === 'ArrowDown') focusAt(i + 1);
-      else if (e.key === 'ArrowUp') focusAt(i - 1);
-      else if (e.key === 'Home') focusAt(0);
-      else if (e.key === 'End') focusAt(items.length - 1);
-      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeMenu(); }
-      else if (e.key === 'Tab') closeMenu(false);
-    });
-    menu.addEventListener('click', (e) => {
-      const item = e.target.closest('[role^="menuitem"]');
-      if (!item) return;
-      if (item.matches('[data-catalog-reset]')) {
-        // The item hides itself once everything is back to default, so focus goes to the button.
-        closeMenu();
-        resetFilters();
-      } else if (item === stockItem) {
-        state.inStock = !state.inStock;
-        const n = apply({ animate: true });
-        announce(`${state.inStock ? 'Hanya stok tersedia' : 'Semua stok'}. ${countMessage(n)}`);
-      } else {
-        state.sort = item.dataset.sort;
-        const n = apply({ animate: true });
-        closeMenu();
-        announce(`Diurutkan: ${SORTS[state.sort].label}. ${countMessage(n)}`);
+       choice and closes it. Written per [data-menu-wrap], one open at a time, should a second
+       menu join the bar. */
+    menuWraps.forEach((wrap) => {
+      const btn = $('[aria-haspopup="menu"]', wrap);
+      const menu = $('[role="menu"]', wrap);
+      const allItems = $$('[role^="menuitem"]', menu);
+      // The reset item is hidden while everything is at its default, so the keys skip it then.
+      const items = () => allItems.filter((it) => !it.closest('[hidden]'));
+      const isOpen = () => wrap.classList.contains('is-open');
+      function open(which = 'first') {
+        menuWraps.forEach((w) => { if (w !== wrap) w.dispatchEvent(new Event('menu:close')); });
+        wrap.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+        const list = items();
+        (which === 'last' ? list[list.length - 1] : list[0]).focus();
       }
+      function close(restoreFocus = true) {
+        if (!isOpen()) return;
+        wrap.classList.remove('is-open');
+        btn.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) btn.focus();
+      }
+      wrap.addEventListener('menu:close', () => close(false));
+
+      btn.addEventListener('click', () => (isOpen() ? close() : open()));
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); open('first'); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); open('last'); }
+      });
+      menu.addEventListener('keydown', (e) => {
+        const list = items();
+        const i = list.indexOf(document.activeElement);
+        const focusAt = (n) => { e.preventDefault(); list[(n + list.length) % list.length].focus(); };
+        if (e.key === 'ArrowDown') focusAt(i + 1);
+        else if (e.key === 'ArrowUp') focusAt(i - 1);
+        else if (e.key === 'Home') focusAt(0);
+        else if (e.key === 'End') focusAt(list.length - 1);
+        else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+        else if (e.key === 'Tab') close(false);
+      });
+      menu.addEventListener('click', (e) => {
+        const item = e.target.closest('[role^="menuitem"]');
+        if (!item) return;
+        if (item.matches('[data-catalog-reset]')) {
+          // The item hides itself once everything is back to default, so focus goes to the button.
+          close();
+          resetFilters();
+        } else if (item === stockItem) {
+          state.inStock = !state.inStock;
+          const n = apply({ animate: true });
+          announce(`${state.inStock ? 'Hanya stok tersedia' : 'Semua stok'}. ${countMessage(n)}`);
+        } else {
+          state.sort = item.dataset.sort;
+          const n = apply({ animate: true });
+          close();
+          announce(`Diurutkan: ${SORTS[state.sort].label}. ${countMessage(n)}`);
+        }
+      });
+      document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) close(false); });
     });
-    document.addEventListener('click', (e) => { if (!menuWrap.contains(e.target)) closeMenu(false); });
 
     apply({ url: false });
     updateRail();
@@ -1216,7 +1258,10 @@
       const meta = [c ? `${variantLabel(p)}: ${escapeHtml(c.label)}` : escapeHtml(categories[p.category]), it.phone ? `Tipe HP: ${escapeHtml(it.phone)}` : ''].filter(Boolean);
       return `
         <li class="co-item">
-          <img class="co-item__thumb" src="${img(imageOf(p, it.color), 160)}" alt="" width="160" height="160" decoding="async">
+          <span class="co-item__thumb">
+            <img src="${img(imageOf(p, it.color), 160)}" alt="" width="160" height="160" decoding="async">
+            ${was ? `<span class="co-item__off" aria-hidden="true">-${Math.round((1 - price / was) * 100)}%</span>` : ''}
+          </span>
           <div class="co-item__info">
             <p class="co-item__name">${escapeHtml(p.name)}</p>
             <p class="co-item__variant">${meta.join(' · ')}</p>
@@ -2239,10 +2284,13 @@
     const list = (reviews || []).filter((r) => r.home);
     const stats = social || {};
 
-    const setStat = (sel, value) => { const el = $(sel); if (el && value) el.textContent = value; };
+    // every match, not the first: the rating shows both in the band and in its source line
+    const setStat = (sel, value) => { if (value) $$(sel).forEach((el) => { el.textContent = value; }); };
     setStat('[data-stat-sold]', stats.sold);
     setStat('[data-stat-rating]', stats.rating);
     setStat('[data-stat-reviews]', stats.reviewCount);
+    setStat('[data-stat-review-total]', stats.reviewTotal);
+    setStat('[data-stat-asof]', stats.asOf);
 
     const starBox = $('[data-stat-stars]');
     if (starBox && stats.rating) {
@@ -2325,8 +2373,8 @@
     }
   }
 
-  // Close the desktop-only search panel state if the viewport grows
-  desktop.addEventListener('change', () => { header.classList.remove('is-search-open'); searchToggle.setAttribute('aria-expanded', 'false'); if (openDrawer === menuDrawer && desktop.matches) hideDrawer(menuDrawer, false); });
+  // Close the menu drawer once the layout reaches desktop, where the links sit in the bar
+  desktop.addEventListener('change', () => { if (openDrawer === menuDrawer && desktop.matches) hideDrawer(menuDrawer, false); });
 
   /* ------------------------------------------------------------------
      Teknologi cards (phones): copy behind a show-more button
@@ -2365,12 +2413,13 @@
     techGrid.addEventListener('scroll', () => { if (Math.abs(techGrid.scrollLeft - openedAt) > 40) closeAll(); }, { passive: true });
 
     /* Phones: the cards as a coverflow (CSS under .tech-grid.is-flow), stepped through by the
-       sliding dots under it, the same dots and 5s fill as the home rails. It loops: each card's
+       sliding dots and the prev/next arrows under it, the same dots and 5s fill as the home rails. It loops: each card's
        place is its distance from the current one around the ring, -1 left, 0 middle, 1 right,
        2 parked out of sight on the right (with four cards one is always parked). A card leaving
        on the left glides out to -2 first and only then jumps, unseen, to the parked spot on the
        right, so it never sweeps back across behind the middle. Only the middle card can be
-       reached; the rest are inert. It pauses with a finger, pointer or focus on it, while a
+       reached; the rest are inert, so a tap on a side card does nothing and the arrows are the
+       way on. It pauses with a finger, pointer or focus on it, while a
        detail bubble is open, and off screen. From 600 up the grid comes back untouched. */
     const techCtrl = $('[data-tech-ctrl]');
     const phone = window.matchMedia('(max-width: 599px)');
@@ -2395,9 +2444,9 @@
         c.style.setProperty('--far', off === 0 ? '0' : '1');
         c.style.setProperty('--z', String(off === 0 ? 3 : Math.abs(off) === 1 ? 2 : 1));
         c.dataset.cf = off === 0 ? 'middle' : Math.abs(off) === 1 ? 'side' : 'parked';
-        // A side card stays clickable (a tap brings it to the middle) but out of the tab order
-        // and hidden from screen readers; a parked one is out of reach altogether.
-        c.inert = Math.abs(off) > 1;
+        // Every card but the middle one is out of reach: no tap, no focus, hidden from screen
+        // readers. The arrows and dots are what move the row on.
+        c.inert = off !== 0;
         const side = off !== 0;
         c.tabIndex = side ? -1 : 0;
         c.toggleAttribute('aria-hidden', side);
@@ -2446,15 +2495,9 @@
         const d = e.target.closest('button');
         if (d) show(dots.indexOf(d));
       });
-      // A tap on a side card brings it to the middle. Capture phase, so the tap never reaches
-      // the card's own "Lihat detail" while it is still to one side.
-      techGrid.addEventListener('click', (e) => {
-        if (!phone.matches) return;
-        const c = e.target.closest('.tech-card');
-        if (!c || c.dataset.cf !== 'side') return;
-        e.preventDefault(); e.stopPropagation();
-        show(cards.indexOf(c));
-      }, true);
+      // The ring loops, so neither arrow ever runs out.
+      $('[data-tech-prev]', techCtrl).addEventListener('click', () => show((current - 1 + n) % n));
+      $('[data-tech-next]', techCtrl).addEventListener('click', () => show((current + 1) % n));
       dotsBox.addEventListener('animationend', (e) => {
         if (e.animationName !== 'dot-progress' || reducedMotion.matches || !phone.matches) return;
         if (techCtrl.classList.contains('is-paused') || document.hidden || openDrawer) return;
@@ -2579,4 +2622,111 @@
     document.addEventListener('visibilitychange', run);
     reducedMotion.addEventListener('change', run);
   }
+
+  /* ------------------------------------------------------------------
+     Hubungi Kami: the form writes the message and hands it to WhatsApp or the visitor's email
+     app, already filled in. There is no server behind the site, so nothing is sent or stored
+     here; the visitor sends it from their own app.
+     ------------------------------------------------------------------ */
+  const contactForm = $('[data-contact-form]');
+  if (contactForm) {
+    const nameField = $('#ct-name', contactForm);
+    const orderField = $('#ct-order', contactForm);
+    const message = $('#ct-message', contactForm);
+    const orderWrap = $('[data-order-field]', contactForm);
+    const counter = $('[data-contact-count]', contactForm);
+    const status = $('[data-contact-status]', contactForm);
+    const topic = () => $('input[name="topic"]:checked', contactForm);
+
+    // The order number only asks for itself where it helps: orders and warranty claims.
+    const syncTopic = () => { orderWrap.hidden = !topic().hasAttribute('data-needs-order'); };
+    $$('input[name="topic"]', contactForm).forEach((r) => r.addEventListener('change', syncTopic));
+    syncTopic();
+
+    const renderCount = () => { counter.textContent = `${message.value.length}/${message.maxLength}`; };
+    message.addEventListener('input', renderCount);
+    renderCount();
+
+    const fieldOf = (input) => input.closest('.pdp-field');
+    const setError = (input, text) => {
+      fieldOf(input).classList.toggle('is-invalid', Boolean(text));
+      $('.pdp-hint', fieldOf(input)).textContent = text;
+      input.setAttribute('aria-invalid', String(Boolean(text)));
+    };
+    [nameField, message].forEach((input) => input.addEventListener('input', () => {
+      if (fieldOf(input).classList.contains('is-invalid')) setError(input, '');
+    }));
+
+    function validate() {
+      const errors = [];
+      if (nameField.value.trim().length < 2) errors.push([nameField, 'Isi nama kamu dulu ya.']);
+      if (message.value.trim().length < 10) errors.push([message, 'Ceritain sedikit lebih detail (minimal 10 karakter).']);
+      [nameField, message].forEach((input) => setError(input, ''));
+      errors.forEach(([input, text]) => setError(input, text));
+      if (errors.length) errors[0][0].focus();
+      return !errors.length;
+    }
+
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!validate()) return;
+      const name = nameField.value.trim();
+      const subject = topic().value;
+      const order = orderWrap.hidden ? '' : orderField.value.trim();
+      const lines = [`Halo Nexura, saya ${name}.`, `Topik: ${subject}`];
+      if (order) lines.push(`No. pesanan: ${order}`);
+      lines.push('', message.value.trim());
+      const text = lines.join('\n');
+
+      const viaEmail = e.submitter && e.submitter.value === 'email';
+      const url = viaEmail
+        ? `mailto:${contactForm.dataset.email}?subject=${encodeURIComponent(`[${subject}] ${name}`)}&body=${encodeURIComponent(text)}`
+        : `https://wa.me/${contactForm.dataset.wa}?text=${encodeURIComponent(text)}`;
+      if (viaEmail) location.href = url;
+      else window.open(url, '_blank', 'noopener');
+
+      // Said out loud too (role="status"), with a way in should a blocker have stopped it.
+      status.hidden = false;
+      status.innerHTML = viaEmail
+        ? `Pesanmu udah kami siapin di aplikasi email. Tinggal tekan kirim. Nggak kebuka? <a href="${escapeHtml(url)}">Coba lagi</a> atau email ke ${escapeHtml(contactForm.dataset.email)}.`
+        : `Pesanmu udah kami siapin di WhatsApp. Tinggal tekan kirim. Nggak kebuka? <a href="${escapeHtml(url)}" target="_blank" rel="noopener">Buka WhatsApp</a>.`;
+    });
+  }
+
+
+  /* ------------------------------------------------------------------
+     Chat bubble: a WhatsApp shortcut pinned bottom-right on every page. Added here rather than
+     in each page's markup, so the number lives in one place. On a phone it rides above
+     whichever bar is pinned to the bottom (product dock, cart or checkout pay bar).
+     ------------------------------------------------------------------ */
+  {
+    const bubble = document.createElement('a');
+    bubble.className = 'chat-bubble';
+    bubble.href = 'https://wa.me/6212345678901?text=' + encodeURIComponent('Halo Nexura, saya mau tanya.');
+    bubble.target = '_blank';
+    bubble.rel = 'noopener';
+    bubble.setAttribute('aria-label', 'Chat dengan Nexura di WhatsApp');
+    bubble.innerHTML = `<svg class="chat-bubble__icon" viewBox="0 0 32 32" aria-hidden="true">
+        <path class="chat-bubble__shape" d="M16 5C9 5 4 9.6 4 15.2c0 3.1 1.5 5.8 4 7.7-.2 1.6-.9 3.2-2.1 4.4-.3.3-.1.8.3.8 2.5 0 4.6-.9 6.1-2.2 1.2.3 2.4.5 3.7.5 7 0 12-4.6 12-10.2S23 5 16 5Z"/>
+        <circle cx="10.6" cy="15.4" r="1.9"/><circle cx="16" cy="15.4" r="1.9"/><circle cx="21.4" cy="15.4" r="1.9"/>
+      </svg>`;
+    document.body.appendChild(bubble);
+
+    const docks = $$('.pdp-dock, .cart-pay, .co-paybar');
+    if (docks.length) {
+      const lift = () => {
+        const h = docks.reduce((max, d) => {
+          if (getComputedStyle(d).position !== 'fixed') return max;
+          const r = d.getBoundingClientRect();
+          return r.height && r.top < innerHeight ? Math.max(max, innerHeight - r.top) : max;
+        }, 0);
+        document.documentElement.style.setProperty('--chat-lift', `${Math.round(h)}px`);
+      };
+      const ro = new ResizeObserver(lift);
+      docks.forEach((d) => ro.observe(d));
+      addEventListener('resize', lift);
+      lift();
+    }
+  }
+
 })();

@@ -811,31 +811,28 @@ window.NEXURA = {
 
   /*
    * Angka di section "Apa Kata Pembeli".
-   * Diambil dari Tokopedia/nexura-gear pada 8 Oktober 2026:
-   *   sold         jumlah 4 listing aktif — IceGlow 21.136, Hydrogel Matte 10.094,
-   *                Hydrogel Privacy 3.520, YinYang Series 7.198 = 41.948
-   *   rating +     nilai tingkat toko: 4,8 dari 10.505 ulasan
-   *   reviewCount  (9.436 bintang 5 · 722 bintang 4 · 157 bintang 3 · 59 bintang 2 · 131 bintang 1)
+   * Diambil dari halaman Ulasan toko Nexura Gear (Tokopedia & TikTok Shop by Tokopedia),
+   * Oktober 2026:
+   *   sold         318 rb terjual (angka toko, sudah dibulatkan oleh Tokopedia)
+   *   rating       4,8 / 5,0 — 96% pembeli merasa puas
+   *   reviewCount  10.859 penilaian (9.773 bintang 5 · 740 bintang 4 · 158 bintang 3 ·
+   *   reviewTotal  57 bintang 2 · 131 bintang 1), 1.552 di antaranya disertai ulasan tertulis
    *
-   * Catatan: 4,9 adalah rating listing IceGlow dan YinYang saja, bukan rating toko. Kalau
-   * angkanya mau diganti jadi 4,9, reviewCount juga harus ikut diganti ke jumlah ulasan
-   * listing tersebut — kalau tidak, dua angka ini saling bertentangan.
+   * Karena itu label ketiga "Penilaian", bukan "Ulasan": 10.859 adalah jumlah rating;
+   * ulasan tertulisnya cuma 1.552. Angka Shopee belum masuk sama sekali, jadi Shopee
+   * tidak disebut di baris sumber.
    *
-   * Soal label "Ulasan": angka Shopee belum ikut dihitung di sini, dan angkanya tetap benar
-   * justru karena sold dan reviewCount ditulis sebagai batas bawah
-   * ("40rb+", "10rb+") — Tokopedia sendiri sudah 41.948 dan 10.505, jadi menambah Shopee
-   * cuma bikin keduanya makin benar, nggak mungkin bikin salah.
-   *
-   * Yang TIDAK aman diperlakukan begitu adalah `rating`: 4,8 itu rata-rata persis milik
-   * Tokopedia, bukan batas bawah. Gabungan dengan Shopee bisa naik atau turun. Makanya
-   * labelnya sengaja dibiarkan "Rating pembeli" tanpa menyebut platform. Kalau nanti mau
-   * jadi angka lintas platform beneran, rata-ratanya harus dihitung berbobot:
-   *   (4,8 x 10.505 + rating_shopee x jumlah_ulasan_shopee) / (10.505 + jumlah_ulasan_shopee)
+   * `rating` 4,8 adalah rata-rata persis, bukan batas bawah. Kalau Shopee nanti ikut
+   * dihitung, rata-ratanya harus berbobot:
+   *   (4,8 x 10.859 + rating_shopee x jumlah_shopee) / (10.859 + jumlah_shopee)
    */
   social: {
-    sold: '40rb+',
+    sold: '300rb+',
     rating: '4,8',
     reviewCount: '10rb+',
+    // the source line under the band: the exact count across both shops, and when it was taken
+    reviewTotal: '10.859',
+    asOf: 'Okt 2026',
   },
 
   /*
