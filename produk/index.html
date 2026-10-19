@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:opsz,wght@14..32,400..800&display=swap">
-  <link rel="stylesheet" href="../assets/css/styles.css?v=20261019220000">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20261020050000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -158,6 +158,26 @@
         </div>
       </div>
     </header>
+
+    <!-- ============ BANNER ============ -->
+    <!-- After gamesir.com/products: one rounded card, copy on the left, the picture filling the
+         right; on a phone the picture is the card's background, the copy over it. The picture is a
+         placeholder for a 13:5 image (2080 x 800, GameSir's shape). -->
+    <section class="shop-banner" aria-labelledby="shop-banner-title">
+      <div class="container">
+        <div class="shop-banner__card">
+          <div class="shop-banner__text">
+            <h2 class="section-title shop-banner__title" id="shop-banner-title">Semua Produk</h2>
+            <p class="shop-banner__lead">Fan cooler, sarung jempol, dan hydrogel buat kamu yang serius push rank.</p>
+          </div>
+          <picture class="shop-banner__media is-placeholder">
+            <img src="../assets/img/placeholder/shop.svg" width="2080" height="800" fetchpriority="high" decoding="async" alt="">
+          </picture>
+          <!-- placeholder label; goes with the placeholder image -->
+          <span class="ph-tag" aria-hidden="true"><strong>Banner Produk</strong> 2080 × 800 px · 13:5</span>
+        </div>
+      </div>
+    </section>
 
     <!-- ============ CATALOG ============ -->
     <section class="catalog" aria-label="Daftar produk" data-catalog>
@@ -341,6 +361,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="../assets/js/data.js?v=20261017440000"></script>
-  <script src="../assets/js/main.js?v=20261019220000"></script>
+  <script src="../assets/js/main.js?v=20261020050000"></script>
 </body>
 </html>

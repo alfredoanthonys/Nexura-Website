@@ -412,7 +412,6 @@ html:has(.search-dialog[open]) { overflow: hidden; }
   background: linear-gradient(to top, var(--ink-950), rgba(12, 3, 16, 0));
   pointer-events: none;
 }
-.hero__slide--glow3 { --pos-m: 50% 50%; }
 
 .hero__content { padding: var(--s-5) var(--gutter) var(--s-7); }
 
@@ -514,8 +513,6 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     inset: auto 0 0; height: 11%;
     background: linear-gradient(to bottom, rgba(32, 13, 45, 0), #200D2D 86%);
   }
-  .hero__slide--glow3 { --posy-sm: 50%; }
-  .hero__slide--creator { --zoom-sm: 190%; --left-sm: -89.6%; --posy-sm: 15%; }
   /* sits straight under the art */
   .hero__content { position: static; padding: var(--s-2) var(--gutter) 0; }
   /* margin-inline centres the 560px-capped column itself; justify-items only centres its
@@ -532,18 +529,15 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      28/15 matches the step the platform scales use for a phone headline over secondary copy. */
   .hero__title { font-size: 2.625rem; line-height: 1.12; }
   /* Phones get the portrait banners, which paint their own headline and CTA, so none of the
-     zoom-and-slide crop the wide art needs above. They don't share a shape ("Auto Es Serut!" is
-     1093 x 1375, Jeje 2/3), and the track is a flex row, so both slides take one box between
-     the two, 7/10, and cover it: Es Serut loses a sliver off each side (its headline and button
-     clear it), Jeje a sliver top and bottom. */
+     zoom-and-slide crop the wide art needs above. Every slide takes one 7/10 box
+     (the track is a flex row, so they must share a height): phone cuts are made 1080 x 1543
+     to fill it exactly, and anything else is covered into it. */
   .hero__slide { background: var(--ink-950); }
   /* Edge to edge at every phone height, at that shared shape. Not capped at the fold: a cap
      left the box shorter than the art on short phones, and the art, shown whole, then sat
      between dark margins either side. A short phone scrolls a little to reach the dots instead. */
   .hero__media { aspect-ratio: 7 / 10; }
   .hero__media img { position: static; width: 100%; left: auto; object-fit: cover; object-position: 50% 50%; }
-  /* Jeje's cap sits near the top edge and his button near the bottom; trim mostly above */
-  .hero__slide--creator .hero__media img { object-position: 50% 54%; }
   .hero__media::after { display: none; }
   /* The art carries the headline, so the live one drops out of view but stays in the
      accessibility tree, and the content box closes up: the dots sit on the art. */
@@ -558,17 +552,6 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 @media (min-width: 600px) and (max-width: 767px) {
   .hero__title { font-size: 2.875rem; }
-  /* Mobile Gaming Gear #1 has a wide and a phone cut but nothing square: here the wide art
-     shows whole, centred, over a blurred and darkened copy of itself filling the box */
-  .hero__slide--gear .hero__media::before {
-    content: ""; position: absolute; inset: -24px; z-index: 0;
-    background: url("../img/hero-gear-1280.jpg") 50% 50% / cover no-repeat;
-    filter: blur(20px) brightness(.55);
-  }
-  .hero__slide--gear .hero__media img {
-    position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; left: 0;
-    object-fit: contain; object-position: 50% 50%;
-  }
   /* half the 2/1 media's own height, so they centre on the picture rather than the whole banner */
   .hero__arrow { display: grid; top: 25cqw; translate: 0 -50%; }
 }
@@ -577,8 +560,6 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   /* Ends at the fold: on a screen shorter than 16/9 allows, cover trims the art top and bottom. */
   .hero__media { aspect-ratio: 16 / 9; max-height: calc(100svh - var(--header-h)); }
   .hero__media::after { display: none; }
-  .hero__slide--glow3 .hero__media img { object-position: 50% 50%; }
-  .hero__slide--creator .hero__media img { object-position: 50% 40%; }
   /* Copy column. --hero-left is the indent; --hero-copy-end is a hard right boundary the text
      can never cross. Slide 1's first feature callout starts about 45% across and slide 2's
      creator about 52%, so 44% clears both. Pairing the two means a bigger indent narrows the
@@ -1144,60 +1125,58 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .page-head[data-cat] .page-head__lead { display: none; }
 
 /* ---------- Products page banner ---------- */
-/* After gamesir.com's "All Products" head. From 768 up: one rounded card, copy on a panel in the
-   navbar's and footer's plum (--ink-925), set apart from the near-black page, the Nexura lineup filling the
-   right. On a phone, as GameSir does there: the lineup fills the whole card, dimmed, and the copy
-   sits over it. The title is the headline face, sized to its panel. */
+/* After gamesir.com/products' "All Products" card, measured off it: from 768 up one rounded
+   card (12px corners, a 1px rule), 362px tall, the copy in the left 36% inset 56px from the
+   card's edge and the picture filling the right 64%. The title steps 60 / 48 / 36px across
+   desktop, tablet and phone as theirs does, and the lead is 16/28 (14/24 on a phone). On a
+   phone, as GameSir does there: the picture is the card's background, 356 x 320 at 390,
+   cropped toward its right side (72%) where the products sit, with the copy over it on the
+   left. */
 .shop-banner { padding-top: var(--s-4); }
 .shop-banner__card {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; isolation: isolate;
-  background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-lg, 20px);
+  background: var(--ink-900); border: 1px solid var(--line); border-radius: 12px;
 }
 .shop-banner__text {
-  display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; align-content: center; gap: var(--s-3);
-  min-width: 0; padding: var(--s-6) var(--s-5);
-  container-type: inline-size;
+  display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; align-content: center;
+  min-width: 0; padding: var(--s-5);
 }
 .shop-banner__title {
-  /* sized to the copy column (cqi), so "Gear Buat" always fits one line and the title sets on
-     two lines at every width, up to 36px */
-  font-size: min(2.875rem, 9.6cqi); line-height: 1.05;
-  transform-origin: left; text-align: left;
-  /* the squeezed headline's box is 1/.63 of the column, so its lines wrap where the squeezed
-     letters would meet the column's edge */
-  width: calc(100% / var(--squeeze)); max-width: none; text-wrap: balance;
+  font-size: 2.25rem; line-height: 1; text-align: left;
+  width: auto; max-width: 100%; margin: 0;
 }
-.shop-banner__lead { margin: 0; max-width: 40ch; font-size: var(--fs-sm); line-height: 1.6; color: var(--text-soft); }
-/* phone: the picture behind the copy, darkened most on the left and bottom where the words are */
+.shop-banner__lead { margin: var(--s-3) 0 0; max-width: 40ch; font-size: .875rem; line-height: 1.7; color: var(--text-soft); }
+/* phone: the picture is the card, darkened on the left where the copy sits */
 .shop-banner__media { position: absolute; inset: 0; z-index: -1; }
 .shop-banner__media::after {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(12, 3, 16, .55), rgba(12, 3, 16, .78));
+  background: linear-gradient(90deg, rgba(12, 3, 16, .82), rgba(12, 3, 16, .45) 60%, rgba(12, 3, 16, .2));
 }
-.shop-banner__media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 48%; }
+.shop-banner__media img { width: 100%; height: 100%; object-fit: cover; object-position: 72% 50%; }
 @media (max-width: 767px) {
-  .shop-banner__card { min-height: min(84vw, 380px); }
-  /* centred over the picture; the title keeps its left origin, so its centred lines still land
-     in the middle of the column once squeezed */
-  .shop-banner__text { padding: var(--s-6) var(--s-5); text-align: center; }
-  .shop-banner__title { text-align: center; }
-  .shop-banner__lead { justify-self: center; }
-  .shop-banner__lead { font-size: var(--fs-body); color: #fff; }
+  /* GameSir's 356 x 320 card shape as a floor, not a fixed ratio: a fixed ratio would clip the
+     copy (the card hides overflow) on the narrowest phones, where it needs more height */
+  .shop-banner__card { min-height: calc((100vw - 2 * var(--gutter)) * 320 / 356); }
+  /* wide enough that "Semua Produk" holds one line, as GameSir's title does */
+  .shop-banner__text { max-width: 76%; }
 }
 @media (min-width: 768px) {
   .shop-banner { padding-top: var(--s-5); }
-  .shop-banner__card { grid-template-columns: minmax(0, 42fr) minmax(0, 58fr); min-height: clamp(280px, 30vw, 440px); }
-  .shop-banner__text {
-    padding: var(--s-6) var(--s-5) var(--s-6) clamp(var(--s-6), 4vw, 72px); gap: var(--s-4);
-    background: var(--ink-925); /* the navbar's and footer's colour */
-  }
-  .shop-banner__lead { font-size: var(--fs-body); }
+  .shop-banner__card { grid-template-columns: minmax(0, 36fr) minmax(0, 64fr); min-height: 382px; }
+  .shop-banner__text { padding: var(--s-5) var(--s-5) var(--s-5) 40px; }
+  .shop-banner__title { font-size: 3rem; }
+  .shop-banner__lead { margin-top: var(--s-4); font-size: 1rem; line-height: 1.75; }
   .shop-banner__media { position: relative; inset: auto; z-index: auto; }
   .shop-banner__media::after { content: none; }
-  /* out of the flow, so the copy alone sets the card's height and the picture covers it */
-  .shop-banner__media img { position: absolute; inset: 0; }
+  /* out of the flow, so the copy and the min-height set the card's height and the picture covers it */
+  .shop-banner__media img { position: absolute; inset: 0; object-position: 50% 50%; }
 }
-@media (min-width: 1024px) { .shop-banner { padding-top: var(--s-6); } }
+@media (min-width: 1024px) {
+  .shop-banner { padding-top: var(--s-6); }
+  .shop-banner__card { min-height: 362px; }
+  .shop-banner__text { padding-left: 56px; }
+  .shop-banner__title { font-size: 3.75rem; }
+}
 
 /* ---------- Product detail page ---------- */
 /* The tab bar (plus the buy panel on wide screens) sticks under the navbar. When the navbar
@@ -2382,6 +2361,28 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
     aspect-ratio: 1672 / 941;
     max-height: calc(100svh - var(--header-h));
   }
+}
+
+/* ---------- Banner placeholders ---------- */
+/* Stand-ins for banner art not made yet (assets/img/placeholder). The dashed frame is drawn
+   here on the box itself rather than in the image, because the boxes crop their images
+   differently at every width: drawn on the box it always sits on its edges. */
+.is-placeholder::before {
+  content: ""; position: absolute; inset: 12px; z-index: 2; pointer-events: none;
+  border: 2px dashed #8E48C4; border-radius: 12px;
+}
+/* The products banner's label, kept out of its image (the picture is cropped differently at
+   each width, so a label drawn into it drifts). Centred on the picture from 768 up; on a phone
+   the picture is the background under the copy, so the label stays off. */
+.ph-tag { display: none; }
+@media (min-width: 768px) {
+  .ph-tag {
+    position: absolute; z-index: 3; top: 50%; left: 68%; translate: -50% -50%; pointer-events: none;
+    display: grid; justify-items: center; gap: 4px; padding: 14px 22px; border-radius: 12px;
+    background: rgba(22, 10, 31, .88); color: #C9B6D8; font-size: .9375rem; line-height: 1.35;
+    white-space: nowrap; text-align: center;
+  }
+  .ph-tag strong { color: #fff; font-size: 1.375rem; }
 }
 
 /* ---------- Footer ---------- */

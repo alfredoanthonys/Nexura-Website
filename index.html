@@ -20,9 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:opsz,wght@14..32,400..800&display=swap">
-  <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-gear-m.jpg" media="(max-width: 599px)">
-  <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-gear.jpg" imagesrcset="assets/img/hero-gear-1280.jpg 1280w, assets/img/hero-gear.jpg 1672w" imagesizes="100vw" media="(min-width: 600px)">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20261019220000">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261020050000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -152,60 +150,50 @@
 
     <!-- ============ HERO SLIDER ============ -->
     <section class="hero" aria-roledescription="carousel" aria-label="Produk unggulan" data-hero>
+      <!-- Placeholders for now: each slide wants a 16:9 desktop banner (1920 x 1080) and a 7:10
+           phone cut (1080 x 1543). The artwork carries the headline and button, so the live
+           heading is kept for screen readers and search only. -->
       <div class="hero__track" data-hero-track>
-        <article class="hero__slide hero__slide--gear" aria-roledescription="slide" aria-label="1 dari 3">
-          <picture class="hero__media">
-            <source media="(max-width: 599px)" srcset="assets/img/hero-gear-m.jpg" width="1049" height="1499">
-            <img src="assets/img/hero-gear.jpg"
-                 srcset="assets/img/hero-gear-1280.jpg 1280w, assets/img/hero-gear.jpg 1672w"
-                 sizes="100vw"
-                 width="1672" height="941" fetchpriority="high"
-                 alt="Lini gear Nexura, fan cooler dan sarung jempol, di atas panggung neon, bertuliskan Mobile Gaming Gear #1">
+        <article class="hero__slide" aria-roledescription="slide" aria-label="1 dari 3">
+          <picture class="hero__media is-placeholder">
+            <source media="(max-width: 599px)" srcset="assets/img/placeholder/hero-1-m.svg" width="1080" height="1543">
+            <img src="assets/img/placeholder/hero-1.svg" width="1920" height="1080" fetchpriority="high"
+                 alt="">
           </picture>
           <div class="hero__content">
             <div class="hero__text hero__text--on-art">
-              <h1 class="hero__title">Mobile Gaming Gear #1</h1>
+              <h1 class="hero__title">Gear Gaming Nexura</h1>
             </div>
           </div>
           <a class="hero__slide-link" href="produk/" aria-label="Lihat produk Nexura"></a>
         </article>
 
-        <article class="hero__slide hero__slide--glow3" aria-roledescription="slide" aria-label="2 dari 3">
-          <picture class="hero__media">
-            <source media="(max-width: 599px)" srcset="assets/img/hero-es-serut-m.jpg" width="1093" height="1375">
-            <!-- 600-767px crops the hero to a zoomed square, which would cut the banner's painted
-                 headline and button, so that range keeps the plain aurora art. -->
-            <source media="(max-width: 767px)" srcset="assets/img/aurora.jpg" width="1672" height="941">
-            <img src="assets/img/hero-es-serut.jpg"
-                 srcset="assets/img/hero-es-serut-1280.jpg 1280w, assets/img/hero-es-serut.jpg 1672w"
-                 sizes="100vw"
-                 width="1672" height="941" loading="lazy" decoding="async"
+        <article class="hero__slide" aria-roledescription="slide" aria-label="2 dari 3">
+          <picture class="hero__media is-placeholder">
+            <source media="(max-width: 599px)" srcset="assets/img/placeholder/hero-2-m.svg" width="1080" height="1543">
+            <img src="assets/img/placeholder/hero-2.svg" width="1920" height="1080" loading="lazy" decoding="async"
                  alt="">
           </picture>
           <div class="hero__content">
             <div class="hero__text hero__text--on-art">
-              <h2 class="hero__title">Gear Gaming Nexura</h2>
+              <h2 class="hero__title">Banner 2</h2>
             </div>
           </div>
-          <a class="hero__slide-link" href="produk/detail/?id=iceglow" aria-label="Lihat Fan Cooler IceGlow"></a>
+          <a class="hero__slide-link" href="produk/" aria-label="Lihat produk Nexura"></a>
         </article>
 
-        <article class="hero__slide hero__slide--creator" aria-roledescription="slide" aria-label="3 dari 3">
-          <picture class="hero__media">
-            <source media="(max-width: 599px)" srcset="assets/img/hero-creator-m.jpg?v=3" width="941" height="1411">
-            <img src="assets/img/hero-creator.jpg"
-                 srcset="assets/img/hero-creator-1280.jpg 1280w, assets/img/hero-creator.jpg 1678w"
-                 sizes="100vw"
-                 width="1672" height="941" loading="lazy" decoding="async"
-                 alt="Jeje Adriel memegang fan cooler Nexura Vortex dengan lampu RGB di kamar gaming bernuansa ungu, bertuliskan Main Seharian, Tetap Dingin">
+        <article class="hero__slide" aria-roledescription="slide" aria-label="3 dari 3">
+          <picture class="hero__media is-placeholder">
+            <source media="(max-width: 599px)" srcset="assets/img/placeholder/hero-3-m.svg" width="1080" height="1543">
+            <img src="assets/img/placeholder/hero-3.svg" width="1920" height="1080" loading="lazy" decoding="async"
+                 alt="">
           </picture>
           <div class="hero__content">
-            <!-- Same deal: the artwork carries the headline, endorsement and CTA. -->
             <div class="hero__text hero__text--on-art">
-              <h2 class="hero__title">Main Seharian, Tetap Dingin</h2>
+              <h2 class="hero__title">Banner 3</h2>
             </div>
           </div>
-          <a class="hero__slide-link" href="produk/?kategori=fan-cooler" aria-label="Lihat produk fan cooler Nexura"></a>
+          <a class="hero__slide-link" href="produk/" aria-label="Lihat produk Nexura"></a>
         </article>
       </div>
 
@@ -488,13 +476,11 @@
          link. Full-bleed, and capped to the viewport so it is never taller than the screen. -->
     <section class="cta-banner" aria-labelledby="cta-title">
       <h2 class="sr-only" id="cta-title">Cobain sekarang, dapatkan sensi real pro player</h2>
-      <picture class="cta-banner__media">
-        <source media="(max-width: 767px)" srcset="assets/img/cta-pro-player-mobile.jpg" width="941" height="1672">
-        <img src="assets/img/cta-pro-player.jpg"
-             srcset="assets/img/cta-pro-player-1280.jpg 1280w, assets/img/cta-pro-player.jpg 1672w"
-             sizes="100vw"
-             width="1672" height="941" loading="lazy" decoding="async"
-             alt="Empat pemain memegang sarung jempol, fan cooler, dan hydrogel Nexura, bertuliskan Cobain sekarang, dapatkan sensi real pro player">
+      <picture class="cta-banner__media is-placeholder">
+        <!-- placeholder: a 16:9 desktop banner (1920 x 1080) and a 9:16 phone cut (1080 x 1920) -->
+        <source media="(max-width: 767px)" srcset="assets/img/placeholder/cta-m.svg" width="1080" height="1920">
+        <img src="assets/img/placeholder/cta.svg" width="1920" height="1080" loading="lazy" decoding="async"
+             alt="">
       </picture>
       <a class="cta-banner__link" href="produk/" aria-label="Lihat produk Nexura"></a>
     </section>
@@ -591,6 +577,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="assets/js/data.js?v=20261017440000"></script>
-  <script src="assets/js/main.js?v=20261019220000"></script>
+  <script src="assets/js/main.js?v=20261020050000"></script>
 </body>
 </html>
