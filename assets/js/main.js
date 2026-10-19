@@ -571,11 +571,12 @@
   /* ------------------------------------------------------------------
      Home rails (Produk Andalan, clips): dots, arrows, autoplay
      ------------------------------------------------------------------ */
-  /* After GameSir's product carousel: every 5s the rail moves one card on, in 300ms on an
+  /* After GameSir's product carousel: every 5s the rail moves one stop on, in 300ms on an
      `ease` curve (Swiper's defaults), and after the last stop it slides back to the first.
-     The rails can't be swiped or scrolled by hand (overflow hidden), so autoplay, the arrows
-     and the dots are the only ways along. A stop is one card further along, so a rail of 7
-     showing 4 has 4 stops and 4 dots.
+     A stop is one card further along, or with data-rail-page one screenful (two cards on a
+     phone, three on a tablet, four on desktop), so a rail of 7 showing 2 has 4 stops and 4
+     dots, the last at the far end. The rails swipe by hand too, snapping to the same stops
+     (CSS snaps to the cards marked .is-snap); the dots follow the scroll.
      The active dot's fill is the timer: the rail moves on when it is full, so pausing the
      fill pauses the rail in step. Unlike GameSir it pauses while the pointer, a finger or
      focus is on it, and while it is off screen, so a card never slides out from under a
@@ -618,8 +619,17 @@
     // the dots only when the count changes (a breakpoint), so the active fill isn't restarted
     // by every resize.
     const measure = () => {
-      step = items.length > 1 ? items[1].offsetLeft - items[0].offsetLeft : rail.clientWidth;
-      const n = step > 0 ? Math.round(maxScroll() / step) + 1 : 1;
+      const card = items.length > 1 ? items[1].offsetLeft - items[0].offsetLeft : rail.clientWidth;
+      let per = 1;
+      if (rail.hasAttribute('data-rail-page') && items.length > 1) {
+        const gap = card - items[0].offsetWidth;
+        const col = rail.clientWidth - parseFloat(getComputedStyle(rail).paddingLeft);
+        per = Math.max(1, Math.floor((col + gap) / card + 0.01));
+      }
+      items.forEach((it, k) => it.classList.toggle('is-snap', k % per === 0));
+      step = card * per;
+      // the last stop is the far end, even when it is less than a screenful on
+      const n = step > 0 ? Math.ceil(maxScroll() / step - 0.01) + 1 : 1;
       ctrl.hidden = n < 2;
       if (n !== stops) {
         stops = n;
@@ -635,19 +645,23 @@
       setCurrent(x >= maxScroll() - 2 ? stops - 1 : Math.min(stops - 1, Math.round(x / step)));
     };
 
-    const cancel = () => { if (anim) { cancelAnimationFrame(anim); anim = 0; } };
+    const cancel = () => {
+      if (anim) { cancelAnimationFrame(anim); anim = 0; }
+      rail.classList.remove('is-tweening');
+    };
     // Its own 300ms tween rather than scrollTo's smooth, whose length the browser picks.
     const goTo = (i) => {
       i = Math.max(0, Math.min(stops - 1, i));
       cancel();
       const from = rail.scrollLeft, to = leftOf(i);
       setCurrent(i);
-      if (reducedMotion.matches || from === to) { rail.scrollLeft = to; return; }
+      rail.classList.add('is-tweening');
+      if (reducedMotion.matches || from === to) { rail.scrollLeft = to; cancel(); return; }
       const t0 = performance.now();
       const frame = (now) => {
         const t = Math.min(1, (now - t0) / RAIL_SPEED);
         rail.scrollLeft = from + (to - from) * ease(t);
-        if (t < 1) anim = requestAnimationFrame(frame); else anim = 0;
+        if (t < 1) anim = requestAnimationFrame(frame); else { anim = 0; cancel(); }
       };
       anim = requestAnimationFrame(frame);
     };
@@ -680,7 +694,8 @@
       el.addEventListener('focusin', () => { focused = true; setPaused(); });
       el.addEventListener('focusout', (e) => { if (!zone.some((z) => z.contains(e.relatedTarget))) { focused = false; setPaused(); } });
     });
-    rail.addEventListener('touchstart', () => { touching = true; setPaused(); }, { passive: true });
+    // a finger on the rail takes over from a tween still running
+    rail.addEventListener('touchstart', () => { cancel(); touching = true; setPaused(); }, { passive: true });
     rail.addEventListener('touchend', () => { touching = false; setPaused(); }, { passive: true });
 
     new IntersectionObserver(([en]) => { visible = en.isIntersecting; setPaused(); }, { threshold: 0.5 }).observe(rail);
@@ -2387,8 +2402,9 @@
   /* ------------------------------------------------------------------
      Teknologi cards (phones): copy behind a show-more button
      ------------------------------------------------------------------ */
-  /* The button only shows below 600 (CSS); there the card's copy opens as a bubble above it.
-     One open at a time; a tap anywhere else or Escape closes it, Escape handing focus back. */
+  /* Below 600 the card's copy opens as a bubble over its headline, on a tap on the card or the
+     (visually hidden) show-more button. One open at a time; a tap anywhere else or Escape
+     closes it, Escape handing focus back. */
   const techGrid = $('.tech-grid');
   if (techGrid) {
     let openedAt = 0;
@@ -2401,7 +2417,9 @@
       .forEach((b) => { if (b !== except) setOpen(b, false); });
 
     techGrid.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-tech-more]');
+      const card = e.target.closest('.tech-card');
+      const btn = e.target.closest('[data-tech-more]') ||
+        (card && window.matchMedia('(max-width: 599px)').matches && $('[data-tech-more]', card));
       if (!btn) return;
       const open = btn.getAttribute('aria-expanded') !== 'true';
       closeAll(btn);
@@ -2425,9 +2443,9 @@
        place is its distance from the current one around the ring, -1 left, 0 middle, 1 right,
        2 parked out of sight on the right (with four cards one is always parked). A card leaving
        on the left glides out to -2 first and only then jumps, unseen, to the parked spot on the
-       right, so it never sweeps back across behind the middle. Only the middle card can be
-       reached; the rest are inert, so a tap on a side card does nothing and the arrows are the
-       way on. It pauses with a finger, pointer or focus on it, while a
+       right, so it never sweeps back across behind the middle. A sideways swipe steps it like
+       the arrows. Only the middle card can be reached; the rest are inert, so a tap on a side
+       card does nothing. It pauses with a finger, pointer or focus on it, while a
        detail bubble is open, and off screen. From 600 up the grid comes back untouched. */
     const techCtrl = $('[data-tech-ctrl]');
     const phone = window.matchMedia('(max-width: 599px)');
@@ -2522,8 +2540,29 @@
         el.addEventListener('focusin', () => { focused = true; setPaused(); });
         el.addEventListener('focusout', (e) => { if (!zone.some((z) => z.contains(e.relatedTarget))) { focused = false; setPaused(); } });
       });
-      techGrid.addEventListener('touchstart', () => { touching = true; setPaused(); }, { passive: true });
-      techGrid.addEventListener('touchend', () => { touching = false; setPaused(); }, { passive: true });
+      // A drag further sideways than down, past 40px, steps the row: left on, right back.
+      // Pointer events, so a finger and a mouse both swipe; the tap that ends a swipe doesn't
+      // also open the card's bubble.
+      let x0 = null, y0 = 0, swiped = false;
+      techGrid.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        x0 = e.clientX; y0 = e.clientY; swiped = false;
+        if (e.pointerType !== 'mouse') { touching = true; setPaused(); }
+      });
+      const endSwipe = (e) => {
+        if (x0 === null) return;
+        const dx = e.clientX - x0, dy = e.clientY - y0;
+        x0 = null; touching = false;
+        if (e.type === 'pointerup' && phone.matches && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          swiped = true;
+          show((current + (dx < 0 ? 1 : -1) + n) % n);
+        } else setPaused();
+      };
+      techGrid.addEventListener('pointerup', endSwipe);
+      techGrid.addEventListener('pointercancel', endSwipe);
+      techGrid.addEventListener('click', (e) => { if (swiped) { swiped = false; e.stopImmediatePropagation(); } }, true);
+      // a mouse drag would otherwise pick up the picture and drag it out as a file
+      techGrid.addEventListener('dragstart', (e) => e.preventDefault());
       new IntersectionObserver(([en]) => { visible = en.isIntersecting; setPaused(); }, { threshold: 0.5 }).observe(techGrid);
 
       phone.addEventListener('change', apply);

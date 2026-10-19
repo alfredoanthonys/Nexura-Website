@@ -23,7 +23,7 @@
   <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora-m.jpg" media="(max-width: 599px)">
   <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora.jpg" media="(min-width: 600px) and (max-width: 767px)">
   <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-es-serut.jpg" imagesrcset="assets/img/hero-es-serut-1280.jpg 1280w, assets/img/hero-es-serut.jpg 1672w" imagesizes="100vw" media="(min-width: 768px)">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20261019120000">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261019150000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -211,7 +211,7 @@
         <header class="section-head">
           <h2 class="section-title" id="produk-title">Produk Andalan</h2>
         </header>
-        <div class="product-grid product-grid--rail" id="produk-grid" data-product-grid data-rail></div>
+        <div class="product-grid product-grid--rail" id="produk-grid" data-product-grid data-rail data-rail-page></div>
         <div class="rail-ctrl" data-rail-ctrl="produk-grid">
           <div class="rail-dots" role="group" aria-label="Pilih posisi Produk Andalan" data-rail-dots></div>
           <div class="rail-nav">
@@ -241,11 +241,8 @@
           </span>
         </div>
 
-        <header class="section-head section-head--sub" id="clips">
-          <h3 class="section-title section-title--sub">Clip dari Live Mereka</h3>
-        </header>
-        <!-- Saved, not shown: the moving strip that was the sub-heading here. To bring it back,
-             move it out of the template in place of the sub-head above. Its styles stay. -->
+        <!-- Saved, not shown: the moving strip that was once the sub-heading here. To bring it
+             back, move it out of the template above the clips. Its styles stay. -->
         <template data-saved="clip-strip">
         <div class="clip-strip">
           <div class="clip-strip__track" aria-hidden="true"><span class="clip-strip__group"><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span></span><span class="clip-strip__group"><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Clip dari Live Mereka</span><span class="clip-strip__sep"></span><span class="clip-strip__item">Dipercaya Pro Player &amp; Streamer</span><span class="clip-strip__sep"></span></span></div>
@@ -253,7 +250,7 @@
         </template>
 
         <!-- TODO: replace each href with the clip's own Instagram/TikTok URL -->
-        <ul class="clips" id="clips-rail" role="list" data-rail>
+        <ul class="clips" id="clips-rail" role="list" aria-label="Clip dari live mereka" data-rail data-rail-page>
           <li class="clip">
             <a class="clip__link" href="https://www.instagram.com/nexuragear/" target="_blank" rel="noopener" aria-label="Tonton clip Jeje Adriel (buka di Instagram)">
               <img src="assets/img/creator-jeje.jpg?v=2" width="690" height="1227" loading="lazy" decoding="async" alt="Jeje memegang fan cooler Nexura FrostByte dan kotaknya">
@@ -407,7 +404,7 @@
           </article>
         </div>
         <!-- Phones only: the dots and the prev/next arrows step through the stacked cards above
-             (main.js); the cards either side can't be tapped, the arrows are the way on. -->
+             (main.js), as does a sideways swipe; the cards either side can't be tapped. -->
         <div class="rail-ctrl tech-ctrl" data-tech-ctrl hidden>
           <div class="rail-dots" role="group" aria-label="Pilih kartu teknologi" data-rail-dots></div>
           <div class="rail-nav">
@@ -475,12 +472,12 @@
     <section class="cta-banner" aria-labelledby="cta-title">
       <h2 class="sr-only" id="cta-title">Cobain sekarang, dapatkan sensi real pro player</h2>
       <picture class="cta-banner__media">
-        <source media="(max-width: 767px)" srcset="assets/img/aurora-tall.jpg" width="530" height="941">
-        <img src="assets/img/aurora.jpg"
-             srcset="assets/img/aurora-1280.jpg 1280w, assets/img/aurora.jpg 1672w"
+        <source media="(max-width: 767px)" srcset="assets/img/cta-pro-player-mobile.jpg" width="941" height="1672">
+        <img src="assets/img/cta-pro-player.jpg"
+             srcset="assets/img/cta-pro-player-1280.jpg 1280w, assets/img/cta-pro-player.jpg 1672w"
              sizes="100vw"
              width="1672" height="941" loading="lazy" decoding="async"
-             alt="">
+             alt="Empat pemain memegang sarung jempol, fan cooler, dan hydrogel Nexura, bertuliskan Cobain sekarang, dapatkan sensi real pro player">
       </picture>
       <a class="cta-banner__link" href="produk/" aria-label="Lihat produk Nexura"></a>
     </section>
@@ -577,6 +574,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="assets/js/data.js?v=20261017440000"></script>
-  <script src="assets/js/main.js?v=20261019120000"></script>
+  <script src="assets/js/main.js?v=20261019150000"></script>
 </body>
 </html>
