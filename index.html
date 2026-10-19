@@ -20,10 +20,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:opsz,wght@14..32,400..800&display=swap">
-  <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora-m.jpg" media="(max-width: 599px)">
-  <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora.jpg" media="(min-width: 600px) and (max-width: 767px)">
-  <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-es-serut.jpg" imagesrcset="assets/img/hero-es-serut-1280.jpg 1280w, assets/img/hero-es-serut.jpg 1672w" imagesizes="100vw" media="(min-width: 768px)">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20261019200000">
+  <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-gear-m.jpg" media="(max-width: 599px)">
+  <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-gear.jpg" imagesrcset="assets/img/hero-gear-1280.jpg 1280w, assets/img/hero-gear.jpg 1672w" imagesizes="100vw" media="(min-width: 600px)">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261019220000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -154,7 +153,24 @@
     <!-- ============ HERO SLIDER ============ -->
     <section class="hero" aria-roledescription="carousel" aria-label="Produk unggulan" data-hero>
       <div class="hero__track" data-hero-track>
-        <article class="hero__slide hero__slide--glow3" aria-roledescription="slide" aria-label="1 dari 2">
+        <article class="hero__slide hero__slide--gear" aria-roledescription="slide" aria-label="1 dari 3">
+          <picture class="hero__media">
+            <source media="(max-width: 599px)" srcset="assets/img/hero-gear-m.jpg" width="1049" height="1499">
+            <img src="assets/img/hero-gear.jpg"
+                 srcset="assets/img/hero-gear-1280.jpg 1280w, assets/img/hero-gear.jpg 1672w"
+                 sizes="100vw"
+                 width="1672" height="941" fetchpriority="high"
+                 alt="Lini gear Nexura, fan cooler dan sarung jempol, di atas panggung neon, bertuliskan Mobile Gaming Gear #1">
+          </picture>
+          <div class="hero__content">
+            <div class="hero__text hero__text--on-art">
+              <h1 class="hero__title">Mobile Gaming Gear #1</h1>
+            </div>
+          </div>
+          <a class="hero__slide-link" href="produk/" aria-label="Lihat produk Nexura"></a>
+        </article>
+
+        <article class="hero__slide hero__slide--glow3" aria-roledescription="slide" aria-label="2 dari 3">
           <picture class="hero__media">
             <source media="(max-width: 599px)" srcset="assets/img/hero-es-serut-m.jpg" width="1093" height="1375">
             <!-- 600-767px crops the hero to a zoomed square, which would cut the banner's painted
@@ -163,18 +179,18 @@
             <img src="assets/img/hero-es-serut.jpg"
                  srcset="assets/img/hero-es-serut-1280.jpg 1280w, assets/img/hero-es-serut.jpg 1672w"
                  sizes="100vw"
-                 width="1672" height="941" fetchpriority="high"
+                 width="1672" height="941" loading="lazy" decoding="async"
                  alt="">
           </picture>
           <div class="hero__content">
             <div class="hero__text hero__text--on-art">
-              <h1 class="hero__title">Gear Gaming Nexura</h1>
+              <h2 class="hero__title">Gear Gaming Nexura</h2>
             </div>
           </div>
           <a class="hero__slide-link" href="produk/detail/?id=iceglow" aria-label="Lihat Fan Cooler IceGlow"></a>
         </article>
 
-        <article class="hero__slide hero__slide--creator" aria-roledescription="slide" aria-label="2 dari 2">
+        <article class="hero__slide hero__slide--creator" aria-roledescription="slide" aria-label="3 dari 3">
           <picture class="hero__media">
             <source media="(max-width: 599px)" srcset="assets/img/hero-creator-m.jpg?v=3" width="941" height="1411">
             <img src="assets/img/hero-creator.jpg"
@@ -202,6 +218,7 @@
       <div class="hero__dots" data-hero-dots>
         <button type="button" aria-label="Ke slide 1" aria-current="true"><span class="hero__dot-track"><span class="hero__dot-fill"></span></span></button>
         <button type="button" aria-label="Ke slide 2"><span class="hero__dot-track"><span class="hero__dot-fill"></span></span></button>
+        <button type="button" aria-label="Ke slide 3"><span class="hero__dot-track"><span class="hero__dot-fill"></span></span></button>
       </div>
     </section>
 
@@ -574,6 +591,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="assets/js/data.js?v=20261017440000"></script>
-  <script src="assets/js/main.js?v=20261019200000"></script>
+  <script src="assets/js/main.js?v=20261019220000"></script>
 </body>
 </html>

@@ -558,6 +558,17 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 @media (min-width: 600px) and (max-width: 767px) {
   .hero__title { font-size: 2.875rem; }
+  /* Mobile Gaming Gear #1 has a wide and a phone cut but nothing square: here the wide art
+     shows whole, centred, over a blurred and darkened copy of itself filling the box */
+  .hero__slide--gear .hero__media::before {
+    content: ""; position: absolute; inset: -24px; z-index: 0;
+    background: url("../img/hero-gear-1280.jpg") 50% 50% / cover no-repeat;
+    filter: blur(20px) brightness(.55);
+  }
+  .hero__slide--gear .hero__media img {
+    position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; left: 0;
+    object-fit: contain; object-position: 50% 50%;
+  }
   /* half the 2/1 media's own height, so they centre on the picture rather than the whole banner */
   .hero__arrow { display: grid; top: 25cqw; translate: 0 -50%; }
 }
