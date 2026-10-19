@@ -23,7 +23,7 @@
   <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora-m.jpg" media="(max-width: 599px)">
   <link rel="preload" as="image" type="image/jpeg" href="assets/img/aurora.jpg" media="(min-width: 600px) and (max-width: 767px)">
   <link rel="preload" as="image" type="image/jpeg" href="assets/img/hero-es-serut.jpg" imagesrcset="assets/img/hero-es-serut-1280.jpg 1280w, assets/img/hero-es-serut.jpg 1672w" imagesizes="100vw" media="(min-width: 768px)">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20261018144000">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261019120000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -152,9 +152,9 @@
     <span id="top" class="anchor-top" aria-hidden="true"></span>
 
     <!-- ============ HERO SLIDER ============ -->
-    <section class="hero" aria-label="Produk unggulan">
+    <section class="hero" aria-roledescription="carousel" aria-label="Produk unggulan" data-hero>
       <div class="hero__track" data-hero-track>
-        <article class="hero__slide hero__slide--glow3">
+        <article class="hero__slide hero__slide--glow3" aria-roledescription="slide" aria-label="1 dari 2">
           <picture class="hero__media">
             <source media="(max-width: 599px)" srcset="assets/img/hero-es-serut-m.jpg" width="1093" height="1375">
             <!-- 600-767px crops the hero to a zoomed square, which would cut the banner's painted
@@ -173,6 +173,35 @@
           </div>
           <a class="hero__slide-link" href="produk/detail/?id=iceglow" aria-label="Lihat Fan Cooler IceGlow"></a>
         </article>
+
+        <article class="hero__slide hero__slide--creator" aria-roledescription="slide" aria-label="2 dari 2">
+          <picture class="hero__media">
+            <source media="(max-width: 599px)" srcset="assets/img/hero-creator-m.jpg?v=3" width="941" height="1411">
+            <img src="assets/img/hero-creator.jpg"
+                 srcset="assets/img/hero-creator-1280.jpg 1280w, assets/img/hero-creator.jpg 1678w"
+                 sizes="100vw"
+                 width="1672" height="941" loading="lazy" decoding="async"
+                 alt="Jeje Adriel memegang fan cooler Nexura Vortex dengan lampu RGB di kamar gaming bernuansa ungu, bertuliskan Main Seharian, Tetap Dingin">
+          </picture>
+          <div class="hero__content">
+            <!-- Same deal: the artwork carries the headline, endorsement and CTA. -->
+            <div class="hero__text hero__text--on-art">
+              <h2 class="hero__title">Main Seharian, Tetap Dingin</h2>
+            </div>
+          </div>
+          <a class="hero__slide-link" href="produk/?kategori=fan-cooler" aria-label="Lihat produk fan cooler Nexura"></a>
+        </article>
+      </div>
+
+      <button class="hero__arrow hero__arrow--prev" type="button" aria-label="Slide sebelumnya" data-hero-prev>
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+      </button>
+      <button class="hero__arrow hero__arrow--next" type="button" aria-label="Slide berikutnya" data-hero-next>
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+      <div class="hero__dots" data-hero-dots>
+        <button type="button" aria-label="Ke slide 1" aria-current="true"><span class="hero__dot-track"><span class="hero__dot-fill"></span></span></button>
+        <button type="button" aria-label="Ke slide 2"><span class="hero__dot-track"><span class="hero__dot-fill"></span></span></button>
       </div>
     </section>
 
@@ -548,6 +577,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="assets/js/data.js?v=20261017440000"></script>
-  <script src="assets/js/main.js?v=20261018144000"></script>
+  <script src="assets/js/main.js?v=20261019120000"></script>
 </body>
 </html>

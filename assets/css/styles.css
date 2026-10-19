@@ -526,6 +526,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     background: linear-gradient(to bottom, rgba(32, 13, 45, 0), #200D2D 86%);
   }
   .hero__slide--glow3 { --posy-sm: 50%; }
+  .hero__slide--creator { --zoom-sm: 190%; --left-sm: -89.6%; --posy-sm: 15%; }
   /* sits straight under the art; bottom padding clears the dots */
   .hero__content { position: static; padding: var(--s-2) var(--gutter) var(--s-7); }
   /* margin-inline centres the 560px-capped column itself; justify-items only centres its
@@ -548,15 +549,19 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   /* 34px display type is a desktop size; at 375 the title wraps three times and crowds the art.
      28/15 matches the step the platform scales use for a phone headline over secondary copy. */
   .hero__title { font-size: 2.625rem; line-height: 1.12; }
-  /* Phones get the portrait banner ("Auto Es Serut!", 1093 x 1375), which paints its own
-     headline and CTA, so the picture shows whole: none of the zoom-and-slide crop the wide art
-     needs above. */
+  /* Phones get the portrait banners, which paint their own headline and CTA, so none of the
+     zoom-and-slide crop the wide art needs above. They don't share a shape ("Auto Es Serut!" is
+     1093 x 1375, Jeje 2/3), and the track is a flex row, so both slides take one box between
+     the two, 7/10, and cover it: Es Serut loses a sliver off each side (its headline and button
+     clear it), Jeje a sliver top and bottom. */
   .hero__slide { background: var(--ink-950); }
-  /* Edge to edge at every phone height, at the art's own shape. Not capped at the fold: a cap
+  /* Edge to edge at every phone height, at that shared shape. Not capped at the fold: a cap
      left the box shorter than the art on short phones, and the art, shown whole, then sat
      between dark margins either side. A short phone scrolls a little to reach the dots instead. */
-  .hero__media { aspect-ratio: 1093 / 1375; }
-  .hero__media img { position: static; width: 100%; left: auto; object-fit: contain; object-position: 50% 50%; }
+  .hero__media { aspect-ratio: 7 / 10; }
+  .hero__media img { position: static; width: 100%; left: auto; object-fit: cover; object-position: 50% 50%; }
+  /* Jeje's cap sits near the top edge and his button near the bottom; trim mostly above */
+  .hero__slide--creator .hero__media img { object-position: 50% 54%; }
   .hero__media::after { display: none; }
   /* The art carries the headline, so the live one drops out of view but stays in the
      accessibility tree; the content box is left as the strip the dots sit in, under the art. */
@@ -579,6 +584,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .hero__media { aspect-ratio: 16 / 9; max-height: calc(100svh - var(--header-h)); }
   .hero__media::after { display: none; }
   .hero__slide--glow3 .hero__media img { object-position: 50% 50%; }
+  .hero__slide--creator .hero__media img { object-position: 50% 40%; }
   /* Copy column. --hero-left is the indent; --hero-copy-end is a hard right boundary the text
      can never cross. Slide 1's first feature callout starts about 45% across and slide 2's
      creator about 52%, so 44% clears both. Pairing the two means a bigger indent narrows the

@@ -75,6 +75,14 @@
      ask for reduced motion. */
   if ($('main.home') && !reducedMotion.matches && 'IntersectionObserver' in window) {
     const set = (el, variant) => { if (el) el.dataset.reveal = variant; };
+    // A section any of which is on screen when the page opens moves straight away, all of it,
+    // rather than waiting for the reader to scroll it further in. Judged by the section, not
+    // the block: on an iPhone in Safari the Produk Andalan head shows but its rail starts just
+    // under the toolbar, and would otherwise slide in mid-scroll.
+    const onScreen = (el) => {
+      const r = (el.closest('section') || el).getBoundingClientRect();
+      return r.top < window.innerHeight && r.bottom > 0;
+    };
     // Clears the motion once the block has landed (translate or scale, whichever it moved by).
     const reveal = (el) => {
       const done = (e) => {
@@ -104,8 +112,6 @@
         set(c, mid < 0.4 ? 'slide-left' : mid > 0.6 ? 'slide-right' : 'scale');
       });
     } else set(techGrid, 'scale');
-    // reviews: the rows alternate sides, as gamesir's two testimonial rows do
-    $$('.home .marquee__viewport').forEach((v, k) => set(v, sides[k % 2]));
 
     // Waits until a block is a fifth of the screen in, so the move happens where the reader is
     // looking rather than at the bottom edge as the block first peeks in.
@@ -115,7 +121,9 @@
       io.unobserve(en.target);
     }), { rootMargin: '0px 0px -20% 0px' });
     // two frames, so the start position paints before the first move
-    requestAnimationFrame(() => requestAnimationFrame(() => $$('[data-reveal]').forEach((el) => io.observe(el))));
+    requestAnimationFrame(() => requestAnimationFrame(() => $$('[data-reveal]').forEach((el) => {
+      if (onScreen(el)) reveal(el); else io.observe(el);
+    })));
   }
 
   const storage = {
