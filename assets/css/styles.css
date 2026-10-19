@@ -3,17 +3,6 @@
    Mobile first. Breakpoints: 600px (tablet), 1024px (desktop).
    ========================================================================== */
 
-/* Draco, the section headline face. One weight. block, not swap: it sets wider than Inter, so
-   swapping in late would reflow the section head rather than just recolour it. Small and local,
-   so the block period is short. */
-@font-face {
-  font-family: "Draco";
-  src: url("../fonts/draco.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: block;
-}
-
 :root {
   /* Matched to the campaign mood board (Oct 2026): lifted plum surfaces around hue 278
      (poster grounds #1C0B27 to #2A0F3A) and softer, less neon violets (#7E40A2 to #9B53C4)
@@ -671,51 +660,35 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* Separates this sub-head from the video above it the way --section-y separates whole sections;
    .section-head's own padding-top then adds the headline's air on top of that. */
 .section-head--sub { margin-top: var(--s-5); }
-/* Every section headline is Draco. It has one weight, so 400 is set explicitly (asking for bold
-   would get a synthesised one). The face is drawn wide and flat, so it is squeezed to 63% width
-   to set it tall and condensed; the head is centred, so the narrower text stays centred in it.
-   scaleX leaves the layout box alone, so the line would wrap at its unsqueezed width, long
-   before the squeezed text fills the column: the box is allowed 1/.63 of the column instead,
-   which is exactly the column once squeezed. Draco is also drawn leaning: its stems slope about
-   29 degrees (583 units across per 1000 up, with no italic flag in the font), so skewX leans
-   the letters back the other way to stand them upright. The skew runs before the squeeze (the
-   transform list applies right to left), so it cancels the drawn slope exactly. main.js
-   moves the skew onto each word, so wrapped lines don't drift (.is-worded below). The size eases
-   down on narrow screens, so a phone headline doesn't take over the section. */
+/* Every section headline is Anton (Google Fonts, one weight, so 400 is set explicitly): tall
+   and condensed as drawn, so it is set as is. --squeeze was the old headline face's width
+   squeeze; it stays at 1 because other titles still size their boxes from it. */
 .section-title {
-  --squeeze: .63;
-  --unslant: 28.7deg;
-  font-family: "Draco", var(--font);
+  --squeeze: 1;
+  font-family: "Anton", var(--font);
   font-weight: 400;
-  /* all capitals, as the headlines always read (Draco had no lowercase) */
   text-transform: uppercase; letter-spacing: .01em;
   font-size: clamp(1.25rem, .55rem + 3vw, 2.5rem);
   line-height: 1.1;
-  /* Draco's capitals start ~5px below the line box's top at 40px, so the space above a section
-     read that much larger than the matching space under the section before. Trimming the box
-     to the cap height measures that space to the letters themselves. */
+  /* trimmed to the cap height, so the space above a headline measures to the letters */
   text-box-trim: trim-start; text-box-edge: cap alphabetic;
   text-wrap: balance;
-  width: max-content; max-width: calc(100% / var(--squeeze));
-  transform: scaleX(var(--squeeze)) skewX(var(--unslant));
+  width: max-content; max-width: 100%;
 }
-/* main.js wraps each word, and the skew moves onto the words (see there): the headline keeps
-   only the squeeze, so a wrapped headline's lines no longer step sideways. The squeeze still
-   applies after each word's skew, the same order as above. */
-.section-title.is-worded { transform: scaleX(var(--squeeze)); }
-/* A section headline's box also runs .287em (~14px at 48px) past Draco's baseline, so the air
-   under it read larger than it was set. Taking that back out lets the gap under it measure to
-   the type, which keeps it at half the air above. A margin rather than text-box-trim's end
-   edge: Safari applies the trim late, seconds after load, so the gap would jump. */
-.section-head .section-title:not(.section-title--sub) { margin-bottom: -.287em; }
-.section-title__w { display: inline-block; transform: skewX(var(--unslant)); }
+/* A section headline's box also runs past Anton's baseline, so the air under it read larger
+   than it was set. Taking that back out lets the gap under it measure to the type. A margin
+   rather than text-box-trim's end edge: Safari applies the trim late, so the gap would jump. */
+.section-head .section-title:not(.section-title--sub) { margin-bottom: -.133em; }
 /* A heading inside a section, under its headline ("Clip dari Live Mereka" under Apa Kata
-   Streamers): the same Draco, at about 60% of the headline's size, so it reads as a part of the
+   Streamers): the same face, at about 60% of the headline's size, so it reads as a part of the
    section rather than a second one starting. */
 .section-title--sub { font-size: clamp(1rem, .45rem + 1.8vw, 1.5rem); }
-/* Beranda's headlines (the only page with .section-head) run about 1.2x bigger, closer to the
-   posters' big Draco lines; the other pages' titles keep the base size. */
-.section-head .section-title { font-size: clamp(1.5rem, .75rem + 3.1vw, 3rem); }
+/* Beranda's headlines (the only page with .section-head) run big, after the Produk Andalan
+   mock-up: "PRODUK ANDALAN" on one line about 45% of the column wide (some 1.9 cards on
+   desktop), so 6.8% of the column (cqi), 82px at the 1200px column. Phones keep 32px, which
+   still holds the longest headline to one line. */
+.section-head { container-type: inline-size; }
+.section-head .section-title { font-size: clamp(2rem, 6.8cqi, 5.125rem); line-height: 1.05; }
 /* the home sub-head ("Clip dari Live Mereka"): small, a quiet label between the video and the
    clips rather than a second headline. On a phone it runs nearly the column's width (about 16px
    at 390, 19px at 445) and tops out at 28px from about 630px; desktops grow it again, to 34px
@@ -753,10 +726,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .product-grid--rail {
   grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - var(--s-3)) / 2);
   overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory; scroll-padding-left: 8px;
-  /* 8px of room left of the column, so the first card's discount ribbon isn't cut by the
-     rail's edge; the 24px gap between cards keeps the card before from showing in it. */
-  margin-left: -8px; padding-left: 8px;
+  scroll-snap-type: x mandatory;
 }
 .product-grid--rail::-webkit-scrollbar, .clips::-webkit-scrollbar { display: none; }
 .product-grid--rail > .is-snap, .clips > .is-snap { scroll-snap-align: start; }
@@ -775,28 +745,10 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 .product-card.is-entering { animation: card-in 300ms var(--ease) both; }
 @keyframes card-in { from { opacity: 0; translate: 0 8px; } }
-/* The card itself doesn't clip, so the discount ribbon can hang off its edge; the picture
-   rounds its own top corners instead. */
+/* The picture rounds its own top corners; the card itself doesn't clip. */
 .product-card__media {
   position: relative; aspect-ratio: 1; background: var(--ink-800); overflow: hidden;
   border-radius: calc(var(--r-md) - 1px) calc(var(--r-md) - 1px) 0 0;
-}
-/* Discount ribbon: over the picture's top-left corner, running in from 6px past the card's
-   left edge and folding back round that edge (the darker tail under its end). Laid over the
-   card rather than in its flow, so the name and price sit where they do without it. */
-.product-card__off {
-  --out: 6px;
-  position: absolute; top: 26px; left: calc(-1px - var(--out)); z-index: 2;
-  pointer-events: none;
-  padding: 2px 9px 2px calc(var(--out) + 6px);
-  border-radius: 0 999px 999px 0;
-  background: linear-gradient(90deg, #D93A4E, #EE5B6B); color: #fff;
-  box-shadow: 0 3px 8px rgba(12, 3, 16, .35);
-  font-size: 12px; font-weight: 800; line-height: 1.4; font-variant-numeric: tabular-nums;
-}
-.product-card__off::before {
-  content: ""; position: absolute; left: 0; top: 100%;
-  border-top: var(--out) solid #8A1E2C; border-left: var(--out) solid transparent;
 }
 /* No resting zoom: the near-white rim some screenshots carried is cropped out of the files
    themselves now, so the whole card art shows, Nexura mark and captions included. */
@@ -1002,8 +954,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 .catalog { padding-block: var(--s-4) var(--s-8); }
 
 /* A panel over the grid: count on the left, search and Filter on the right. Positioned
-   and lifted so the menus open over the cards, whose stretched links sit at z-index 1 and
-   discount ribbons at 2. On a phone it wraps: count and Filter on the first line, the search
+   and lifted so the menus open over the cards, whose stretched links sit at z-index 1.
+   On a phone it wraps: count and Filter on the first line, the search
    full width under them. */
 .catalog-bar {
   position: relative; z-index: 3;
@@ -1188,7 +1140,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* After gamesir.com's "All Products" head. From 768 up: one rounded card, copy on a panel in the
    navbar's and footer's plum (--ink-925), set apart from the near-black page, the Nexura lineup filling the
    right. On a phone, as GameSir does there: the lineup fills the whole card, dimmed, and the copy
-   sits over it. The title is Draco, sized to its panel. */
+   sits over it. The title is the headline face, sized to its panel. */
 .shop-banner { padding-top: var(--s-4); }
 .shop-banner__card {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; isolation: isolate;
@@ -1853,7 +1805,7 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
 
 /* ---------- Clip strip ("Clip dari Live Mereka"), saved, not in use ---------- */
 /* The sub-heading under the video, as a band running edge to edge of the screen with the line
-   on a loop, so Draco is only ever used at headline size. Bold Inter capitals on the same
+   on a loop, so the headline face is only ever used at headline size. Bold Inter capitals on the same
    purple-to-pink sweep as the selected category chip (#6A2E9E to #B33AC6, both dark enough for
    white text). The body clips the overflow sideways. */
 .clip-strip {

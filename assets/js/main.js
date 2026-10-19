@@ -38,33 +38,6 @@
   const live = $('[data-live]');
   const announce = (msg) => { live.textContent = ''; requestAnimationFrame(() => { live.textContent = msg; }); };
 
-  /* Draco headlines: the skew that stands the face upright goes on each word, not the whole
-     headline. Skewing the block leans its lines too, so a headline that wraps steps sideways
-     line by line: a centred one drifts, a left-aligned one becomes a staircase. Each word as
-     an inline-block skews about its own middle, so every line keeps its place. Text only:
-     child elements (a .nowrap span) are walked into, and screen readers still get the words
-     in order. Without this script the CSS skews the whole headline instead. */
-  $$('.section-title').forEach((title) => {
-    const wrap = (node) => {
-      [...node.childNodes].forEach((n) => {
-        if (n.nodeType === 1) { wrap(n); return; }
-        if (n.nodeType !== 3 || !n.textContent.trim()) return;
-        const frag = document.createDocumentFragment();
-        n.textContent.split(/(\s+)/).forEach((part) => {
-          if (!part) return;
-          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
-          const w = document.createElement('span');
-          w.className = 'section-title__w';
-          w.textContent = part;
-          frag.appendChild(w);
-        });
-        n.replaceWith(frag);
-      });
-    };
-    wrap(title);
-    title.classList.add('is-worded');
-  });
-
   /* Beranda motion, after gamesir.com's home page (its MotionReveal). The first time a block
      comes into view it eases into place over 850ms on cubic-bezier(.22, 1, .36, 1), from one
      of three starts: 20px to the left, 20px to the right, or 96% scale. Nothing rises and
@@ -521,7 +494,6 @@
     const out = p.stock === 'out';
     return `
       <article class="product-card${out ? ' is-out' : ''}" id="produk-${p.id}" data-id="${p.id}" data-category="${p.category}">
-          ${p.compareAt && !out ? `<span class="product-card__off"><span class="sr-only">Diskon </span>${Math.round((1 - priceOf(p, color && color.id) / p.compareAt) * 100)}%</span>` : ''}
         <div class="product-card__media">
           <picture>
             <source type="image/webp" srcset="${img(image)}">
