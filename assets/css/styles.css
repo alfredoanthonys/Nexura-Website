@@ -522,8 +522,9 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
      contents inside it, which left the whole block sitting left of centre once the content box
      grew past 560px (roughly 610px up) */
   .hero__text { gap: var(--s-2); justify-items: center; text-align: center; margin-inline: auto; }
-  /* on the art, near its bottom edge: the square picture is the hero's full width tall */
-  .hero__dots { top: calc(100cqw - 36px); bottom: auto; }
+  /* centred on the art, 20px above its bottom edge as on desktop: the square picture is the
+     hero's full width tall, and the dots 24px */
+  .hero__dots { top: calc(100cqw - 44px); bottom: auto; }
 }
 
 @media (max-width: 599px) {
@@ -551,13 +552,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     overflow: hidden; clip-path: inset(50%); white-space: nowrap;
   }
   .hero__content { padding: 0; height: 0; }
-  /* bottom-right on the art: both banners paint a button and a tag across the middle of their
-     bottom edge, and the corner beside them is empty */
-  .hero__dots {
-    top: auto; bottom: 8px; left: auto; right: 12px; translate: none;
-    /* a dark pill under them, so they read as a control where Jeje's button reaches the corner */
-    padding-inline: 4px; border-radius: 999px; background: rgba(12, 3, 16, .55);
-  }
+  /* centred on the art's bottom edge, 20px up, as on desktop */
+  .hero__dots { top: auto; bottom: 20px; }
 }
 
 @media (min-width: 600px) and (max-width: 767px) {
