@@ -3,6 +3,9 @@
 
   const { products, categories, categoryLeads, compareLabels, video, social, reviews, store } = window.NEXURA;
   const byId = Object.fromEntries(products.map((p) => [p.id, p]));
+  // A second local preview (python3 -m http.server 8001) shows the site with Tungsten in place
+  // of Draco and Anton; see .font-preview in styles.css. Nowhere else matches, so this is inert.
+  if (location.port === '8001') document.documentElement.classList.add('font-preview');
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -19,6 +22,11 @@
   const SITE = new URL('../../', document.currentScript.src).href;
   const PRODUCTS_PAGE = `${SITE}produk/`;
   const CHECKOUT_PAGE = `${SITE}checkout/`;
+  const PAY_PAGE = `${SITE}pembayaran/`;
+  const PAID_PAGE = `${SITE}pembayaran/berhasil/`;
+  // The order Bayar Sekarang hands to the payment page: a snapshot, so the page keeps showing
+  // what was bought even if the cart changes after.
+  const ORDER_KEY = 'nexura-order-v1';
   const colorOf = (p, colorId) => (p.colors || []).find((c) => c.id === colorId) || (p.colors || [])[0] || null;
   const priceOf = (p, colorId) => (colorOf(p, colorId) && colorOf(p, colorId).price) || p.price;
   // The crossed-out price, or 0 when there is no real one above what the buyer pays.
@@ -37,6 +45,33 @@
 
   const live = $('[data-live]');
   const announce = (msg) => { live.textContent = ''; requestAnimationFrame(() => { live.textContent = msg; }); };
+
+  /* Draco headlines: the skew that stands the face upright goes on each word, not the whole
+     headline. Skewing the block leans its lines too, so a headline that wraps steps sideways
+     line by line: a centred one drifts, a left-aligned one becomes a staircase. Each word as
+     an inline-block skews about its own middle, so every line keeps its place. Text only:
+     child elements (a .nowrap span) are walked into, and screen readers still get the words
+     in order. Without this script the CSS skews the whole headline instead. */
+  $$('.section-title').forEach((title) => {
+    const wrap = (node) => {
+      [...node.childNodes].forEach((n) => {
+        if (n.nodeType === 1) { wrap(n); return; }
+        if (n.nodeType !== 3 || !n.textContent.trim()) return;
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+          const w = document.createElement('span');
+          w.className = 'section-title__w';
+          w.textContent = part;
+          frag.appendChild(w);
+        });
+        n.replaceWith(frag);
+      });
+    };
+    wrap(title);
+    title.classList.add('is-worded');
+  });
 
   /* Beranda motion, after gamesir.com's home page (its MotionReveal). The first time a block
      comes into view it eases into place over 850ms on cubic-bezier(.22, 1, .36, 1), from one
@@ -103,6 +138,250 @@
     get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
     set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode: cart lives for this visit only */ } },
   };
+
+  /* ------------------------------------------------------------------
+     Accounts (Masuk, Daftar, Akun), the order history and the sensi a buyer has opened.
+     TODO: there is no server yet, so all of it lives in this browser's localStorage: the users
+     (each password kept only as a salted hash), who is signed in, their paid orders and their
+     sensi. Enough to click every flow through, and no more: nothing follows the user to another
+     device, and anyone at this browser can read it. When the backend exists, swap the bodies of
+     `account`, `orderBook` and `sensiBook` for calls to it; the pages only talk to these three.
+     ------------------------------------------------------------------ */
+  const LOGIN_PAGE = `${SITE}masuk/`;
+  const SIGNUP_PAGE = `${SITE}daftar/`;
+  const ACCOUNT_PAGE = `${SITE}akun/`;
+  const USERS_KEY = 'nexura-users-v1';
+  const SESSION_KEY = 'nexura-session-v1';
+  const ORDERS_KEY = 'nexura-orders-v1';
+  const SENSI_KEY = 'nexura-sensi-v1';
+
+  // crypto.subtle only exists on https and localhost. A phone opening the dev server over the
+  // LAN gets FNV-1a instead, marked so a stored hash is always checked the way it was made.
+  async function digest(text, fnv = !crypto.subtle) {
+    if (!fnv) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+    let h = 0x811c9dc5;
+    for (const ch of text) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+    return `fnv:${h.toString(16)}`;
+  }
+  const emailKey = (email) => String(email).trim().toLowerCase();
+
+  const account = {
+    users: () => storage.get(USERS_KEY) || {},
+    current() {
+      const s = storage.get(SESSION_KEY);
+      return (s && account.users()[s.email]) || null;
+    },
+    // 'ok', or 'exists' when the email already has an account
+    async signUp({ name, email, phone, password }) {
+      const users = account.users();
+      const key = emailKey(email);
+      if (users[key]) return 'exists';
+      const salt = [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, '0')).join('');
+      users[key] = { name, email: key, phone, salt, hash: await digest(`${salt}:${password}`), created: Date.now() };
+      storage.set(USERS_KEY, users);
+      account.start(key);
+      return 'ok';
+    },
+    async signIn(email, password) {
+      const user = account.users()[emailKey(email)];
+      if (!user) return false;
+      const fnv = user.hash.startsWith('fnv:');
+      // a SHA-256 hash can't be checked where crypto.subtle is missing
+      if (!fnv && !crypto.subtle) return false;
+      if (await digest(`${user.salt}:${password}`, fnv) !== user.hash) return false;
+      account.start(user.email);
+      return true;
+    },
+    start(email) {
+      storage.set(SESSION_KEY, { email, at: Date.now() });
+      sensiBook.claimGuest(email);
+    },
+    signOut() { try { localStorage.removeItem(SESSION_KEY); } catch { /* nothing to clear */ } },
+    // false when the current password is wrong
+    async changePassword(current, next) {
+      const me = account.current();
+      if (!me) return false;
+      const fnv = me.hash.startsWith('fnv:');
+      if (!fnv && !crypto.subtle) return false;
+      if (await digest(`${me.salt}:${current}`, fnv) !== me.hash) return false;
+      const salt = [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, '0')).join('');
+      account.update({ salt, hash: await digest(`${salt}:${next}`), pwChanged: Date.now() });
+      return true;
+    },
+    // 'ok', or 'exists' when the new email has an account. Orders and saved sensi move to the
+    // new address with the account.
+    changeEmail(next) {
+      const me = account.current();
+      if (!me) return 'exists';
+      const key = emailKey(next);
+      if (key === me.email) return 'ok';
+      const users = account.users();
+      if (users[key]) return 'exists';
+      delete users[me.email];
+      users[key] = { ...me, email: key };
+      storage.set(USERS_KEY, users);
+      storage.set(ORDERS_KEY, orderBook.all().map((o) => (o.user === me.email ? { ...o, user: key } : o)));
+      const pending = storage.get(ORDER_KEY);
+      if (pending?.user === me.email) storage.set(ORDER_KEY, { ...pending, user: key });
+      const sensi = sensiBook.all();
+      if (sensi[me.email]) { sensi[key] = sensi[me.email]; delete sensi[me.email]; storage.set(SENSI_KEY, sensi); }
+      storage.set(SESSION_KEY, { ...storage.get(SESSION_KEY), email: key });
+      return 'ok';
+    },
+    update(changes) {
+      const me = account.current();
+      if (!me) return null;
+      const users = account.users();
+      users[me.email] = { ...me, ...changes };
+      storage.set(USERS_KEY, users);
+      return users[me.email];
+    },
+  };
+
+  // Paid orders, newest first. The payment page adds each one as it is paid.
+  const orderBook = {
+    all: () => storage.get(ORDERS_KEY) || [],
+    add(order) {
+      storage.set(ORDERS_KEY, [order, ...orderBook.all().filter((o) => o.id !== order.id)].slice(0, 50));
+    },
+    of: (email) => orderBook.all().filter((o) => o.user === email),
+  };
+
+  // Sensi opened, per owner: the account's email, or 'guest' until someone signs in on this
+  // browser, when the guest's sensi move into that account.
+  const sensiBook = {
+    all: () => storage.get(SENSI_KEY) || {},
+    owner: () => account.current()?.email || 'guest',
+    list: (owner = sensiBook.owner()) => sensiBook.all()[owner] || [],
+    // true when the code is new to this owner
+    add(entry, owner = sensiBook.owner()) {
+      const all = sensiBook.all();
+      const list = all[owner] || [];
+      if (list.some((e) => e.code === entry.code)) return false;
+      all[owner] = [entry, ...list];
+      storage.set(SENSI_KEY, all);
+      return true;
+    },
+    claimGuest(email) {
+      const all = sensiBook.all();
+      if (!all.guest?.length) return;
+      const mine = all[email] || [];
+      all[email] = [...all.guest.filter((g) => !mine.some((e) => e.code === g.code)), ...mine];
+      delete all.guest;
+      storage.set(SENSI_KEY, all);
+    },
+  };
+
+  // A page's address relative to the site root, for ?lanjut= (where to go after signing in).
+  const herePath = () => location.href.slice(SITE.length) || './';
+  const initialsOf = (name) => name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+  // What goes inside an avatar circle: the account's photo once one is set, else its initials.
+  const avatarOf = (user) => (user.photo ? `<img src="${escapeHtml(user.photo)}" alt="">` : escapeHtml(initialsOf(user.name)));
+  const loginUrl = (next = herePath()) => `${LOGIN_PAGE}?lanjut=${encodeURIComponent(next)}`;
+  // Only ever back into this site: an address from the query string can't send anyone off it.
+  function nextUrl(fallback) {
+    const raw = new URLSearchParams(location.search).get('lanjut');
+    if (raw) {
+      try {
+        const u = new URL(raw, SITE);
+        if (u.origin === location.origin && u.href.startsWith(SITE)) return u.href;
+      } catch { /* not an address */ }
+    }
+    return fallback;
+  }
+
+  /* The navbar's account icon and the menu drawer's button follow who is signed in: signed out
+     they open Daftar (which links on to Masuk), signed in the account page, and the icon carries a dot. */
+  {
+    const me = account.current();
+    $$('[data-account-link]').forEach((a) => {
+      const onAuthPage = [LOGIN_PAGE, SIGNUP_PAGE].some((p) => location.href.startsWith(p));
+      const next = onAuthPage ? 'akun/' : herePath();
+      a.href = me ? ACCOUNT_PAGE : `${SIGNUP_PAGE}?lanjut=${encodeURIComponent(next)}`;
+      a.setAttribute('aria-label', me ? `Akun saya, ${me.name}` : 'Masuk atau daftar');
+      a.classList.toggle('is-signed-in', !!me);
+    });
+    $$('[data-account-drawer-label]').forEach((el) => { el.textContent = me ? 'Akun Saya' : 'Masuk / Daftar'; });
+    $$('[data-guest-only]').forEach((el) => { el.hidden = !!me; });
+
+    // the account's pages, drawn the same in the navbar dropdown and the menu drawer
+    const ICONS = {
+      dashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+      orders: '<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/>',
+      settings: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+      logout: '<path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>',
+    };
+    const navIco = (paths) => `<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+
+    /* Signed in, the navbar's account icon (shown from 768px) opens a dropdown instead of
+       going straight to Akun: who is signed in, the account's pages and Keluar. It joins the
+       other [data-dropdown]s, so it opens and closes as Produk and Bantuan do. */
+    if (me) {
+      $$('a.nav__account[data-account-link]').forEach((a) => {
+        const dd = document.createElement('div');
+        dd.className = 'nav__dropdown nav__acc';
+        dd.dataset.dropdown = '';
+        dd.innerHTML = `
+          <button class="icon-btn nav__account is-signed-in" type="button" aria-expanded="false" aria-controls="nav-acc-menu" aria-label="${escapeHtml(a.getAttribute('aria-label'))}">${a.innerHTML}</button>
+          <div class="dropdown dropdown--plain dropdown--acc" id="nav-acc-menu">
+            <div class="dropdown-acc__who">
+              <span class="dropdown-acc__avatar" aria-hidden="true">${avatarOf(me)}</span>
+              <span class="dropdown-acc__text"><strong>${escapeHtml(me.name)}</strong><span>${escapeHtml(me.email)}</span></span>
+            </div>
+            <a href="${ACCOUNT_PAGE}#ringkasan">${navIco(ICONS.dashboard)}Dashboard</a>
+            <a href="${ACCOUNT_PAGE}#pesanan">${navIco(ICONS.orders)}Pesanan Saya</a>
+            <a href="${ACCOUNT_PAGE}#pengaturan">${navIco(ICONS.settings)}Pengaturan</a>
+            <button class="dropdown-acc__out" type="button" data-nav-logout>${navIco(ICONS.logout)}Keluar</button>
+          </div>`;
+        a.replaceWith(dd);
+        $('[data-nav-logout]', dd).addEventListener('click', () => {
+          account.signOut();
+          if (location.href.startsWith(ACCOUNT_PAGE)) location.replace(SITE); else location.reload();
+        });
+      });
+    }
+
+    /* Signed in, the foot of the menu drawer shows the account in place of the Masuk / Daftar
+       button: who is signed in, folding open on the account's pages and Keluar. */
+    const menu = $('[data-menu-drawer]');
+    const foot = menu && $('.drawer__foot', menu);
+    if (me && foot) {
+      const ico = (paths) => `<svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+      const item = (href, icon, label) => `<li><a class="menu-acc__item" href="${href}" data-menu-acc-link>${ico(icon)}${label}</a></li>`;
+      foot.classList.add('menu-acc');
+      foot.innerHTML = `
+        <button class="menu-acc__toggle" type="button" aria-expanded="false" aria-controls="menu-acc-list">
+          <span class="menu-acc__avatar" aria-hidden="true">${avatarOf(me)}</span>
+          <span class="menu-acc__name">${escapeHtml(me.name)}</span>
+          <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="menu-acc__panel" id="menu-acc-list" inert>
+        <ul class="menu-acc__list">
+          ${item(ACCOUNT_PAGE, ICONS.dashboard, 'Dashboard')}
+          ${item(`${ACCOUNT_PAGE}#pesanan`, ICONS.orders, 'Pesanan Saya')}
+          ${item(`${ACCOUNT_PAGE}#pengaturan`, ICONS.settings, 'Pengaturan')}
+          <li><button class="menu-acc__item menu-acc__item--out" type="button" data-menu-logout>${ico(ICONS.logout)}Keluar</button></li>
+        </ul>
+        </div>`;
+      const toggle = $('.menu-acc__toggle', foot);
+      toggle.addEventListener('click', () => {
+        const open = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(open));
+        foot.classList.toggle('is-open', open);
+        // inert rather than hidden, so the panel can slide shut while its links stay out of reach
+        $('#menu-acc-list', foot).inert = !open;
+      });
+      // On Akun itself these only change the hash, so the drawer has to close by hand.
+      $$('[data-menu-acc-link]', foot).forEach((a) => a.addEventListener('click', () => hideDrawer(menu, false)));
+      $('[data-menu-logout]', foot).addEventListener('click', () => {
+        account.signOut();
+        if (location.href.startsWith(ACCOUNT_PAGE)) location.replace(SITE); else location.reload();
+      });
+    }
+  }
 
   /* ------------------------------------------------------------------
      Overlays: drawers, backdrop, scroll lock, focus trap
@@ -178,6 +457,18 @@
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   });
+
+  /* Back button on Keranjang, checkout and the payment page (phones). Arriving from another page
+     of this site, it steps back in history, so the visitor lands where they were (scroll and
+     all); opened directly or from elsewhere, it follows its link to the step before. */
+  const pageBack = $('[data-page-back]');
+  if (pageBack) {
+    pageBack.addEventListener('click', (e) => {
+      let sameSite = false;
+      try { sameSite = new URL(document.referrer).origin === location.origin; } catch { /* no referrer */ }
+      if (sameSite && history.length > 1) { e.preventDefault(); history.back(); }
+    });
+  }
 
   /* Cart and checkout pin their pay bar to the screen's bottom below 900px. Its height changes
      (a hint line comes and goes), so it is measured into --dock-h, which the page keeps as room
@@ -325,10 +616,10 @@
   });
 
   /* ------------------------------------------------------------------
-     Header retracts on scroll down, returns on scroll up — except on the product page, where
-     the bar stays put the whole way down
+     Header retracts on scroll down, returns on scroll up, on every page. On the product page
+     the product bar stays, sliding up into the navbar's place.
      ------------------------------------------------------------------ */
-  if (!document.querySelector('.pdp')) {
+  {
     const THRESHOLD = 6; // ignore sub-pixel jitter and trackpad noise
     let lastY = window.scrollY;
     let headerH = header.offsetHeight;
@@ -691,6 +982,7 @@
     const catalogGrid = $('[data-catalog-grid]', catalog);
     const rail = $('[data-chip-rail]', catalog);
     const chips = $$('[data-cat]', rail);
+    const catCards = $$('[data-cat]', $('[data-cat-cards]', catalog) || document.createElement('div'));
     const menuWraps = $$('[data-menu-wrap]', catalog);
     const menuReset = $('[data-menu-reset]', catalog);
     const stockItem = $('[data-stock]', catalog);
@@ -772,7 +1064,7 @@
         if (animate && !card.hidden) replayEnter(card);
       });
 
-      chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.cat === state.category)));
+      [...chips, ...catCards].forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.cat === state.category)));
       stockItem.setAttribute('aria-checked', String(state.inStock));
       sortItems.forEach((it) => it.setAttribute('aria-checked', String(it.dataset.sort === state.sort)));
       activeDot.hidden = !state.inStock && state.sort === DEFAULTS.sort;
@@ -801,6 +1093,9 @@
     }
 
     chips.forEach((chip) => chip.addEventListener('click', () => setCategory(chip.dataset.cat)));
+    // A second press on the picked card lets go of it, back to Semua.
+    catCards.forEach((card) => card.addEventListener('click', () =>
+      setCategory(card.dataset.cat === state.category ? 'all' : card.dataset.cat)));
 
     // The navbar dropdown, the menu drawer and the footer all carry
     // data-filter. Here they switch the list in place instead of reloading the same page; a
@@ -1102,7 +1397,7 @@
       $('[data-promo-gross]', cartPage).textContent = rupiah(t.gross);
       $('[data-promo-disc]', cartPage).textContent = '-' + rupiah(disc);
       // One text node: the button is a flex row, so a separate number would be gapped off its brackets.
-      payBtn.textContent = `Beli (${t.units})`;
+      payBtn.textContent = `Buat Pesanan (${t.units})`;
       payBtn.disabled = t.units === 0;
       payHint.hidden = t.units > 0;
     }
@@ -1300,12 +1595,7 @@
       addrError.hidden = true;
       addrCard.classList.remove('is-invalid');
       $('[data-co-addr-name]', coPage).textContent = address.name;
-      $('[data-co-addr-phone]', coPage).textContent = address.phone;
       $('[data-co-addr-line]', coPage).textContent = `${address.street}, ${address.city}, ${address.postal}`;
-      const noteEl = $('[data-co-addr-note]', coPage);
-      noteEl.hidden = !address.courierNote;
-      noteEl.textContent = address.courierNote ? `Catatan kurir: ${address.courierNote}` : '';
-      $('[data-co-addr-pin]', coPage).hidden = !address.pin;
     }
 
     const field = (name) => addrForm.elements[name];
@@ -1335,8 +1625,7 @@
     const renderCounts = () => counts.forEach(renderCount);
     counts.forEach((el) => $('#' + el.dataset.countFor).addEventListener('input', () => renderCount(el)));
 
-    /* Map pin (UI only). The browser's location prompt is real, but nothing is looked up yet: the
-       map is a drawn placeholder and each drop of the pin shows the next sample address below.
+    /* Map pin (UI only). Nothing is looked up yet: the map is a drawn placeholder and each drop of the pin shows the next sample address below.
        TODO: connect a map provider (Google Maps or Leaflet) and reverse geocoding. */
     const SAMPLE_PLACES = [
       { title: 'Jl. Kemang Raya No. 12', sub: 'Bangka, Mampang Prapatan, Kota Jakarta Selatan, DKI Jakarta', street: 'Jl. Kemang Raya No. 12', city: 'Jakarta Selatan', postal: '12730' },
@@ -1352,13 +1641,8 @@
     const mapTitle = $('[data-co-map-title]', dialog);
     const mapSub = $('[data-co-map-sub]', dialog);
     const mapConfirm = $('[data-co-map-confirm]', dialog);
-    const mapLocate = $('[data-co-map-locate]', dialog);
     const mapQ = $('[data-co-map-q]', dialog);
-    const locEmpty = $('[data-co-loc-empty]', dialog);
     const locSet = $('[data-co-loc-set]', dialog);
-    const locGps = $('[data-co-loc-gps]', dialog);
-    const locGpsLabel = $('[data-co-loc-gps-label]', dialog);
-    const locMsg = $('[data-co-loc-msg]', dialog);
     let pin = null;      // the pin saved with the address being edited
     let draft = null;    // the place under the pin while the map is open
     let lastFill = {};   // what the pin last wrote into each field, so typed edits are never overwritten
@@ -1367,13 +1651,11 @@
     const offset = { x: 0, y: 0 };
 
     function renderPin() {
-      locEmpty.hidden = !!pin || !canLocate;
       locSet.hidden = !pin;
       if (!pin) return;
       $('[data-co-loc-title]', dialog).textContent = pin.title;
       $('[data-co-loc-sub]', dialog).textContent = pin.sub;
     }
-    const setLocMsg = (text) => { locMsg.hidden = !text; locMsg.textContent = text; };
     const panTo = (x, y) => {
       offset.x = x; offset.y = y;
       canvas.style.backgroundPosition = `${x}px ${y}px`;
@@ -1402,30 +1684,9 @@
       dlgTitle.textContent = open ? 'Tandai Lokasi' : 'Alamat Pengiriman';
       clearTimeout(lookupTimer);
       if (open) { mapQ.value = ''; lookUp(); }
-      if (focus) (open ? mapBack : pin ? $('[data-co-loc-pick]', locSet) : locGps).focus();
+      if (focus) (open ? mapBack : $('[data-co-loc-pick]', locSet)).focus();
     }
 
-    // UI only: location access is taken as already granted, so the button goes straight to the
-    // map after a short "Mencari lokasi…". TODO: when connecting, ask through
-    // navigator.geolocation.getCurrentPosition on the press (never on open), hide the button where
-    // it is missing or the page is not HTTPS, and on failure call `fail` with
-    //   denied:  `Akses lokasi ditolak. Izinkan lokasi untuk situs ini di pengaturan browser, atau ${fallback}.`
-    //   other:   `Lokasi belum ketemu. Coba lagi, atau ${fallback}.`
-    const canLocate = true;
-    const locate = (done) => setTimeout(done, 500);
-    const setBusy = (busy) => {
-      locGps.setAttribute('aria-busy', String(busy));
-      locGps.disabled = busy;
-      locGpsLabel.textContent = busy ? 'Mencari lokasi…' : 'Gunakan lokasi saat ini';
-    };
-    locGps.addEventListener('click', () => {
-      setLocMsg('');
-      setBusy(true);
-      locate(() => { setBusy(false); panTo(0, 0); showMap(true); }, (msg) => { setBusy(false); setLocMsg(msg); }, 'isi alamatnya di bawah');
-    });
-    mapLocate.addEventListener('click', () => {
-      locate(() => { panTo(0, 0); lookUp(); }, (msg) => { mapTitle.textContent = 'Lokasi belum ketemu'; mapSub.textContent = msg; }, 'geser peta ke lokasi kamu');
-    });
     $$('[data-co-loc-pick]', dialog).forEach((b) => b.addEventListener('click', () => showMap(true)));
     $('[data-co-loc-preview]', dialog).addEventListener('click', () => showMap(true));
     mapBack.addEventListener('click', () => showMap(false));
@@ -1490,7 +1751,6 @@
       renderCounts();
       pin = address?.pin ?? null;
       lastFill = {};
-      setLocMsg('');
       renderPin();
       showMap(false, { focus: false });
       lockScroll(true);
@@ -1660,8 +1920,39 @@
         $$('[data-co-address-edit]', addrCard).find((b) => b.offsetParent).focus({ preventScroll: true });
         return;
       }
-      // TODO: hand the order (lines(), address, prefs, totals()) to the payment gateway and go
-      // to the order confirmation page (PRD 16). Neither exists yet, so a complete order stops here.
+      // TODO: only QRIS has a payment page so far; the e-wallets stop here until the gateway
+      // is connected (PRD 16).
+      if (prefs.pay !== 'qris') return;
+      // TODO: create the order at the payment gateway and keep the QR, NMID and expiry it
+      // returns. Until then the order lives in this browser and the QR is a placeholder.
+      const t = totals();
+      const now = Date.now();
+      const stamp = new Date(now);
+      const pad = (n) => String(n).padStart(2, '0');
+      storage.set(ORDER_KEY, {
+        id: `NXR-${String(stamp.getFullYear()).slice(2)}${pad(stamp.getMonth() + 1)}${pad(stamp.getDate())}-${String(Math.floor(Math.random() * 1e4)).padStart(4, '0')}`,
+        pay: prefs.pay,
+        created: now,
+        expires: now + cfg.qrisMinutes * 60000,
+        items: lines().map((it) => {
+          const p = byId[it.id];
+          const c = colorOf(p, it.color);
+          return {
+            id: it.id, color: it.color, phone: it.phone,
+            name: p.name,
+            meta: [c ? `${variantLabel(p)}: ${c.label}` : categories[p.category], it.phone ? `Tipe HP: ${it.phone}` : ''].filter(Boolean).join(' · '),
+            qty: it.qty, price: priceOf(p, it.color), was: wasOf(p, it.color) || 0,
+            image: img(imageOf(p, it.color), 160),
+          };
+        }),
+        totals: t,
+        courier: courierOf(prefs.courier).label,
+        courierDays: courierOf(prefs.courier).days,
+        // whose Pesanan Saya it lands in; null for a guest checkout
+        user: account.current()?.email || null,
+        address: { name: address.name, phone: address.phone, line: `${address.street}, ${address.city}, ${address.postal}` },
+      });
+      location.href = PAY_PAGE;
     });
 
     renderAddress();
@@ -1670,6 +1961,158 @@
     renderPromo();
     cart.onChange(render);
     render();
+  }
+
+  /* ------------------------------------------------------------------
+     Payment page (/pembayaran/)
+     QRIS, after Bayar Sekarang on checkout. Shows the order checkout saved: the time left to
+     pay, the QR laid out like a printed QRIS, and the steps to pay. Past the deadline the QR is greyed out and can be made again.
+     TODO: everything that talks to the gateway is a stand-in (the QR, the status check).
+     ------------------------------------------------------------------ */
+  const payPage = $('[data-pay-page]');
+  if (payPage) {
+    const minutes = window.NEXURA.checkout.qrisMinutes;
+    const order = storage.get(ORDER_KEY);
+    const ready = order && order.pay === 'qris' && order.items?.length;
+    if (ready && order.paid) location.replace(PAID_PAGE);
+    $('[data-pay-filled]', payPage).hidden = !ready;
+    $('[data-pay-empty]', payPage).hidden = !!ready;
+
+    if (ready) {
+      const t = order.totals;
+      const clock = $('[data-pay-clock]', payPage);
+      const timerBox = $('[data-pay-timer]', payPage);
+      const sheet = $('[data-pay-sheet]', payPage);
+      const saveBtn = $('[data-pay-save]', payPage);
+      const renewBtn = $('[data-pay-renew]', payPage);
+      const checkBtn = $('[data-pay-check]', payPage);
+      const checkText = $('[data-pay-check-text]', checkBtn);
+
+      $('[data-pay-total]', payPage).textContent = rupiah(t.total);
+      $('[data-pay-id]', payPage).textContent = order.id;
+      saveBtn.download = `QRIS-${order.id}.png`;
+
+      /* Time left. Counted from the saved deadline, so a reload doesn't restart it. */
+      const dueFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      let warned = false;
+      let timer;
+      function tick() {
+        const left = Math.max(0, order.expires - Date.now());
+        const s = Math.ceil(left / 1000);
+        clock.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+        timerBox.classList.toggle('is-low', s > 0 && s <= 60);
+        if (s > 0 && s <= 60 && !warned) { warned = true; announce('Sisa waktu bayar 1 menit.'); }
+        if (!s) expire();
+      }
+      function start() {
+        warned = false;
+        const expired = order.expires <= Date.now();
+        $('[data-pay-timer-label]', payPage).textContent = 'Bayar dalam';
+        $('[data-pay-due]', payPage).textContent = `Sebelum ${dueFmt.format(order.expires)}`;
+        timerBox.classList.remove('is-over');
+        sheet.classList.remove('is-expired');
+        $('[data-pay-expired]', payPage).hidden = true;
+        saveBtn.hidden = false;
+        checkBtn.hidden = false;
+        renewBtn.hidden = true;
+        clearInterval(timer);
+        if (expired) { expire(); return; }
+        tick();
+        timer = setInterval(tick, 1000);
+      }
+      function expire() {
+        clearInterval(timer);
+        clock.textContent = '00:00';
+        timerBox.classList.remove('is-low');
+        timerBox.classList.add('is-over');
+        $('[data-pay-timer-label]', payPage).textContent = 'Waktu bayar habis';
+        $('[data-pay-due]', payPage).textContent = 'QR ini udah nggak bisa dipakai. Buat QR baru buat lanjut bayar.';
+        sheet.classList.add('is-expired');
+        $('[data-pay-expired]', payPage).hidden = false;
+        saveBtn.hidden = true;
+        checkBtn.hidden = true;
+        renewBtn.hidden = false;
+      }
+
+      // TODO: ask the gateway for a fresh QR. For now the same one gets a new deadline.
+      renewBtn.addEventListener('click', () => {
+        order.expires = Date.now() + minutes * 60000;
+        storage.set(ORDER_KEY, order);
+        start();
+        saveBtn.focus();
+        announce(`QR baru dibuat. Bayar dalam ${minutes} menit.`);
+      });
+
+      // Paid: the order is marked, its lines leave the cart, and Pembayaran Berhasil takes this
+      // page's place in history, so Back doesn't land on a paid QR.
+      function markPaid() {
+        clearInterval(timer);
+        order.paid = Date.now();
+        storage.set(ORDER_KEY, order);
+        orderBook.add(order);
+        const bought = new Set(order.items.map((it) => cart.keyOf(it)));
+        cart.set(cart.list().filter((it) => !bought.has(cart.keyOf(it))));
+        location.replace(PAID_PAGE);
+      }
+
+      // Stand-in for asking the gateway: a short "Mengecek…", then the order counts as paid, so
+      // the whole flow can be clicked through. Unpaid, nothing would show on screen and screen
+      // readers would hear "Pembayaran belum masuk." TODO: ask the gateway here (and poll it
+      // every few seconds while the page is open); call markPaid() only when it says paid.
+      checkBtn.addEventListener('click', () => {
+        checkBtn.disabled = true;
+        checkBtn.setAttribute('aria-busy', 'true');
+        checkText.textContent = 'Mengecek…';
+        setTimeout(() => {
+          const paid = true; // TODO: the gateway's answer
+          if (paid) { markPaid(); return; }
+          checkBtn.disabled = false;
+          checkBtn.removeAttribute('aria-busy');
+          checkText.textContent = 'Cek Status';
+          announce('Pembayaran belum masuk.');
+        }, 800);
+      });
+
+      /* Copy the total, as plain digits so it pastes straight into an amount field */
+      const copyBtn = $('[data-pay-copy]', payPage);
+      const copyIcon = $('[data-pay-copy-icon]', copyBtn);
+      let copyTimer;
+      // Icon only: a tick stands in for the copy mark for two seconds once it is copied.
+      copyBtn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(String(t.total)); } catch { return; }
+        copyIcon.setAttribute('href', '#i-check');
+        announce('Total tagihan disalin.');
+        clearTimeout(copyTimer);
+        copyTimer = setTimeout(() => { copyIcon.setAttribute('href', '#i-copy'); }, 2000);
+      });
+
+      $('[data-pay-minutes]', payPage).textContent = minutes;
+
+      start();
+      // A tab left in the background gets its interval slowed; catch up as soon as it is back.
+      document.addEventListener('visibilitychange', () => { if (!document.hidden && !sheet.classList.contains('is-expired')) tick(); });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Payment success page (/pembayaran/berhasil/)
+     After Cek Status finds the order paid. Shows what was paid, when, and where it ships;
+     anything other than a paid order shows the empty state.
+     ------------------------------------------------------------------ */
+  const paidPage = $('[data-paid-page]');
+  if (paidPage) {
+    const order = storage.get(ORDER_KEY);
+    const ok = !!order?.paid;
+    $('[data-paid-filled]', paidPage).hidden = !ok;
+    $('[data-paid-empty]', paidPage).hidden = ok;
+    if (ok) {
+      const timeFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      $('[data-paid-total]', paidPage).textContent = rupiah(order.totals.total);
+      $('[data-paid-id]', paidPage).textContent = order.id;
+      $('[data-paid-time]', paidPage).textContent = timeFmt.format(order.paid);
+      $('[data-paid-ship]', paidPage).textContent = order.address.name;
+      $('[data-paid-phone]', paidPage).textContent = order.address.phone;
+    }
   }
 
   /* ------------------------------------------------------------------
@@ -1704,6 +2147,10 @@
     document.title = `${p.short} — Nexura | #GearYourAura`;
     if (p.description) $('meta[name="description"]')?.setAttribute('content', p.description[0]);
     $('[data-pdp-name]', pdp).textContent = p.name;
+    // The bar says what the thing is ("Fan Cooler IceGlow"), unless the name already does
+    // ("Hydrogel Matte").
+    const kind = categories[p.category] || '';
+    $('[data-pdp-bar-name]', pdp).textContent = kind && !p.short.startsWith(kind) ? `${kind} ${p.short}` : p.short;
     // Stock speaks only when it is news (low, out): a badge by the name and a line by the
     // quantity, since that is where the question comes up.
     const STOCK = {
@@ -1945,6 +2392,20 @@
       showDrawer(buyBox, b);
     }));
     $('[data-sheet-close]', pdp).addEventListener('click', () => hideDrawer(buyBox));
+    // The product bar's Beli: on a phone it opens the sheet as Beli Sekarang does; wider, the
+    // buy card is on the page, so it brings that into view and hands it focus.
+    const barBuy = $('[data-bar-buy]', pdp);
+    if (out) barBuy.hidden = true;
+    else barBuy.addEventListener('click', () => {
+      if (phoneMq.matches) {
+        sheetTrigger = barBuy;
+        buyBox.dataset.mode = 'buy';
+        showDrawer(buyBox, barBuy);
+        return;
+      }
+      buyBox.scrollIntoView({ behavior: behavior(), block: 'nearest' });
+      $('[data-buy-now]', buyBox)?.focus({ preventScroll: true });
+    });
     $$('[data-add-cart]', pdp).forEach((b) => b.addEventListener('click', () => addToCart()));
     // Beli Sekarang adds the item and goes straight on to checkout.
     $$('[data-buy-now]', pdp).forEach((b) => b.addEventListener('click', () => addToCart(CHECKOUT_PAGE)));
@@ -1969,13 +2430,6 @@
         </div>` : '',
       ...(p.sections || []).map((sec) => `
         ${sec.text ? `<p class="prose">${escapeHtml(sec.text)}</p>` : ''}`),
-      // Each list gets a heading, so the box contents and the usage tips don't read as one run
-      // of ticks.
-      p.inBox ? `
-        <section class="pdp-block">
-          <h3 class="pdp-block__title">Isi Produk</h3>
-          <ul class="inbox">${p.inBox.map((t) => `<li>${icon('check')}${escapeHtml(t)}</li>`).join('')}</ul>
-        </section>` : '',
       // The heading only stands over usage tips; a games line on its own goes without one.
       p.usage ? `
         <section class="pdp-block">
@@ -1986,10 +2440,14 @@
         </section>` : '',
     ].join('') || '<p class="prose">Detail produk segera hadir.</p>';
 
+    // The model code, series, colours and cut stay out of the table (the variants are on the
+    // picker), and so do compatibility (under either of its labels) and fingerprint support.
     const specRows = [['Kategori', categories[p.category]], ...(p.specs || [])];
     if (variants.length) specRows.push([variantLabel(p), variants.map((c) => c.label).join(', ')]);
+    const SPEC_SKIP = ['Model', 'Seri', 'Warna', 'Tipe cutting', 'Kompatibilitas', 'Sidik jari'];
+    const shownSpecRows = specRows.filter(([k]) => !SPEC_SKIP.includes((compareLabels || {})[k] || k));
     panel('spesifikasi').innerHTML = `
-      <dl class="spec-table">${specRows.map(([k, v]) => `
+      <dl class="spec-table">${shownSpecRows.map(([k, v]) => `
         <div class="spec-row"><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`).join('')}
       </dl>`;
 
@@ -2058,24 +2516,43 @@
        own, since a fan cooler and a screen protector share no specs worth lining up. Two columns
        keep every value readable on a phone. Each column is headed by the product's photo, which
        opens its page; the other product is swapped from the dropdown over it. Specs line up by label, with the
-       listings' differing names merged via `compareLabels` in data.js. */
-    const rivals = products.filter((q) => q.category === p.category && q.id !== p.id)
-      // in stock first, then best sellers: the likeliest alternative a buyer is weighing
-      .sort((a, b) => (a.stock === 'out') - (b.stock === 'out') || a.popular - b.popular);
+       listings' differing names merged via `compareLabels` in data.js; each row reads as this
+       product's Spesifikasi tab words it, or as the other product's when this one hasn't the spec. */
+    // Sold-out products can't be bought, so they aren't offered at all; best sellers first, the
+    // likeliest alternative a buyer is weighing.
+    const rivals = products.filter((q) => q.category === p.category && q.id !== p.id && q.stock !== 'out')
+      .sort((a, b) => a.popular - b.popular);
+    // With nothing in stock to line up against, the tab stays and says so.
     if (!rivals.length) {
-      $('#tab-bandingkan', pdp).hidden = true;
+      panel('bandingkan').innerHTML = `
+        <div class="catalog-empty">
+          ${icon('package', 'icon catalog-empty__icon')}
+          <p class="catalog-empty__title">Belum ada pembanding</p>
+          <p class="catalog-empty__text">Produk lain di kategori ini sedang habis. Cek lagi nanti, ya.</p>
+        </div>`;
     } else {
       let rival = rivals[0];
       const aliases = compareLabels || {};
-      const STOCK_TEXT = { in: 'Tersedia', low: 'Stok terakhir', out: 'Stok habis' };
       const box = panel('bandingkan');
+      // Left out of the comparison, as on the Spesifikasi tab: the model code and series tell a
+      // buyer nothing between two products, and the colours and cuts are on the variant picker.
+      // "Cocok untuk", "Jenis", "Fitur", "Kompatibilitas", "Cakupan" and "Sidik jari" aren't
+      // compared either, nor "Material", except between sarung jempol and between fan coolers.
+      const SKIP = ['Model', 'Seri', 'Warna', 'Tipe cutting', 'Cocok untuk', 'Jenis', 'Fitur', 'Kompatibilitas', 'Cakupan', 'Sidik jari',
+        ...(['sarung-jempol', 'fan-cooler'].includes(p.category) ? [] : ['Material'])];
+      // Keyed by the merged name, holding the product's own label beside the value.
       const specsOf = (q) => {
         const m = new Map();
-        (q.specs || []).forEach(([k, v]) => { const key = aliases[k] || k; if (!m.has(key)) m.set(key, v); });
-        // The variant list counts as a spec, under the listing's own word for it ("Warna"),
-        // so YinYang's written-out colours line up with Vortex's picker colours.
+        (q.specs || []).forEach(([k, v]) => {
+          const key = aliases[k] || k;
+          if (SKIP.includes(key)) return;
+          if (!m.has(key)) m.set(key, { label: k, value: v });
+        });
+        // The variant list counts as a spec under the listing's own word for it, unless that word
+        // is one the table leaves out ("Warna").
         const vs = q.colors || [];
-        if (vs.length && !m.has(variantLabel(q))) m.set(variantLabel(q), vs.map((c) => c.label).join(', '));
+        const vl = variantLabel(q);
+        if (vs.length && !SKIP.includes(vl) && !m.has(vl)) m.set(vl, { label: vl, value: vs.map((c) => c.label).join(', ') });
         return m;
       };
       const none = '<span aria-hidden="true">—</span><span class="sr-only">Tidak ada data</span>';
@@ -2100,12 +2577,10 @@
                     <li class="menu__item cmp__opt" role="option" tabindex="-1" aria-selected="${r === q}" data-cmp-opt="${r.id}">
                       ${icon('check', 'icon menu__check')}
                       <span class="cmp__opt-name">${escapeHtml(r.short)}</span>
-                      ${r.stock === 'out' ? '<span class="cmp__opt-note">Stok habis</span>' : ''}
                     </li>`).join('')}
                   </ul>
                 </div>`}
-            ${self || q.stock === 'out'
-              // sold out has no page to open, the same as its card on /produk/
+            ${self
               ? `<div class="cmp__media">${photo}</div>`
               : `<a class="cmp__media" href="${detailUrl(q)}" aria-label="Lihat ${name}">${photo}</a>`}
           </div>`;
@@ -2117,9 +2592,10 @@
         const rows = [
           ['Harga', cols.map((q) => rupiah(priceOf(q, colorOf(q) && colorOf(q).id)))],
           ['Rating', cols.map((q) => (q.rating ? `${q.rating}/5${q.ratingCount ? ` (${num(q.ratingCount)} ulasan)` : ''}` : null))],
-          ['Terjual', cols.map((q) => (q.sold ? soldLabel(q.sold) : null))],
-          ['Stok', cols.map((q) => STOCK_TEXT[q.stock] || null)],
-          ...[...new Set(maps.flatMap((m) => [...m.keys()]))].map((k) => [k, maps.map((m) => m.get(k) ?? null)]),
+          ...[...new Set(maps.flatMap((m) => [...m.keys()]))].map((k) => [
+            (maps[0].get(k) || maps[1].get(k)).label,
+            maps.map((m) => (m.has(k) ? m.get(k).value : null)),
+          ]),
         ].filter(([, vals]) => vals.some((v) => v != null));
 
         box.innerHTML = `
@@ -2714,11 +3190,910 @@
 
 
   /* ------------------------------------------------------------------
-     Chat bubble: a WhatsApp shortcut pinned bottom-right on every page. Added here rather than
-     in each page's markup, so the number lives in one place. On a phone it rides above
-     whichever bar is pinned to the bottom (product dock, cart or checkout pay bar).
+     Masuk (/masuk/) and Daftar (/daftar/)
+     One card each. Errors show under a field once it has been left or the form sent, and clear
+     as soon as it is put right; a refused sign-in says so above the button. Both go on to
+     ?lanjut= (the page that sent the visitor here) or the account page.
+     ------------------------------------------------------------------ */
+  const fieldOf = (input) => input.closest('.pdp-field');
+  function setFieldError(input, text) {
+    fieldOf(input).classList.toggle('is-invalid', Boolean(text));
+    $('.pdp-hint', fieldOf(input)).textContent = text || input.dataset.hint || '';
+    input.setAttribute('aria-invalid', String(Boolean(text)));
+  }
+  // rules: { inputId: (value, input) => true | 'error text' }. Returns the inputs that failed.
+  function wireRules(form, rules) {
+    const inputs = Object.keys(rules).map((id) => $('#' + id, form));
+    const check = (input) => {
+      const ok = rules[input.id](input.type === 'checkbox' ? input.checked : input.value.trim(), input);
+      setFieldError(input, ok === true ? '' : ok);
+      return ok === true;
+    };
+    inputs.forEach((input) => {
+      // the resting hint ("Minimal 8 karakter"), put back once an error clears
+      input.dataset.hint = $('.pdp-hint', fieldOf(input)).textContent;
+      input.addEventListener('blur', () => { if (input.type !== 'checkbox' && input.value.trim()) check(input); });
+      input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => { if (fieldOf(input).classList.contains('is-invalid')) check(input); });
+    });
+    return () => {
+      const bad = inputs.filter((input) => !check(input));
+      if (bad.length) bad[0].focus();
+      return !bad.length;
+    };
+  }
+  const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) || 'Tulis email yang bener, contoh nama@gmail.com.';
+
+  // Show / hide a password: the eye swaps for a struck-out one while the text is visible.
+  $$('[data-pw-toggle]').forEach((btn) => {
+    const input = $('#' + btn.getAttribute('aria-controls'));
+    btn.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', String(show));
+      $('use', btn).setAttribute('href', show ? '#i-eye-off' : '#i-eye');
+    });
+  });
+
+  function busy(btn, on, text) {
+    btn.disabled = on;
+    btn.toggleAttribute('aria-busy', on);
+    const label = $('[data-btn-label]', btn);
+    if (on) { label.dataset.idle = label.textContent; label.textContent = text; } else if (label.dataset.idle) label.textContent = label.dataset.idle;
+  }
+
+  // Already signed in: Masuk and Daftar have nothing to offer, so they step aside.
+  if ($('[data-auth-page]') && account.current()) location.replace(nextUrl(ACCOUNT_PAGE));
+
+  // Carries ?lanjut= across the "Daftar" / "Masuk" switch links, so it survives the detour.
+  $$('[data-auth-switch]').forEach((a) => {
+    const next = new URLSearchParams(location.search).get('lanjut');
+    if (next) a.href += `?lanjut=${encodeURIComponent(next)}`;
+  });
+
+  const loginForm = $('[data-login-form]');
+  if (loginForm) {
+    const error = $('[data-auth-error]', loginForm);
+    const submit = $('[type="submit"]', loginForm);
+    const validate = wireRules(loginForm, {
+      'in-email': emailOk,
+      'in-password': (v) => v.length > 0 || 'Isi passwordnya.',
+    });
+    // Lupa password opens the reset dialog, carrying over the email if one is typed.
+    // TODO: send the code from the backend once it exists. Until then nothing leaves this
+    // browser and the dialog only says it was sent. The message never says whether the email
+    // has an account, so the form can't be used to find out who does.
+    const reset = $('[data-reset-dialog]');
+    const resetForm = $('[data-reset-form]', reset);
+    const resetEmail = $('#reset-email', resetForm);
+    const resetSubmit = $('[type="submit"]', resetForm);
+    const validateReset = wireRules(resetForm, { 'reset-email': emailOk });
+    const resetView = (sent) => {
+      $$('[data-reset-ask]', reset).forEach((el) => { el.hidden = sent; });
+      $$('[data-reset-sent]', reset).forEach((el) => { el.hidden = !sent; });
+    };
+    $('[data-forgot]', loginForm).addEventListener('click', () => {
+      resetView(false);
+      resetEmail.value = $('#in-email', loginForm).value.trim();
+      setFieldError(resetEmail, '');
+      lockScroll(true);
+      reset.showModal();
+    });
+    reset.addEventListener('close', () => lockScroll(false));
+    $$('[data-reset-close]', reset).forEach((b) => b.addEventListener('click', () => reset.close()));
+    // A press that starts and ends on the dimmed area outside the box closes it.
+    reset.addEventListener('click', (e) => { if (e.target === reset) reset.close(); });
+    resetForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!validateReset()) return;
+      busy(resetSubmit, true, 'Mengirim…');
+      await new Promise((r) => setTimeout(r, 600));
+      busy(resetSubmit, false);
+      $('[data-reset-to]', reset).textContent = resetEmail.value.trim();
+      resetView(true);
+      $('[data-reset-done]', reset).focus();
+    });
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.hidden = true;
+      if (!validate()) return;
+      busy(submit, true, 'Masuk…');
+      const ok = await account.signIn($('#in-email', loginForm).value, $('#in-password', loginForm).value);
+      if (ok) { location.replace(nextUrl(ACCOUNT_PAGE)); return; }
+      busy(submit, false);
+      error.hidden = false;
+      $('#in-password', loginForm).select();
+      $('#in-password', loginForm).focus();
+    });
+  }
+
+  const signupForm = $('[data-signup-form]');
+  if (signupForm) {
+    const error = $('[data-auth-error]', signupForm);
+    const submit = $('[type="submit"]', signupForm);
+    const validate = wireRules(signupForm, {
+      'up-name': (v) => v.length >= 2 || 'Isi nama kamu.',
+      'up-email': emailOk,
+      'up-password': (v) => v.length >= 8 || 'Password minimal 8 karakter.',
+      'up-password2': (v, input) => (v ? input.value === $('#up-password', signupForm).value || 'Passwordnya belum sama.' : 'Ulangi password kamu.'),
+    });
+    // A mismatch shown under the repeat clears once the first password is put right to match.
+    const password2 = $('#up-password2', signupForm);
+    $('#up-password', signupForm).addEventListener('input', (e) => {
+      if (fieldOf(password2).classList.contains('is-invalid') && password2.value === e.target.value) setFieldError(password2, '');
+    });
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.hidden = true;
+      if (!validate()) return;
+      busy(submit, true, 'Membuat akun…');
+      const result = await account.signUp({
+        name: $('#up-name', signupForm).value.trim().replace(/\s+/g, ' '),
+        email: $('#up-email', signupForm).value,
+        phone: '',
+        password: $('#up-password', signupForm).value,
+      });
+      if (result === 'ok') { location.replace(nextUrl(ACCOUNT_PAGE)); return; }
+      busy(submit, false);
+      error.hidden = false;
+      $('#up-email', signupForm).focus();
+    });
+  }
+
+  /* Scan QR (/scan/)
+     The camera opens only when asked (Buka Kamera, or a tap on the viewfinder), never with the
+     page, and reads the QR live: the browser's own BarcodeDetector where it has one (Chrome on
+     Android), else jsQR (assets/js/vendor), fetched only then (iPhone Safari). Without a camera,
+     or with it refused, a photo of the QR does the same. The QR on each pack holds a Google Drive
+     link (the pro player's sensi); once read, the visitor goes there. Only Google Drive and Docs
+     links are followed, so a stranger's QR can't send anyone elsewhere from this page. */
+  const scanPage = $('[data-scan-page]');
+  if (scanPage) {
+    const view = $('[data-scan-view]', scanPage);
+    const video = $('video', view);
+    const startBtn = $('[data-scan-start]', scanPage);
+    const openBtn = $('[data-scan-open]', scanPage);
+    const status = $('[data-scan-status]', scanPage);
+    const fileInput = $('[data-scan-file]', scanPage);
+    const DRIVE_HOSTS = ['drive.google.com', 'docs.google.com'];
+    let stream = null;
+    let timer = 0;
+    let decode = null;
+    let lastBad = '';
+
+    const say = (text, bad = false) => {
+      status.textContent = text;
+      status.classList.toggle('is-error', bad);
+    };
+
+    const loadJsQR = () => window.jsQR ? Promise.resolve() : new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = `${ASSETS}js/vendor/jsQR.min.js`;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    async function decoder() {
+      if (decode) return decode;
+      if ('BarcodeDetector' in window) {
+        try {
+          if ((await BarcodeDetector.getSupportedFormats()).includes('qr_code')) {
+            const d = new BarcodeDetector({ formats: ['qr_code'] });
+            decode = async (src) => (await d.detect(src))[0]?.rawValue || null;
+            return decode;
+          }
+        } catch { /* fall through to jsQR */ }
+      }
+      await loadJsQR();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      decode = async (src, thorough = false) => {
+        const w = src.videoWidth || src.naturalWidth || src.width;
+        const h = src.videoHeight || src.naturalHeight || src.height;
+        // a frame of at most 800px on its long side: enough for a pack held up close, and fast
+        const k = Math.min(1, 800 / Math.max(w, h));
+        canvas.width = Math.round(w * k); canvas.height = Math.round(h * k);
+        ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        return window.jsQR(data, canvas.width, canvas.height, { inversionAttempts: thorough ? 'attemptBoth' : 'dontInvert' })?.data || null;
+      };
+      return decode;
+    }
+
+    // the QR's Google Drive link, or null for anything else
+    function driveLink(raw) {
+      try {
+        const url = new URL(String(raw).trim());
+        return url.protocol === 'https:' && DRIVE_HOSTS.includes(url.hostname) ? url.href : null;
+      } catch { return null; }
+    }
+
+    function open(raw, { from = 'scan' } = {}) {
+      const link = driveLink(raw);
+      if (!link) {
+        if (from === 'scan') {
+          // keeps scanning; says so once per wrong QR rather than every frame
+          if (raw !== lastBad) { lastBad = raw; say('QR ini bukan QR Nexura. Cari QR di kemasan produknya.', true); }
+          return false;
+        }
+        say('QR di foto ini bukan QR Nexura.', true);
+        return false;
+      }
+      stop();
+      say('QR kebaca. Membuka sensi pro player…');
+      location.href = link;
+      return true;
+    }
+
+    async function tick() {
+      if (!stream) return;
+      if (video.readyState >= 2) {
+        try {
+          const raw = await decode(video);
+          if (raw && open(raw)) return;
+        } catch { /* a frame that can't be read; try the next */ }
+      }
+      timer = setTimeout(tick, 180);
+    }
+
+    async function start() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        say('Browser ini nggak bisa buka kamera. Upload foto QR-nya aja.', true);
+        return;
+      }
+      say('Membuka kamera…');
+      startBtn.disabled = openBtn.disabled = true;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      } catch (err) {
+        startBtn.disabled = openBtn.disabled = false;
+        // refused, the page stays quiet: the photo and Upload Foto QR are there, and a tap retries
+        if (err.name === 'NotAllowedError') say('');
+        else say('Kamera nggak bisa dibuka. Upload foto QR-nya aja.', true);
+        return;
+      }
+      video.srcObject = stream;
+      try { await video.play(); } catch { /* autoplay of a muted inline video is allowed */ }
+      view.classList.add('is-live');
+      startBtn.disabled = openBtn.disabled = false;
+      openBtn.hidden = true;
+      lastBad = '';
+      try { await decoder(); } catch { stop(); say('Pemindai QR gagal dimuat. Cek koneksi, lalu coba lagi.', true); return; }
+      say('Arahkan kamera ke QR di kemasan.');
+      tick();
+    }
+
+    function stop() {
+      clearTimeout(timer);
+      stream?.getTracks().forEach((t) => t.stop());
+      stream = null;
+      video.srcObject = null;
+      view.classList.remove('is-live');
+      openBtn.hidden = false;
+    }
+
+    // Nothing asks for the camera until the visitor does: Buka Kamera or a tap on the viewfinder.
+    // Once on, its light goes off while the page is hidden and comes back with it.
+    startBtn.addEventListener('click', start);
+    openBtn.addEventListener('click', start);
+    let wasLive = false;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { wasLive = !!stream; if (stream) { stop(); say(''); } }
+      else if (wasLive) start();
+    });
+    window.addEventListener('pagehide', stop);
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
+      fileInput.value = '';
+      if (!file) return;
+      stop();
+      say('Membaca foto…');
+      const url = URL.createObjectURL(file);
+      try {
+        const pic = new Image();
+        pic.src = url;
+        await pic.decode();
+        const read = await decoder();
+        const raw = await read(pic, true);
+        if (!raw) say('QR-nya nggak kebaca. Foto lebih dekat dan pastikan terang, ya.', true);
+        else open(raw, { from: 'file' });
+      } catch {
+        say('Fotonya nggak bisa dibaca. Coba foto lain.', true);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Akun (/akun/): Pesanan Saya, Pengaturan
+     Signed out, the page hands over to Masuk and comes back here after.
+     ------------------------------------------------------------------ */
+  const accPage = $('[data-account-page]');
+  if (accPage) {
+    const me = account.current();
+    if (!me) location.replace(loginUrl('akun/'));
+    else {
+      $('[data-acc-body]', accPage).hidden = false;
+      const renderHead = (user) => {
+        $$('[data-acc-initials]', accPage).forEach((el) => { el.innerHTML = avatarOf(user); });
+        $$('.menu-acc__avatar').forEach((el) => { el.innerHTML = avatarOf(user); });
+        // word by word, as the page-load pass does for every .section-title
+        const name = $('[data-acc-name]', accPage);
+        name.innerHTML = user.name.trim().split(/\s+/).map((w) => `<span class="section-title__w">${escapeHtml(w)}</span>`).join(' ');
+        name.classList.add('is-worded');
+        $('[data-acc-email]', accPage).textContent = user.email;
+        $('[data-acc-side-name]', accPage).textContent = user.name;
+        $('[data-acc-side-email]', accPage).textContent = user.email;
+      };
+      renderHead(me);
+
+      $$('[data-acc-logout]', accPage).forEach((b) => b.addEventListener('click', () => {
+        account.signOut();
+        location.replace(SITE);
+      }));
+
+      /* Tabs, as on the product page: arrows move and select, Home/End jump; the open tab is
+         kept in the address (#pesanan, #pengaturan) so a link can open any of them.
+         There is no tab rail on screen: with no tab in the address the page shows the overview
+         (data-view="home"), and a tab opens in its place under its title. From 900px the
+         sidebar's links move between them, the current one marked. */
+      const tabList = $('[role="tablist"]', accPage);
+      const tabs = $$('[role="tab"]', tabList);
+      const backTitle = $('[data-acc-back-title]', accPage);
+      const sideLinks = $$('[data-acc-side]', accPage);
+      const markSide = () => sideLinks.forEach((a) => {
+        if (a.dataset.accSide === accPage.dataset.view) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      });
+      function selectTab(tab, focus = false) {
+        tabs.forEach((t) => {
+          const on = t === tab;
+          t.setAttribute('aria-selected', String(on));
+          t.tabIndex = on ? 0 : -1;
+          $('#' + t.getAttribute('aria-controls')).hidden = !on;
+        });
+        accPage.dataset.view = tab.dataset.tab;
+        // word by word, as the page-load pass does for every .section-title
+        backTitle.innerHTML = tab.textContent.trim().split(/\s+/).map((w) => `<span class="section-title__w">${escapeHtml(w)}</span>`).join(' ');
+        backTitle.classList.add('is-worded');
+        markSide();
+        if (focus) tab.focus();
+        history.replaceState(null, '', `${location.pathname}${location.search}#${tab.dataset.tab}`);
+      }
+      function route() {
+        const was = accPage.dataset.view;
+        const tab = tabs.find((t) => `#${t.dataset.tab}` === location.hash);
+        if (tab) selectTab(tab);
+        else { accPage.dataset.view = 'home'; markSide(); }
+        if (was && was !== accPage.dataset.view) window.scrollTo(0, 0);
+      }
+      tabs.forEach((t) => t.addEventListener('click', () => selectTab(t)));
+      tabList.addEventListener('keydown', (e) => {
+        const i = tabs.indexOf(document.activeElement);
+        const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+        if (i < 0 || to === undefined) return;
+        e.preventDefault();
+        selectTab(tabs[(to + tabs.length) % tabs.length], true);
+      });
+      route();
+      // the menu drawer's Pesanan / Pengaturan links land here without a reload
+      window.addEventListener('hashchange', route);
+
+      /* Pesanan Saya. Paid orders from the order book, plus the one still waiting at the
+         payment page. TODO: the steps after payment are a stand-in worked out from the payment
+         time and the courier's estimate. Once the backend exists, take each order's status and
+         the courier's tracking (resi) from it instead. */
+      const DAY = 864e5;
+      const dateFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      const timeFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const STAGES = { unpaid: 'Belum Bayar', packed: 'Dikemas', shipped: 'Dikirim', done: 'Selesai', cancelled: 'Dibatalkan' };
+      function stepsOf(o) {
+        const [, late] = o.courierDays || [2, 3];
+        const steps = [
+          { label: 'Pesanan dibayar', at: o.paid },
+          { label: 'Sedang dikemas', at: o.paid + 60e3 },
+          { label: 'Diserahkan ke kurir', at: o.paid + DAY },
+          { label: 'Sampai tujuan', at: o.paid + (late + 1) * DAY },
+        ];
+        const now = Date.now();
+        steps.forEach((s) => { s.done = s.at <= now; });
+        return steps;
+      }
+      // Dibatalkan: an order marked so, or one left unpaid past its payment window. TODO: take
+      // cancellations (by the buyer, the shop or the gateway) from the backend once it exists.
+      function stageOf(o) {
+        if (o.cancelled || (!o.paid && o.expires && o.expires <= Date.now())) return 'cancelled';
+        if (!o.paid) return 'unpaid';
+        const done = stepsOf(o).filter((s) => s.done).length;
+        return done >= 4 ? 'done' : done >= 3 ? 'shipped' : 'packed';
+      }
+      const pending = storage.get(ORDER_KEY);
+      const orders = [
+        ...(pending && !pending.paid && pending.user === me.email && pending.items?.length ? [pending] : []),
+        ...orderBook.of(me.email),
+      ];
+      const list = $('[data-acc-orders]', accPage);
+      const empty = $('[data-acc-orders-empty]', accPage);
+      const filters = $('[data-acc-filter]', accPage);
+      let filter = 'all';
+
+      function orderHTML(o) {
+        const stage = stageOf(o);
+        const [first, ...rest] = o.items;
+        const steps = o.paid ? stepsOf(o) : [];
+        const current = steps.filter((s) => s.done).length - 1;
+        const count = o.items.reduce((n, it) => n + it.qty, 0);
+        // Number and status on top; the first product with its quantity and price; then the
+        // date beside the total, and the action under them.
+        return `
+          <li class="acc-order">
+            <div class="acc-order__head">
+              <span class="acc-order__id">${icon('package', 'icon icon--sm')}#${escapeHtml(o.id)}</span>
+              <span class="acc-status acc-status--${stage}">${STAGES[stage]}</span>
+            </div>
+            <div class="acc-order__item">
+              <span class="acc-order__thumb"><img src="${escapeHtml(first.image)}" alt="" width="160" height="160" loading="lazy" decoding="async"></span>
+              <div class="acc-order__text">
+                <p class="acc-order__name">${escapeHtml(first.name)}</p>
+                ${first.meta ? `<p class="acc-order__meta">${escapeHtml(first.meta)}</p>` : ''}
+                <p class="acc-order__qty">x${first.qty}</p>
+                <p class="acc-order__price price">${rupiah(first.price)}</p>
+                ${rest.length ? `<p class="acc-order__more">+${rest.length} produk lainnya</p>` : ''}
+              </div>
+            </div>
+            <div class="acc-order__foot">
+              <span class="acc-order__date">${icon('calendar', 'icon icon--sm')}${dateFmt.format(o.paid || o.created)}</span>
+              <p class="acc-order__total">Total ${count} produk: <strong class="price">${rupiah(o.totals.total)}</strong></p>
+            </div>
+            <div class="acc-order__act">
+              ${stage === 'cancelled'
+                ? `<a class="btn btn--secondary acc-order__btn" href="${byId[first.id] ? detailUrl(byId[first.id]) : PRODUCTS_PAGE}">Beli Lagi</a>`
+                : o.paid
+                ? `<button class="btn btn--secondary acc-order__btn" type="button" aria-expanded="false" aria-controls="track-${escapeHtml(o.id)}" data-acc-track>Lacak</button>`
+                : `<a class="btn btn--primary acc-order__btn" href="${PAY_PAGE}">Bayar Sekarang</a>`}
+            </div>
+            ${o.paid && stage !== 'cancelled' ? `
+            <div class="acc-track" id="track-${escapeHtml(o.id)}" hidden>
+              <ol class="acc-steps">
+                ${steps.map((s, i) => `
+                <li class="acc-step${s.done ? ' is-done' : ''}${i === current ? ' is-current' : ''}">
+                  <span class="acc-step__dot" aria-hidden="true">${s.done ? icon('check') : ''}</span>
+                  <span class="acc-step__label">${s.label}</span>
+                  <span class="acc-step__time">${s.done ? timeFmt.format(s.at) : `Estimasi ${dateFmt.format(s.at)}`}</span>
+                </li>`).join('')}
+              </ol>
+              <dl class="acc-track__rows">
+                <div><dt>Kurir</dt><dd>${escapeHtml(o.courier || '-')}</dd></div>
+                <div><dt>No. Resi</dt><dd class="is-pending">${stage === 'packed' ? 'Muncul setelah paket dikirim' : 'Menyusul'}</dd></div>
+                <div><dt>Dikirim ke</dt><dd>${escapeHtml(o.address.name)}<br>${escapeHtml(o.address.line)}</dd></div>
+              </dl>
+            </div>` : ''}
+          </li>`;
+      }
+      // The search matches the order number or any product name in the order, any case.
+      const searchBox = $('[data-acc-search]', accPage);
+      const queryOf = () => searchBox.value.trim().toLowerCase();
+      const matches = (o, q) => !q || o.id.toLowerCase().includes(q) || o.items.some((it) => it.name.toLowerCase().includes(q));
+      function renderOrders() {
+        const q = queryOf();
+        const shown = orders.filter((o) => (filter === 'all' || stageOf(o) === filter) && matches(o, q));
+        list.innerHTML = shown.map(orderHTML).join('');
+        empty.hidden = shown.length > 0;
+        if (shown.length) return;
+        // The shop button only for an account with no orders at all; otherwise the search or the
+        // status is what to change.
+        $('[data-acc-orders-empty-btn]', accPage).hidden = orders.length > 0;
+        $('[data-acc-orders-empty-title]', accPage).textContent = !orders.length ? 'Belum ada pesanan' : 'Pesanan nggak ketemu';
+        $('[data-acc-orders-empty-text]', accPage).textContent = !orders.length
+          ? 'Mulai belanja, riwayat pesananmu bakal muncul di sini.'
+          : q ? `Nggak ada pesanan${filter === 'all' ? '' : ` yang ${STAGES[filter].toLowerCase()}`} dengan “${searchBox.value.trim()}”.`
+          : `Belum ada pesanan yang ${STAGES[filter].toLowerCase()}.`;
+      }
+      searchBox.addEventListener('input', renderOrders);
+      filters.innerHTML = [['all', 'Semua'], ...Object.entries(STAGES)].map(([id, label]) => `
+        <button class="acc-stage" type="button" aria-pressed="${id === filter}" data-stage="${id}"><span class="acc-stage__label">${label}</span></button>`).join('');
+      function setFilter(stage) {
+        filter = stage;
+        $$('[data-stage]', filters).forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.stage === stage)));
+        renderOrders();
+      }
+      filters.addEventListener('click', (e) => {
+        const chip = e.target.closest('[data-stage]');
+        if (chip) setFilter(chip.dataset.stage);
+      });
+
+      /* The phone overview: counts by stage (each card opens Pesanan Saya on that stage) and the
+         latest order, or a nudge to start shopping. */
+      const countOf = (stage) => orders.filter((o) => stageOf(o) === stage).length;
+      // phones: a badge on the icon, shown only when the stage has orders; from 900px the
+      // count stands beside the icon, zero included
+      $$('[data-acc-n]', accPage).forEach((n) => {
+        const count = countOf(n.dataset.accN);
+        n.textContent = count > 99 && n.classList.contains('acc-stat__n') ? '99+' : count;
+        if (n.classList.contains('acc-stat__n')) n.hidden = !count;
+      });
+      $$('[data-acc-go]', accPage).forEach((a) => a.addEventListener('click', () => setFilter(a.dataset.accGo)));
+      const latest = orders[0];
+      $('[data-acc-recent]', accPage).innerHTML = latest ? (() => {
+        const stage = stageOf(latest);
+        const [first, ...rest] = latest.items;
+        return `
+          <a class="acc-recent" href="#pesanan" data-acc-go="all">
+            <span class="acc-order__thumb"><img src="${escapeHtml(first.image)}" alt="" width="160" height="160" loading="lazy" decoding="async"></span>
+            <span class="acc-recent__text">
+              <span class="acc-recent__top">
+                <span class="acc-recent__date">${dateFmt.format(latest.paid || latest.created)}</span>
+                <span class="acc-status acc-status--${stage}">${STAGES[stage]}</span>
+              </span>
+              <span class="acc-recent__name">${escapeHtml(first.name)}</span>
+              <span class="acc-recent__total">${rest.length ? `+${rest.length} produk lainnya · ` : ''}<strong class="price">${rupiah(latest.totals.total)}</strong></span>
+            </span>
+          </a>`;
+      })() : `
+          <div class="acc-recent acc-recent--empty">
+            <p class="acc-recent__title">Belum ada pesanan</p>
+            <p class="acc-recent__lead">Mulai belanja, riwayat pesananmu bakal muncul di sini.</p>
+            <a class="btn btn--primary acc-recent__btn" href="${PRODUCTS_PAGE}">Belanja Sekarang${icon('arrow-right', 'icon icon--sm')}</a>
+          </div>`;
+      $$('[data-acc-recent] [data-acc-go]', accPage).forEach((a) => a.addEventListener('click', () => setFilter('all')));
+      list.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-acc-track]');
+        if (!btn) return;
+        const open = btn.getAttribute('aria-expanded') !== 'true';
+        btn.setAttribute('aria-expanded', String(open));
+        btn.textContent = open ? 'Tutup' : 'Lacak';
+        $('#' + CSS.escape(btn.getAttribute('aria-controls'))).hidden = !open;
+      });
+      renderOrders();
+
+      /* Pengaturan › Profil: name, WhatsApp number and birthday can change; the email, the
+         sign-in, is changed under Keamanan (Ganti Email). */
+      const form = $('[data-acc-form]', accPage);
+      const status = $('[data-acc-form-status]', form);
+      $('#acc-name', form).value = me.name;
+      $('#acc-email', form).value = me.email;
+      $('#acc-phone', form).value = me.phone || '';
+      const birth = $('#acc-birth', form);
+      const today = new Date();
+      // today in the visitor's own time zone, as the date input reads it
+      birth.max = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      birth.value = me.birth || '';
+      const validate = wireRules(form, {
+        'acc-name': (v) => v.length >= 2 || 'Isi nama kamu.',
+        'acc-phone': (v) => !v || /^(\+?62|0)8\d{7,12}$/.test(v.replace(/[\s-]/g, '')) || 'Nomor WhatsApp diawali 08 atau +62, contoh 0812 3456 7890.',
+        'acc-birth': (v) => !v || (v >= birth.min && v <= birth.max) || 'Tanggal lahirnya belum bener.',
+      });
+      form.addEventListener('input', () => { status.hidden = true; });
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+        const user = account.update({
+          name: $('#acc-name', form).value.trim().replace(/\s+/g, ' '),
+          phone: $('#acc-phone', form).value.trim(),
+          birth: birth.value,
+        });
+        renderHead(user);
+        status.hidden = false;
+        announce('Profil disimpan.');
+      });
+
+      /* The camera on the Pengaturan avatar: a picked image is cut to a centred square, shrunk
+         to 256px and kept on the account as a JPEG data URL (TODO: upload it to the backend and
+         keep its URL instead, once there is one). */
+      const photoInput = $('[data-acc-photo]', accPage);
+      async function squareOf(file, size = 256) {
+        const bmp = await createImageBitmap(file);
+        const side = Math.min(bmp.width, bmp.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        canvas.getContext('2d').drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, size, size);
+        bmp.close?.();
+        return canvas.toDataURL('image/jpeg', 0.85);
+      }
+      photoInput.addEventListener('change', async () => {
+        const file = photoInput.files[0];
+        photoInput.value = '';
+        if (!file) return;
+        if (!file.type.startsWith('image/')) { announce('Pilih file gambar, ya.'); return; }
+        try {
+          const user = account.update({ photo: await squareOf(file) });
+          renderHead(user);
+          announce('Foto profil diganti.');
+        } catch {
+          announce('Fotonya nggak bisa dibuka. Coba gambar lain, ya.');
+        }
+      });
+
+      /* Pengaturan › Alamat Pengiriman: Atur opens Atur Alamat, the saved addresses as cards.
+         The first is Utama: it is the one checkout fills in and ships to (ADDR_KEY, which this
+         keeps in step), so checkout needs no list of its own. Kept in this browser until there
+         is a backend to hold them per account. */
+      const ADDR_KEY = 'nexura-address-v1';
+      const ADDRS_KEY = 'nexura-addresses-v1';
+      const addrDialog = $('[data-acc-addr-dialog]', accPage);
+      const addrForm = $('[data-acc-addr-form]', addrDialog);
+      const addrListEl = $('[data-acc-addr-list]', addrDialog);
+      const addrText = $('[data-acc-addr-text]', accPage);
+      const addrFields = { name: 'acc-addr-name', phone: 'acc-addr-phone', street: 'acc-addr-street', city: 'acc-addr-city', postal: 'acc-addr-postal' };
+      const sameAddr = (a, b) => Object.keys(addrFields).every((k) => (a[k] || '') === (b[k] || ''));
+      const addrId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      // An address checkout saved since (ADDR_KEY) replaces Utama, as the newer of the two.
+      function loadAddrs() {
+        let list = storage.get(ADDRS_KEY) || [];
+        const main = storage.get(ADDR_KEY);
+        if (main && !(list[0] && sameAddr(list[0], main))) list = [{ ...main, id: list[0]?.id || addrId() }, ...list.slice(list.length ? 1 : 0)];
+        return list;
+      }
+      function saveAddrs(list) {
+        storage.set(ADDRS_KEY, list);
+        if (list.length) { const { id, ...main } = list[0]; storage.set(ADDR_KEY, main); } else { try { localStorage.removeItem(ADDR_KEY); } catch { /* nothing to clear */ } }
+      }
+      let addrs = loadAddrs();
+      let editing = null;
+      const renderAddrs = () => {
+        const main = addrs[0];
+        addrText.textContent = main
+          ? `${main.name} · ${main.phone}\n${main.street}, ${main.city}, ${main.postal}${addrs.length > 1 ? `\n+${addrs.length - 1} alamat lain` : ''}`
+          : 'Belum ada alamat tersimpan.';
+        $('[data-acc-addr-empty]', addrDialog).hidden = addrs.length > 0;
+        addrListEl.innerHTML = addrs.map((a, i) => `
+          <li class="acc-addr-card${i ? '' : ' is-main'}">
+            <div class="acc-addr-card__text">
+              ${i ? '' : '<span class="acc-addr-card__tag">Utama</span>'}
+              <p class="acc-addr-card__name">${escapeHtml(a.name)}</p>
+              <p>${escapeHtml(a.street)}</p>
+              <p>${escapeHtml(a.city)} ${escapeHtml(a.postal)}</p>
+              <p>${escapeHtml(a.phone)}</p>
+              ${i ? `<button class="link-btn acc-addr-card__main" type="button" data-addr-main="${a.id}">Jadikan utama</button>` : ''}
+            </div>
+            <div class="acc-addr-card__actions">
+              <button class="icon-btn icon-btn--round" type="button" aria-label="Ubah alamat ${escapeHtml(a.name)}" data-addr-edit="${a.id}"><svg class="icon" aria-hidden="true"><use href="#i-square-pen"/></svg></button>
+              <button class="icon-btn icon-btn--round acc-addr-card__del" type="button" aria-label="Hapus alamat ${escapeHtml(a.name)}" data-addr-del="${a.id}"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+            </div>
+          </li>`).join('');
+      };
+      renderAddrs();
+      // 'list' (the cards) or 'form' (adding one, or editing the one in `editing`)
+      const addrView = (view) => {
+        $$('[data-acc-addr-view]', addrDialog).forEach((el) => { el.hidden = el.dataset.accAddrView !== view; });
+        $('[data-acc-addr-heading]', addrDialog).textContent = view === 'list' ? 'Atur Alamat' : editing ? 'Ubah Alamat' : 'Tambah Alamat';
+        if (view === 'form') {
+          const a = addrs.find((x) => x.id === editing) || {};
+          Object.entries(addrFields).forEach(([k, id]) => { $('#' + id, addrForm).value = a[k] || ''; });
+          $$('.pdp-input', addrForm).forEach((input) => setFieldError(input, ''));
+          $('#acc-addr-name', addrForm).focus();
+        }
+      };
+      $('#acc-addr-postal', addrForm).addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, ''); });
+      const validateAddr = wireRules(addrForm, {
+        'acc-addr-name': (v) => v.length >= 2 || 'Isi nama penerima.',
+        'acc-addr-phone': (v) => /^(\+?62|0)8\d{7,12}$/.test(v.replace(/[\s-]/g, '')) || 'Nomor WhatsApp diawali 08 atau +62, contoh 0812 3456 7890.',
+        'acc-addr-street': (v) => v.length >= 10 || 'Tulis alamat lengkap: jalan, nomor rumah, kelurahan, kecamatan.',
+        'acc-addr-city': (v) => !!v || 'Isi kota atau kabupaten.',
+        'acc-addr-postal': (v) => /^\d{5}$/.test(v) || 'Kode pos 5 angka.',
+      });
+      addrForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!validateAddr()) return;
+        const next = Object.fromEntries(Object.entries(addrFields).map(([k, id]) => [k, $('#' + id, addrForm).value.trim().replace(/\s+/g, ' ')]));
+        // the map pin checkout may have set stays with the address it was set on
+        addrs = editing
+          ? addrs.map((a) => (a.id === editing ? { ...a, ...next } : a))
+          : [...addrs, { ...next, id: addrId() }];
+        saveAddrs(addrs);
+        renderAddrs();
+        announce(editing ? 'Alamat diubah.' : 'Alamat ditambahkan.');
+        editing = null;
+        addrView('list');
+        $('[data-acc-addr-add]', addrDialog).focus();
+      });
+      addrListEl.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        if (b.dataset.addrEdit) { editing = b.dataset.addrEdit; addrView('form'); return; }
+        if (b.dataset.addrDel) {
+          addrs = addrs.filter((a) => a.id !== b.dataset.addrDel);
+          announce('Alamat dihapus.');
+        } else if (b.dataset.addrMain) {
+          const a = addrs.find((x) => x.id === b.dataset.addrMain);
+          addrs = [a, ...addrs.filter((x) => x !== a)];
+          announce('Alamat utama diganti.');
+        } else return;
+        saveAddrs(addrs);
+        renderAddrs();
+        $('[data-acc-addr-add]', addrDialog).focus();
+      });
+      $('[data-acc-addr-add]', addrDialog).addEventListener('click', () => { editing = null; addrView('form'); });
+      $('[data-acc-addr-cancel]', addrDialog).addEventListener('click', () => { editing = null; addrView('list'); $('[data-acc-addr-add]', addrDialog).focus(); });
+      $('[data-acc-addr-open]', accPage).addEventListener('click', () => {
+        addrs = loadAddrs();
+        renderAddrs();
+        editing = null;
+        addrView('list');
+        lockScroll(true);
+        addrDialog.showModal();
+      });
+      addrDialog.addEventListener('close', () => lockScroll(false));
+      $$('[data-acc-addr-close]', addrDialog).forEach((b) => b.addEventListener('click', () => addrDialog.close()));
+      addrDialog.addEventListener('click', (e) => { if (e.target === addrDialog) addrDialog.close(); });
+
+      /* Pengaturan › Keamanan: Ganti Password opens a dialog asking for the current password
+         and the new one twice. Lupa password swaps in Masuk's reset step for this account's
+         email. TODO: send the code from the backend once it exists; until then nothing leaves
+         this browser and the dialog only says it was sent. */
+      const pwDialog = $('[data-acc-pw-dialog]', accPage);
+      const pwForm = $('[data-acc-pw-form]', pwDialog);
+      const pwDate = $('[data-acc-pw-date]', accPage);
+      const pwStatus = $('[data-acc-pw-status]', accPage);
+      const pwDateFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      // never changed: the day the account was made
+      const showPwDate = (user) => { pwDate.textContent = pwDateFmt.format(user.pwChanged || user.created || Date.now()); };
+      showPwDate(me);
+      const pwSubmit = $('[type="submit"]', pwForm);
+      const pwNew = $('#acc-pw-new', pwForm);
+      const validatePw = wireRules(pwForm, {
+        'acc-pw-current': (v) => v.length > 0 || 'Isi password kamu sekarang.',
+        'acc-pw-new': (v) => v.length >= 8 || 'Password minimal 8 karakter.',
+        'acc-pw-new2': (v, input) => (v ? input.value === pwNew.value || 'Passwordnya belum sama.' : 'Ulangi password baru.'),
+      });
+      // 'change' (the three fields), 'forgot' (send a code) or 'sent'
+      const pwView = (view) => {
+        $$('[data-acc-pw-view]', pwDialog).forEach((el) => { el.hidden = el.dataset.accPwView !== view; });
+        $('[data-acc-pw-heading]', pwDialog).textContent = view === 'change' ? 'Ganti Password' : 'Reset Password';
+      };
+      $$('[data-acc-pw-email]', pwDialog).forEach((el) => { el.textContent = me.email; });
+      $('[data-acc-pw-open]', accPage).addEventListener('click', () => {
+        pwForm.reset();
+        $$('.pdp-input', pwForm).forEach((input) => setFieldError(input, ''));
+        pwView('change');
+        lockScroll(true);
+        pwDialog.showModal();
+      });
+      pwDialog.addEventListener('close', () => lockScroll(false));
+      $$('[data-acc-pw-close]', pwDialog).forEach((b) => b.addEventListener('click', () => pwDialog.close()));
+      // A press that starts and ends on the dimmed area outside the box closes it.
+      pwDialog.addEventListener('click', (e) => { if (e.target === pwDialog) pwDialog.close(); });
+      $('[data-acc-pw-forgot]', pwDialog).addEventListener('click', () => { pwView('forgot'); $('[data-acc-pw-send]', pwDialog).focus(); });
+      $('[data-acc-pw-back]', pwDialog).addEventListener('click', () => { pwView('change'); $('#acc-pw-current', pwForm).focus(); });
+      $('[data-acc-pw-send]', pwDialog).addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        busy(btn, true, 'Mengirim…');
+        await new Promise((r) => setTimeout(r, 600));
+        busy(btn, false);
+        pwView('sent');
+        $('[data-acc-pw-done]', pwDialog).focus();
+      });
+      pwForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validatePw()) return;
+        busy(pwSubmit, true, 'Menyimpan…');
+        const ok = await account.changePassword($('#acc-pw-current', pwForm).value, pwNew.value);
+        busy(pwSubmit, false);
+        if (!ok) {
+          setFieldError($('#acc-pw-current', pwForm), 'Passwordnya salah.');
+          $('#acc-pw-current', pwForm).focus();
+          return;
+        }
+        pwDialog.close();
+        showPwDate(account.current());
+        pwStatus.hidden = false;
+        announce('Password diganti.');
+        setTimeout(() => { pwStatus.hidden = true; }, 4000);
+      });
+
+      /* Pengaturan › Keamanan: Ganti Email asks for the current address (it must match the
+         account's) and the new one.
+         TODO: once the backend exists, send the code the dialog promises to the new address and
+         switch only after it is confirmed. */
+      const mailDialog = $('[data-acc-mail-dialog]', accPage);
+      const mailForm = $('[data-acc-mail-form]', mailDialog);
+      const mailNew = $('#acc-mail-new', mailForm);
+      const mailSubmit = $('[type="submit"]', mailForm);
+      const mailStatus = $('[data-acc-mail-status]', accPage);
+      const showMail = (email) => {
+        $('[data-acc-mail-now]', accPage).textContent = email;
+        $('#acc-email', form).value = email;
+        $('[data-acc-email]', accPage).textContent = email;
+        $$('[data-acc-pw-email]', pwDialog).forEach((el) => { el.textContent = email; });
+      };
+      showMail(me.email);
+      const validateMail = wireRules(mailForm, {
+        'acc-mail-now': (v) => (!v ? 'Isi email kamu sekarang.' : emailKey(v) === account.current().email || 'Email ini bukan email akunmu.'),
+        'acc-mail-new': emailOk,
+      });
+      $('[data-acc-mail-open]', accPage).addEventListener('click', () => {
+        mailForm.reset();
+        $$('.pdp-input', mailForm).forEach((input) => setFieldError(input, ''));
+        lockScroll(true);
+        mailDialog.showModal();
+      });
+      mailDialog.addEventListener('close', () => lockScroll(false));
+      $$('[data-acc-mail-close]', mailDialog).forEach((b) => b.addEventListener('click', () => mailDialog.close()));
+      mailDialog.addEventListener('click', (e) => { if (e.target === mailDialog) mailDialog.close(); });
+      mailForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validateMail()) return;
+        if (emailKey(mailNew.value) === account.current().email) {
+          setFieldError(mailNew, 'Ini email kamu sekarang.');
+          mailNew.focus();
+          return;
+        }
+        busy(mailSubmit, true, 'Menyimpan…');
+        await new Promise((r) => setTimeout(r, 400));
+        const result = account.changeEmail(mailNew.value);
+        busy(mailSubmit, false);
+        if (result === 'exists') { setFieldError(mailNew, 'Email ini udah dipakai akun lain.'); mailNew.focus(); return; }
+        mailDialog.close();
+        showMail(account.current().email);
+        mailStatus.hidden = false;
+        announce('Email diganti.');
+        setTimeout(() => { mailStatus.hidden = true; }, 4000);
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Tungsten is only present where its files are (see the @font-face in styles.css); when it
+     loads, the root is tagged so the lines set in it can size up to its narrower width. A face
+     that fails to load rejects, and the Anton sizes stay.
+     ------------------------------------------------------------------ */
+  if (document.fonts && $('.shop-banner__title')) {
+    document.fonts.load('1em "Tungsten"')
+      .then((faces) => { if (faces.length) document.documentElement.classList.add('has-tungsten'); })
+      .catch(() => {});
+  }
+
+  /* ------------------------------------------------------------------
+     Scan QR on a computer: the QR is on the pack and the camera that reads it is the phone's,
+     so on a mouse-and-keyboard device (hover + fine pointer, not just a narrow window) any
+     link to the scan page opens a note to use it on a phone instead.
      ------------------------------------------------------------------ */
   {
+    const SCAN_PAGE = `${SITE}scan/`;
+    const computer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    let note = null;
+
+    const build = () => {
+      note = document.createElement('dialog');
+      note.className = 'co-dialog scan-note';
+      note.setAttribute('aria-labelledby', 'scan-note-title');
+      note.setAttribute('aria-describedby', 'scan-note-text');
+      note.innerHTML = `
+        <div class="co-dialog__head">
+          <h2 class="co-dialog__title" id="scan-note-title">Akses fitur ini di HP kamu</h2>
+          <button class="icon-btn" type="button" data-scan-note-close aria-label="Tutup">${icon('x')}</button>
+        </div>
+        <div class="scan-note__body">
+          <span class="scan-note__icon">${icon('smartphone')}</span>
+          <p id="scan-note-text">Scan QR di kemasan produk Nexura pakai HP kamu buat dapetin <strong>sensi pro player</strong>.</p>
+        </div>`;
+      document.body.appendChild(note);
+      note.addEventListener('click', (e) => {
+        if (e.target === note || e.target.closest('[data-scan-note-close]')) note.close();
+      });
+      note.addEventListener('close', () => lockScroll(false));
+    };
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href]');
+      if (!a || !computer.matches || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const url = new URL(a.href, location.href);
+      if (url.origin + url.pathname !== SCAN_PAGE) return;
+      e.preventDefault();
+      if (!note) build();
+      lockScroll(true);
+      note.showModal();
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Chat bubble: a WhatsApp shortcut pinned bottom-right on every page but Masuk and Daftar,
+     which keep to their form, Akun, and Scan QR, which is the camera alone. Added here rather
+     than in each page's markup, so the number lives in one place. On a phone it rides above whichever bar is pinned to the bottom (product dock,
+     cart or checkout pay bar).
+     ------------------------------------------------------------------ */
+  if (!$('[data-auth-page], [data-account-page], [data-scan-page]')) {
     const bubble = document.createElement('a');
     bubble.className = 'chat-bubble';
     bubble.href = 'https://wa.me/6212345678901?text=' + encodeURIComponent('Halo Nexura, saya mau tanya.');
@@ -2726,12 +4101,12 @@
     bubble.rel = 'noopener';
     bubble.setAttribute('aria-label', 'Chat dengan Nexura di WhatsApp');
     bubble.innerHTML = `<svg class="chat-bubble__icon" viewBox="0 0 32 32" aria-hidden="true">
-        <path class="chat-bubble__shape" d="M16 5C9 5 4 9.6 4 15.2c0 3.1 1.5 5.8 4 7.7-.2 1.6-.9 3.2-2.1 4.4-.3.3-.1.8.3.8 2.5 0 4.6-.9 6.1-2.2 1.2.3 2.4.5 3.7.5 7 0 12-4.6 12-10.2S23 5 16 5Z"/>
-        <circle cx="10.6" cy="15.4" r="1.9"/><circle cx="16" cy="15.4" r="1.9"/><circle cx="21.4" cy="15.4" r="1.9"/>
+        <path class="chat-bubble__shape" d="M8 5H24L28 9V19L24 23H13.5L7 28.5V23L4 20V9Z"/>
+        <path d="M10.6 12l2 2-2 2-2-2ZM16 12l2 2-2 2-2-2ZM21.4 12l2 2-2 2-2-2Z"/>
       </svg>`;
     document.body.appendChild(bubble);
 
-    const docks = $$('.pdp-dock, .cart-pay, .co-paybar');
+    const docks = $$('.pdp-dock, .cart-pay, .co-paybar, .pay-dock');
     if (docks.length) {
       const lift = () => {
         const h = docks.reduce((max, d) => {

@@ -3,6 +3,29 @@
    Mobile first. Breakpoints: 600px (tablet), 1024px (desktop).
    ========================================================================== */
 
+/* Draco, the section headline face (this branch's option). block: it sets wider than Inter. */
+@font-face {
+  font-family: "Draco";
+  src: url("../fonts/draco.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+/* Tungsten Bold (Hoefler&Co, commercial: needs a licence), for the condensed display lines
+   that were Anton: the category card names and the products banner title. The family sits in
+   assets/img/Tungsten-Font, which is git-ignored until it is licensed, so the published site
+   falls back to Anton (loaded from Google Fonts) and only local copies show Tungsten. */
+@font-face {
+  font-family: "Tungsten";
+  src: local("Tungsten Bold"), local("Tungsten-Bold"),
+       url("../img/Tungsten-Font/WOFF2/Tungsten-Bold.woff2") format("woff2"),
+       url("../img/Tungsten-Font/OTF/Tungsten-Bold.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Matched to the campaign mood board (Oct 2026): lifted plum surfaces around hue 278
      (poster grounds #1C0B27 to #2A0F3A) and softer, less neon violets (#7E40A2 to #9B53C4)
@@ -23,6 +46,9 @@
   --violet-600: #7C3AB4; /* primary */
   --violet-500: #8E48C4; /* primary hover, badge */
   --violet-400: #DB4DFF; /* focus, active dots — never under small text */
+  /* The divider lines' gradient: the primary button's own pair (Beli Sekarang). */
+  --line-from: #6A2E9E;
+  --line-to: #B33AC6;
   --lilac-300: #E4B6F0;  /* small labels */
   --lilac-200: #F7D6FF;  /* on the promo band, where lilac-300 drops under 4.5:1 */
 
@@ -69,11 +95,11 @@
      title is separated from the section before it and stays close to its own content. */
   --head-y: 16px;
   --container: 1200px;
-  --header-h: 56px;
+  --header-h: 65px;   /* gamesir.com's phone header: a 64px bar over its 1px rule (ours sits inside) */
 
   --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
+  --r-md: 0;
+  --r-lg: 0;
 
   --ease: cubic-bezier(.2, .8, .2, 1);
   --ease-nav: cubic-bezier(.65, .05, .36, 1);
@@ -151,14 +177,14 @@ s { text-decoration-thickness: 1px; }
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
   min-height: var(--btn-h); padding: 0 var(--s-5);
   border-radius: var(--r-sm); border: 1px solid transparent; background-clip: padding-box;
-  font-size: .9375rem; font-weight: 600; line-height: 1.2; white-space: nowrap;
+  /* one size and weight for every button on the site; modifiers change only height and padding */
+  font-size: .9375rem; font-weight: 700; line-height: 1.2; white-space: nowrap;
   transition: background-color var(--t-fast) ease-out, border-color var(--t-fast) ease-out,
               color var(--t-fast) ease-out, transform var(--t-fast) ease-out,
               box-shadow var(--t-fast) ease-out, translate var(--t-fast) ease-out;
   -webkit-tap-highlight-color: transparent;
 }
 .btn:active:not(:disabled) { transform: scale(.98); }
-.btn--lg { --btn-h: 52px; padding: 0 var(--s-6); font-size: 1rem; }
 .btn--block { width: 100%; }
 
 /* The purple-to-pink sweep of the selected category chip and the card tags, so every brand
@@ -202,6 +228,9 @@ s { text-decoration-thickness: 1px; }
   transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
 }
 .icon-btn:hover { background: var(--ink-800); }
+/* The navbar's gradient icons are drawn a size up so they hold their own on the bar;
+   the 44px tap target is unchanged. */
+.nav__burger .icon, .nav__scan .icon, .nav__search-toggle .icon, .nav__account .icon, .nav__cart .icon { width: 30px; height: 30px; }
 /* No fill at rest; the circle only shows on hover. */
 .icon-btn--round { border-radius: 50%; }
 .icon-btn--round:hover { background: var(--ink-800); }
@@ -218,7 +247,7 @@ s { text-decoration-thickness: 1px; }
    pair rather than the selected fill, so a 1px line still reads against the dark bar. */
 .site-header::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
-  pointer-events: none; background: linear-gradient(90deg, #8E48C4, #DB4DFF);
+  pointer-events: none; background: linear-gradient(90deg, var(--line-from), var(--line-to));
 }
 /* Retracts on the way down, returns on the way up, so the bar never covers the art. */
 .site-header.is-hidden { transform: translateY(-100%); }
@@ -234,6 +263,18 @@ s { text-decoration-thickness: 1px; }
 .nav__actions { justify-self: end; display: flex; align-items: center; gap: 0; }
 /* Phones keep search + cart only; account lives in the drawer, where there is room to label it. */
 .nav__account { display: none; }
+/* Scan QR is for the wide bar, the icon alone (its name kept for screen readers) and a
+   divider after it that sets it apart from search, account and cart; under 768px it is a
+   button in the menu drawer. */
+.nav__scan { display: none; }
+@media (min-width: 768px) {
+  .nav__scan { display: inline-grid; margin-right: var(--s-3); }
+  .nav__scan::after {
+    content: ""; position: absolute; right: calc((var(--s-3) + var(--s-2)) / -2); top: 50%; translate: 0 -50%;
+    width: 1px; height: 24px; background: var(--line-strong); pointer-events: none;
+  }
+  .nav__scan-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 
 .cart-badge {
   position: absolute; top: 5px; right: 3px;
@@ -257,10 +298,8 @@ s { text-decoration-thickness: 1px; }
   border: 1px solid var(--line-strong); border-radius: var(--r-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, .55);
 }
-.search-dialog[open] { display: flex; flex-direction: column; animation: search-in 220ms var(--ease-nav, ease-out); }
+.search-dialog[open] { display: flex; flex-direction: column; }
 .search-dialog::backdrop { background: rgba(10, 4, 15, .7); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
-@keyframes search-in { from { opacity: 0; translate: 0 -12px; } }
-@media (prefers-reduced-motion: reduce) { .search-dialog[open] { animation: none; } }
 /* The page underneath stays put while the card is open. */
 html:has(.search-dialog[open]) { overflow: hidden; }
 @media (min-width: 768px) { .search-dialog { margin-top: 40px; } }
@@ -331,7 +370,7 @@ html:has(.search-dialog[open]) { overflow: hidden; }
   .nav__link {
     position: relative; display: inline-flex; align-items: center; gap: var(--s-1);
     height: var(--header-h); padding: 0 var(--s-3); white-space: nowrap;
-    font-size: .9375rem; font-weight: 500; color: var(--text-soft);
+    font-size: .9375rem; font-weight: 500; color: var(--text);
     transition: color var(--t-fast) ease-out;
   }
   /* Rule sits just under the text rather than at the foot of the bar, and only on hover —
@@ -425,6 +464,76 @@ html:has(.search-dialog[open]) { overflow: hidden; }
    dots (z-index 2), and the inset outline keeps the focus ring inside the slide's edges. */
 .hero__slide-link { position: absolute; inset: 0; z-index: 1; }
 .hero__slide-link:focus-visible { outline-offset: -6px; }
+/* The "Lihat Produk" buttons. On a phone, all three slides, at the site's standard button size,
+   centred in the empty band under the headline of their portrait art: the art is shown whole at
+   the hero's full width and 1499/1049 of it tall, so a spot y% down it is y x 1.429cqw down
+   (--cta-m-y). Slide 1: between "Gaming Gear" and the products, 31.4% down, so 44.9cqw.
+   Slide 2: between "FROSTSPIRE" and the cap, 29% down, so 41.4cqw.
+   Slide 3: between "Sekarang" and the fans, 38.4% down, so 54.8cqw.
+   The closing CTA banner borrows the same button on phones: it is not in the hero (no cqw
+   there), but its box is its art's own shape, so the spot is a share of its height, 87% down,
+   between "Dapatkan sensi pro player" and the foot (from 768 up, under it on the wide art; see
+   the end of this block). From 768 up, all three slides too, where the wide art shows at full width: a
+   spot on it is a fixed share of the width (cqw), --cta-x across and --cta-y down a 16:9
+   picture (56.25cqw tall). When the fold caps the box, the art loses max(0, 56.25cqw - box
+   height) and the slide's object-position Y (--cta-trim) says how much of that comes off the
+   top, so the button moves up by as much.
+   Slide 1: centred in the empty band under "Gaming Gear", 57% down, art pinned to the top.
+   Slide 2: centred under "FROSTSPIRE" (65.6% across, 68% down, a clear gap under the word), art
+   trimmed 75% from the top.
+   Slide 3: centred under "Sekarang" (69.8% across, 80% down), art pinned to the top.
+   600-767 shows the wide art too small for one, so none there. */
+.hero__cta {
+  display: none; position: absolute; z-index: 2; translate: -50% -50%;
+  /* the primary button's 120deg gradient, in light pink to white, with dark text since white
+     text on it would be under 2:1 */
+  background: linear-gradient(120deg, #FF89FD, #FFFFFF); color: var(--ink-950); border: 0;
+}
+/* The primary button's hover and press, in this pink: a 1px lift with a drop shadow and a pink
+   glow on hover, a deeper pink and an inset shadow on press. The lift stays on top of the
+   centring translate. */
+.hero__cta:hover {
+  translate: -50% calc(-50% - 1px);
+  box-shadow: 0 12px 26px -10px rgba(0, 0, 0, .6), 0 0 32px -4px rgba(255, 137, 253, .85);
+}
+.hero__cta:active {
+  translate: -50% -50%; background: linear-gradient(120deg, #E46FE2, #F2D9F2);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .3);
+}
+.hero__slide { --cta-x: 50%; --cta-y: 32cqw; --cta-trim: 0; --cta-m-y: 44.9cqw; --zoom: 1; --zoom-x: 50%; }
+.hero__slide--frostspire { --cta-x: 65.6%; --cta-y: 38.5cqw; --cta-trim: .75; --cta-m-y: 41.4cqw; }
+.hero__slide--iceglow { --cta-x: 69.8%; --cta-y: 45cqw; --cta-m-y: 54.8cqw; }
+.cta-banner { --cta-m-y: 87%; }
+/* Wide art cropped off the top: zoomed (--zoom) about a point on its bottom edge (--zoom-x
+   across), so the foot stays put, the top is cut and everything rises toward it. Slide 1 by 6%
+   about the middle. IceGlow by 16% about a point near its right edge (90%), so the end of
+   "ICEGLOW" (95.7% across) keeps a margin, landing at 96.6%, and the extra width all comes off
+   the fans' side. */
+.hero__slide:first-child { --zoom: 1.06; }
+.hero__slide--iceglow { --zoom: 1.16; --zoom-x: 90%; }
+@media (min-width: 600px) {
+  .hero__media img { scale: var(--zoom); transform-origin: var(--zoom-x) 100%; }
+}
+@media (max-width: 599px) {
+  .hero__cta { display: inline-flex; left: 50%; top: var(--cta-m-y); }
+}
+/* The button rides the zoom: a point (x, y) on art in a box Hb tall lands at
+   zoom-x + zoom x (x - zoom-x) across and Hb - zoom x (Hb - y) down, Hb being the art's
+   56.25cqw or less where the fold caps it (y already moved up by any top trim). */
+@media (min-width: 768px) {
+  .hero__slide { --hb: min(56.25cqw, calc(100svh - var(--header-h))); }
+  .hero__cta {
+    display: inline-flex;
+    left: calc(var(--zoom-x) + var(--zoom) * (var(--cta-x) - var(--zoom-x)));
+    top: calc(var(--hb) - var(--zoom) * (var(--hb) - (var(--cta-y) - var(--cta-trim) * max(0px, 56.25cqw - (100svh - var(--header-h))))));
+    --btn-h: clamp(52px, 4.6cqw, 76px); padding-inline: clamp(28px, 3.2cqw, 52px);
+    font-size: clamp(1.0625rem, 1.45cqw, 1.5rem);
+  }
+  /* The closing CTA's wide art: the button centred under "Dapatkan sensi pro player", 73.75%
+     across and 87% down. The art is pinned to its foot (a short screen loses its top), so the
+     spot is measured up from the bottom: 13.2% of the art's 56.25cqw height, 7.43cqw. */
+  .cta-banner .hero__cta { left: 73.75%; top: calc(100% - 7.43cqw); }
+}
 
 .hero__arrow {
   display: none; position: absolute; z-index: 2;
@@ -551,14 +660,30 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 
 @media (min-width: 600px) and (max-width: 767px) {
-  .hero__title { font-size: 2.875rem; }
-  /* half the 2/1 media's own height, so they centre on the picture rather than the whole banner */
-  .hero__arrow { display: grid; top: 25cqw; translate: 0 -50%; }
+  /* Between the phone cut and desktop, the wide banner shown whole at its own 16/9: at these
+     widths it is only 340-430px tall, so nothing painted on it (headline, logo, quote) is cropped,
+     and the live heading drops out of view as on phones and desktop. */
+  .hero__slide { background: var(--ink-950); }
+  .hero__media { aspect-ratio: 16 / 9; }
+  .hero__media img { position: static; width: 100%; left: auto; object-fit: cover; object-position: 50% 50%; }
+  .hero__media::after { display: none; }
+  .hero__text--on-art > .hero__title {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .hero__content { padding: 0; height: 0; }
+  .hero__dots { top: auto; bottom: 16px; }
+  .hero__arrow { display: grid; top: 50%; translate: 0 -50%; }
 }
 
 @media (min-width: 768px) {
-  /* Ends at the fold: on a screen shorter than 16/9 allows, cover trims the art top and bottom. */
+  /* Ends at the fold. On a screen shorter than 16/9 allows, the art keeps the full width and is
+     pinned to the top, so only its bottom (the product floor) is trimmed, never the headline. */
   .hero__media { aspect-ratio: 16 / 9; max-height: calc(100svh - var(--header-h)); }
+  .hero__media img { object-position: 50% 0%; }
+  /* FrostSpire's quote bubble sits low (to ~93% down its art), so this slide trims mostly off the
+     top instead: at 75% a 1280 x 650 screen still shows the bubble whole; the logo goes first. */
+  .hero__slide--frostspire .hero__media img { object-position: 50% 75%; }
   .hero__media::after { display: none; }
   /* Copy column. --hero-left is the indent; --hero-copy-end is a hard right boundary the text
      can never cross. Slide 1's first feature callout starts about 45% across and slide 2's
@@ -600,6 +725,82 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 /* ---------- Sections ---------- */
 .section { padding-block: var(--section-y) calc(var(--section-y) + var(--head-y)); }
+/* Produk Andalan and Teknologi Ter-Nyata: a slow starfield behind the content. Two repeating tiles of dots, a far one of
+   small faint stars and a near one of bigger brighter ones, each drifting up by exactly one tile
+   per cycle so the loop is seamless; the near layer moves faster, which reads as depth, and
+   twinkles. Moved with transform, not background-position, so it never repaints. Still for
+   reduced motion, paused while an overlay is open. */
+.section--stars { position: relative; isolation: isolate; overflow: clip; }
+.section--stars::before, .section--stars::after {
+  content: ""; position: absolute; inset: 0 0 auto; z-index: -1; pointer-events: none;
+  background-repeat: repeat;
+}
+.section--stars::before {
+  height: calc(100% + 200px); background-size: 200px 200px;
+  background-image:
+    radial-gradient(1.3px 1.3px at 82px 38px, rgba(255, 255, 255, 0.36), transparent),
+    radial-gradient(1.1px 1.1px at 93px 149px, rgba(255, 255, 255, 0.48), transparent),
+    radial-gradient(1.3px 1.3px at 22px 111px, rgba(228, 182, 240, 0.41), transparent),
+    radial-gradient(1.1px 1.1px at 15px 144px, rgba(255, 255, 255, 0.41), transparent),
+    radial-gradient(1.3px 1.3px at 147px 149px, rgba(255, 255, 255, 0.59), transparent),
+    radial-gradient(1.3px 1.3px at 142px 34px, rgba(255, 255, 255, 0.39), transparent),
+    radial-gradient(1.4px 1.4px at 146px 78px, rgba(255, 255, 255, 0.52), transparent),
+    radial-gradient(1.4px 1.4px at 148px 146px, rgba(255, 255, 255, 0.44), transparent),
+    radial-gradient(1.4px 1.4px at 144px 15px, rgba(228, 182, 240, 0.47), transparent),
+    radial-gradient(1.3px 1.3px at 198px 80px, rgba(228, 182, 240, 0.58), transparent),
+    radial-gradient(1.4px 1.4px at 76px 63px, rgba(255, 255, 255, 0.52), transparent),
+    radial-gradient(1.3px 1.3px at 20px 147px, rgba(228, 182, 240, 0.47), transparent),
+    radial-gradient(1.3px 1.3px at 186px 114px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.1px 1.1px at 131px 107px, rgba(228, 182, 240, 0.44), transparent);
+  animation: stars-far 90s linear infinite;
+}
+.section--stars::after {
+  height: calc(100% + 360px); background-size: 360px 360px;
+  background-image:
+    radial-gradient(2.5px 2.5px at 215px 20px, rgba(219, 77, 255, 0.72), transparent),
+    radial-gradient(2.1px 2.1px at 293px 160px, rgba(247, 214, 255, 0.79), transparent),
+    radial-gradient(1.8px 1.8px at 296px 233px, rgba(247, 214, 255, 0.72), transparent),
+    radial-gradient(2.2px 2.2px at 242px 356px, rgba(219, 77, 255, 0.72), transparent),
+    radial-gradient(2.2px 2.2px at 158px 331px, rgba(247, 214, 255, 0.87), transparent),
+    radial-gradient(2.4px 2.4px at 145px 197px, rgba(247, 214, 255, 0.79), transparent),
+    radial-gradient(2.2px 2.2px at 181px 86px, rgba(255, 255, 255, 0.82), transparent),
+    radial-gradient(2.4px 2.4px at 147px 66px, rgba(247, 214, 255, 0.8), transparent),
+    radial-gradient(2.1px 2.1px at 41px 85px, rgba(255, 255, 255, 0.84), transparent);
+  animation: stars-near 70s linear infinite, stars-twinkle 4s ease-in-out infinite alternate;
+}
+@keyframes stars-far { to { transform: translateY(-200px); } }
+@keyframes stars-near { to { transform: translateY(-360px); } }
+@keyframes stars-twinkle { from { opacity: .55; } to { opacity: 1; } }
+/* Shooting stars: three streaks on one 9s cycle, a third of it apart, so one crosses every 3s,
+   each from its own spot. A streak is a line bright at its head and fading to its tail, tilted
+   down to the right; it flares in, flies about 520px along its own length and fades, all in the
+   first ~10% of its cycle, then waits off. */
+.shooting-stars { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.shooting-stars span {
+  position: absolute; top: var(--y); left: var(--x);
+  width: 130px; height: 2px; border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(247, 214, 255, .5) 70%, #fff);
+  filter: drop-shadow(0 0 6px rgba(219, 77, 255, .9));
+  opacity: 0; transform: rotate(24deg) translateX(0);
+  animation: shooting-star 9s ease-out infinite;
+  animation-delay: var(--d);
+}
+.shooting-stars span:nth-child(1) { --x: 8%; --y: 6%; --d: .6s; }
+.shooting-stars span:nth-child(2) { --x: 46%; --y: 2%; --d: 3.6s; }
+.shooting-stars span:nth-child(3) { --x: 24%; --y: 34%; --d: 6.6s; }
+@keyframes shooting-star {
+  0% { opacity: 0; transform: rotate(24deg) translateX(0); }
+  1.5% { opacity: 1; }
+  8% { opacity: 0; transform: rotate(24deg) translateX(520px); }
+  100% { opacity: 0; transform: rotate(24deg) translateX(520px); }
+}
+body.is-overlay-open .section--stars::before,
+body.is-overlay-open .section--stars::after,
+body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .section--stars::before, .section--stars::after { animation: none; }
+  .shooting-stars { display: none; }
+}
 /* The home page's vertical rhythm, after gamesir.com's: each section pads 56/64/96 top and
    bottom, and its headline adds 16/24/32 more above itself, so the air sits between sections.
    Under the heading block it stays tight, 24/32/48, so a headline holds onto what it
@@ -631,8 +832,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 #streamers, .section--textured {
   position: relative; isolation: isolate;
   /* the navbar underline's purple-to-pink, drawn by the borders themselves (no radius here) */
-  border-block: 1px solid #8E48C4;
-  border-image: linear-gradient(90deg, #8E48C4, #DB4DFF) 1;
+  border-block: 1px solid var(--line-from);
+  border-image: linear-gradient(90deg, var(--line-from), var(--line-to)) 1;
 }
 #streamers::before, .section--textured::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -640,18 +841,35 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
     linear-gradient(rgba(12, 3, 16, .42), rgba(12, 3, 16, .42)),
     url("../img/bg-streamers.jpg") center / 100% 100% no-repeat;
 }
+/* Apa Kata Streamers has its own art under the same dark wash: a neon-grid tunnel around a
+   starfield, wide (16:9) from 600 up and portrait (9:16) on phones, each covering the section
+   rather than stretched. The striped texture stays on the other .section--textured pages. */
+#streamers::before {
+  background:
+    linear-gradient(rgba(12, 3, 16, .42), rgba(12, 3, 16, .42)),
+    url("../img/bg-streamers-d.jpg?v=2") center / cover no-repeat;
+}
+@media (max-width: 599px) {
+  #streamers::before {
+    background:
+      linear-gradient(rgba(12, 3, 16, .42), rgba(12, 3, 16, .42)),
+      url("../img/bg-streamers-m.jpg?v=3") center / cover no-repeat;
+  }
+}
 /* The extra air goes above the headline only; below it, margin-bottom alone sets the gap, so the
    title sits closer to the content it introduces than to the section that came before. */
 .section-head { text-align: center; padding-top: var(--head-y); margin-bottom: calc((var(--section-y) + var(--head-y)) / 2); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); justify-items: center; }
 /* Separates this sub-head from the video above it the way --section-y separates whole sections;
    .section-head's own padding-top then adds the headline's air on top of that. */
 .section-head--sub { margin-top: var(--s-5); }
-/* Every section headline is Anton (Google Fonts, one weight, so 400 is set explicitly): tall
-   and condensed as drawn, so it is set as is. --squeeze was the old headline face's width
-   squeeze; it stays at 1 because other titles still size their boxes from it. */
+/* Every section headline is Draco, one weight (400 set explicitly). Drawn wide and flat, so
+   it is squeezed to 63% width; the box is allowed 1/.63 of the column so it wraps where the
+   squeezed text fills it. Drawn leaning ~29deg too, so skewX stands it upright (main.js moves
+   the skew onto each word, so wrapped lines don't drift; see .is-worded below). */
 .section-title {
-  --squeeze: 1;
-  font-family: "Anton", var(--font);
+  --squeeze: .63;
+  --unslant: 28.7deg;
+  font-family: "Draco", var(--font);
   font-weight: 400;
   text-transform: uppercase; letter-spacing: .01em;
   font-size: clamp(1.25rem, .55rem + 3vw, 2.5rem);
@@ -659,12 +877,14 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   /* trimmed to the cap height, so the space above a headline measures to the letters */
   text-box-trim: trim-start; text-box-edge: cap alphabetic;
   text-wrap: balance;
-  width: max-content; max-width: 100%;
+  width: max-content; max-width: calc(100% / var(--squeeze));
+  transform: scaleX(var(--squeeze)) skewX(var(--unslant));
 }
-/* A section headline's box also runs past Anton's baseline, so the air under it read larger
-   than it was set. Taking that back out lets the gap under it measure to the type. A margin
-   rather than text-box-trim's end edge: Safari applies the trim late, so the gap would jump. */
-.section-head .section-title:not(.section-title--sub) { margin-bottom: -.133em; }
+.section-title.is-worded { transform: scaleX(var(--squeeze)); }
+.section-title__w { display: inline-block; transform: skewX(var(--unslant)); }
+/* The box runs .287em past Draco's baseline; taken back out so the gap under it measures to
+   the type. */
+.section-head .section-title:not(.section-title--sub) { margin-bottom: -.287em; }
 /* A heading inside a section, under its headline ("Clip dari Live Mereka" under Apa Kata
    Streamers): the same face, at about 60% of the headline's size, so it reads as a part of the
    section rather than a second one starting. */
@@ -675,8 +895,8 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
    the column (about 40px at 390): as big as the longest headline, "Apa Kata Streamers" at
    8.2em wide, can go and still hold one line. */
 .section-head { container-type: inline-size; }
-.section-head .section-title { font-size: clamp(2rem, 6.8cqi, 5.125rem); line-height: 1.05; }
-@media (max-width: 599px) { .section-head .section-title { font-size: 11.8cqi; } }
+.section-head .section-title { font-size: clamp(1.5rem, 4.4cqi, 3.25rem); line-height: 1.05; }
+@media (max-width: 599px) { .section-head .section-title { font-size: 6.4cqi; } }
 /* the home sub-head ("Clip dari Live Mereka"): small, a quiet label between the video and the
    clips rather than a second headline. On a phone it runs nearly the column's width (about 16px
    at 390, 19px at 445) and tops out at 28px from about 630px; desktops grow it again, to 34px
@@ -715,6 +935,9 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - var(--s-3)) / 2);
   overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
+  /* A scroller clips to its own box, which would shave the cards' bottom hairline whenever
+     their height lands on a fractional pixel; a little slack below, taken back by the margin. */
+  padding-bottom: 2px; margin-bottom: -2px;
 }
 .product-grid--rail::-webkit-scrollbar, .clips::-webkit-scrollbar { display: none; }
 .product-grid--rail > .is-snap, .clips > .is-snap { scroll-snap-align: start; }
@@ -780,7 +1003,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 .product-card__body { display: flex; flex-direction: column; gap: var(--s-2); flex: 1; padding: var(--s-3); }
 .product-card__name {
-  font-size: var(--fs-sm); font-weight: 500; line-height: 1.4; color: var(--text-soft);
+  font-size: var(--fs-sm); font-weight: 500; line-height: 1.4; color: var(--text);
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   min-height: calc(2 * 1.4em);
 }
@@ -938,19 +1161,29 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 
 /* The section headline, left-aligned. */
 .page-title { text-align: left; margin-top: var(--s-4); transform-origin: left; }
+/* Back arrow before the title on the payment page, below 900px (where its pay bar is pinned
+   to the screen's foot). Pulled left so the arrow lines up with the
+   page edge rather than its 44px tap box. */
+.page-back { display: none; }
+@media (max-width: 899px) {
+  .page-head__bar { display: flex; align-items: center; gap: var(--s-1); margin-top: var(--s-4); }
+  .page-head__bar .page-title { margin-top: 0; }
+  /* Nudged up onto the middle of the title's capitals: Draco sits high in its line box */
+  .page-back { display: inline-grid; flex: none; margin-left: -16px; translate: 0 -3px; }
+}
 
 .catalog { padding-block: var(--s-4) var(--s-8); }
 
-/* A panel over the grid: count on the left, search and Filter on the right. Positioned
-   and lifted so the menus open over the cards, whose stretched links sit at z-index 1.
-   On a phone it wraps: count and Filter on the first line, the search
-   full width under them. */
+/* A panel over the grid, under the category cards: a row with the count on the left and search
+   and Filter on the right. Positioned and lifted so the menus open over the
+   product cards, whose stretched links sit at z-index 1. On a phone the row wraps: count and
+   Filter on the first line, the search full width under them. */
 .catalog-bar {
   position: relative; z-index: 3;
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2);
   margin-bottom: var(--s-5); padding: var(--s-3);
   background: var(--ink-925); border: 1px solid var(--line); border-radius: var(--r-lg);
 }
+.catalog-bar__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
 .catalog-bar__count { flex: 1 1 0; min-width: 0; margin: 0 0 0 var(--s-1); font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .catalog-bar__count strong { color: var(--text); font-weight: 600; }
 @media (max-width: 767px) {
@@ -962,8 +1195,86 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .catalog-bar .catalog-search { display: none; }
 }
 @media (min-width: 768px) {
-  .catalog-bar { flex-wrap: nowrap; gap: var(--s-3); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5); }
+  .catalog-bar__row { flex-wrap: nowrap; gap: var(--s-3); padding-left: calc(var(--s-5) - var(--s-3)); }
   .catalog-bar__count { margin: 0; }
+}
+
+/* Category cards: over the filter panel, three across at every width. Each is a 5:2 piece of art in the chamfered card frame (the same card shrunk on
+   phones): the neon grid, the product and its name.
+   The picked one takes a violet ring. */
+/* the same space under them as under the bar (24px, 32px from 1024) */
+.cat-cards { display: flex; gap: var(--s-2); min-width: 0; margin-bottom: var(--s-5); }
+.cat-cards > .cat-card { flex: 1 1 0; min-width: 0; }
+@media (min-width: 600px) { .cat-cards { gap: var(--s-3); } }
+.cat-card {
+  --cut-line: var(--line-strong);
+  position: relative; display: block; aspect-ratio: 5 / 2; overflow: hidden;
+  container-type: inline-size; /* the name scales with the card (cqi), so it reads the same at every width */
+  border: 1px solid var(--line-strong); background: var(--ink-900);
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--t-fast) ease-out;
+}
+.cat-card__art {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  /* the starfield over the neon grid, the horizon a little under the middle */
+  background: #1C0B3A url("../img/cat-card-grid.jpg?v=4") center 50% / cover no-repeat;
+  transition: transform 400ms var(--ease), filter var(--t-fast) ease-out;
+}
+/* The product, cut out, over the room's right side and bled off the card's edge; each is
+   placed by hand below. A violet glow under it, as if lit by the room. */
+.cat-card__product {
+  position: absolute; z-index: 1; max-width: none; width: auto; pointer-events: none;
+  filter: drop-shadow(0 10px 22px rgba(20, 4, 36, .55)) drop-shadow(0 0 18px rgba(179, 58, 198, .25));
+  transition: transform 400ms var(--ease), filter var(--t-fast) ease-out;
+}
+.cat-card[data-cat="fan-cooler"] .cat-card__product { height: 150%; right: -22%; top: -18%; }
+.cat-card[data-cat="sarung-jempol"] .cat-card__product { height: 128%; right: -4%; top: -14%; }
+.cat-card[data-cat="hydrogel"] .cat-card__product { height: 240%; left: 64%; right: auto; top: -32%; rotate: -15deg; }
+/* The name in Anton, centred in the free space between the card's left edge and the
+   product's (--free, where each product starts, measured by eye on the 5:2 card). */
+.cat-card { --free: 60%; }
+.cat-card[data-cat="fan-cooler"] { --free: 64%; }
+.cat-card[data-cat="sarung-jempol"] { --free: 59%; }
+.cat-card[data-cat="hydrogel"] { --free: 57%; }
+.cat-card__label {
+  position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; height: 100%;
+  width: var(--free); padding-inline: 4%;
+  font-family: "Tungsten", "Anton", var(--font); font-weight: 400; font-size: 10cqi;
+  line-height: .95; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: #fff;
+  text-shadow: 0 2px 12px rgba(20, 4, 36, .6);
+  /* tilted up and leaning forward, the esports-title angle; rises like the Hydrogel pack */
+  transform: rotate(-6deg) skewX(-10deg);
+}
+/* A worn, printed texture in the letters: grain and scuffs knocked out of a white-to-lilac
+   fill, clipped to the text. The shadow moves to a drop-shadow, since a text-shadow would
+   show through the clipped glyphs. Only where background-clip: text is supported. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .cat-card__label {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .06 0 0 0 0 .26 4.5 0 0 0 -2.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='140' viewBox='0 0 420 140'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .35' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .08 0 0 0 0 .3 6 0 0 0 -4.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, #fff 30%, #E6D4F7);
+    /* the grain and scuffs scale with the card (180 and 420px at the 392px desktop card), so a
+       phone's shrunk card shows the same wear instead of full-size streaks across tiny letters */
+    background-size: 46cqi 46cqi, 107cqi 36cqi, 100% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent; text-shadow: none;
+    filter: drop-shadow(0 2px 10px rgba(20, 4, 36, .65));
+  }
+}
+/* Phones: the desktop card shrunk, a third of the screen each. Only the corner cut gets
+   smaller, so it doesn't eat the little card. */
+@media (max-width: 599px) {
+  .cat-card { --cut: 8px; }
+}
+.cat-card[aria-pressed="false"] .cat-card__art { filter: saturate(.8) brightness(.85); }
+.cat-card[aria-pressed="false"] .cat-card__product { filter: drop-shadow(0 10px 22px rgba(20, 4, 36, .55)) saturate(.85) brightness(.88); }
+.cat-card[aria-pressed="true"] { --frame-w: 3px; --frame-o: 1; }
+.cat-card:focus-visible { outline: 2px solid var(--violet-400); outline-offset: -3px; }
+@media (hover: hover) {
+  .cat-card:hover { --frame-o: 1; }
+  .cat-card:hover .cat-card__art { transform: scale(1.04); filter: none; }
+  .cat-card:hover .cat-card__product { transform: scale(1.05); filter: drop-shadow(0 10px 22px rgba(20, 4, 36, .55)) drop-shadow(0 0 18px rgba(179, 58, 198, .25)); }
 }
 
 /* Takes whatever width the controls leave, at the Filter button's 40px height and 8px corner. */
@@ -977,7 +1288,11 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 .catalog-search__input::placeholder { color: var(--faint); }
 .catalog-search__input:hover { border-color: #664878; }
-.catalog-search__input:focus { outline: none; border-color: #8E48C4; box-shadow: 0 0 0 3px rgba(219, 77, 255, .22); }
+.catalog-search__input:focus {
+  outline: none; border-color: transparent;
+  background: linear-gradient(var(--ink-900), var(--ink-900)) padding-box, linear-gradient(90deg, #8E48C4, #DB4DFF) border-box;
+  box-shadow: 0 0 0 3px rgba(219, 77, 255, .14);
+}
 .catalog-search__input::-webkit-search-cancel-button { filter: invert(.7); }
 
 /* The chips scroll sideways once they run out of room, and the Filter button stays put beside
@@ -1029,7 +1344,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 
 /* Wraps the button and its menu, so the menu can hang from the button. */
-.filter-menu { position: relative; flex: none; display: flex; align-items: center; gap: var(--s-3); }
+.filter-menu { position: relative; z-index: 5; flex: none; display: flex; align-items: center; gap: var(--s-3); }
 /* Not a chip: it opens a menu rather than toggling a category, so it is drawn the way the site
    draws buttons, not the way it draws chips. Three cues carry that, the standard ones design
    systems use to separate a menu button from filter chips:
@@ -1107,7 +1422,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .page-head { padding-block: var(--s-5) var(--s-7); }
   .page-title { margin-top: var(--s-6); }
   .catalog { padding-top: var(--s-6); }
-  .catalog-bar { margin-bottom: var(--s-6); }
+  .catalog-bar, .cat-cards { margin-bottom: var(--s-6); }
   .catalog-count { margin-top: var(--s-7); }
 }
 
@@ -1127,25 +1442,29 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 /* ---------- Products page banner ---------- */
 /* After gamesir.com/products' "All Products" card, measured off it: from 768 up one rounded
    card (12px corners, a 1px rule), 362px tall, the copy in the left 36% inset 56px from the
-   card's edge and the picture filling the right 64%. The title steps 60 / 48 / 36px across
-   desktop, tablet and phone as theirs does, and the lead is 16/28 (14/24 on a phone). On a
-   phone, as GameSir does there: the picture is the card's background, 356 x 320 at 390,
-   cropped toward its right side (72%) where the products sit, with the copy over it on the
-   left. */
+   card's edge and the picture filling the right 64%. On a phone, as GameSir does there: the
+   picture is the card's background, 356 x 320 at 390, cropped toward its right side (72%)
+   where the products sit, with the copy over it on the left. */
 .shop-banner { padding-top: var(--s-4); }
 .shop-banner__card {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; isolation: isolate;
-  background: var(--ink-900); border: 1px solid var(--line); border-radius: 12px;
+  background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md);
 }
 .shop-banner__text {
   display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; align-content: center;
   min-width: 0; padding: var(--s-5);
+  container-type: inline-size;
 }
+/* Anton, at its own width: the Draco squeeze and unslant switched off. Always one line: each
+   breakpoint's size is capped at 15cqi, about what "Gear Your Aura" (some 6.4em wide in Anton)
+   needs to fit the copy column, so a narrow column shrinks it rather than wrapping it. */
 .shop-banner__title {
-  font-size: 2.25rem; line-height: 1; text-align: left;
-  width: auto; max-width: 100%; margin: 0;
+  --squeeze: 1; --unslant: 0deg;
+  font-family: "Tungsten", "Anton", var(--font); letter-spacing: .02em; white-space: nowrap;
+  font-size: min(2.125rem, 15cqi); line-height: 1; text-align: left;
+  margin: 0; transform-origin: 0 50%;
 }
-.shop-banner__lead { margin: var(--s-3) 0 0; max-width: 40ch; font-size: .875rem; line-height: 1.7; color: var(--text-soft); }
+.shop-banner__lead { margin: var(--s-3) 0 0; max-width: 40ch; font-family: var(--font); font-weight: 400; font-size: .9375rem; line-height: 1.55; letter-spacing: 0; color: #fff; }
 /* phone: the picture is the card, darkened on the left where the copy sits */
 .shop-banner__media { position: absolute; inset: 0; z-index: -1; }
 .shop-banner__media::after {
@@ -1154,18 +1473,18 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 }
 .shop-banner__media img { width: 100%; height: 100%; object-fit: cover; object-position: 72% 50%; }
 @media (max-width: 767px) {
-  /* GameSir's 356 x 320 card shape as a floor, not a fixed ratio: a fixed ratio would clip the
-     copy (the card hides overflow) on the narrowest phones, where it needs more height */
-  .shop-banner__card { min-height: calc((100vw - 2 * var(--gutter)) * 320 / 356); }
-  /* wide enough that "Semua Produk" holds one line, as GameSir's title does */
+  /* GameSir's phone card, measured on gamesir.com/products at 390px: 16px from the screen's
+     edges (wider than our gutter, so the card reaches past the container) and 322px tall with
+     its border, as a floor so longer copy can still grow it */
+  .shop-banner__card { margin-inline: calc(16px - var(--gutter)); min-height: 322px; }
   .shop-banner__text { max-width: 76%; }
 }
 @media (min-width: 768px) {
   .shop-banner { padding-top: var(--s-5); }
   .shop-banner__card { grid-template-columns: minmax(0, 36fr) minmax(0, 64fr); min-height: 382px; }
-  .shop-banner__text { padding: var(--s-5) var(--s-5) var(--s-5) 40px; }
-  .shop-banner__title { font-size: 3rem; }
-  .shop-banner__lead { margin-top: var(--s-4); font-size: 1rem; line-height: 1.75; }
+  .shop-banner__text { padding: var(--s-5) 40px; }
+  .shop-banner__title { font-size: min(2.75rem, 15cqi); }
+  .shop-banner__lead { margin-top: var(--s-4); font-size: 1.125rem; line-height: 1.55; }
   .shop-banner__media { position: relative; inset: auto; z-index: auto; }
   .shop-banner__media::after { content: none; }
   /* out of the flow, so the copy and the min-height set the card's height and the picture covers it */
@@ -1174,17 +1493,71 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 @media (min-width: 1024px) {
   .shop-banner { padding-top: var(--s-6); }
   .shop-banner__card { min-height: 362px; }
-  .shop-banner__text { padding-left: 56px; }
-  .shop-banner__title { font-size: 3.75rem; }
+  .shop-banner__text { padding-inline: 56px; }
+  .shop-banner__title { font-size: min(3.375rem, 15cqi); }
 }
+/* Tungsten sets "Gear Your Aura" about 5.1em wide against Anton's 6.4em, so once it has loaded
+   (main.js tags the root .has-tungsten) the title runs about a quarter bigger, with the cap
+   raised to match (19cqi still fits the column). Anton, the fallback, keeps the sizes above. */
+.has-tungsten .shop-banner__title { font-size: min(2.75rem, 19cqi); }
+@media (min-width: 768px) { .has-tungsten .shop-banner__title { font-size: min(3.5rem, 19cqi); } }
+@media (min-width: 1024px) { .has-tungsten .shop-banner__title { font-size: min(4.25rem, 19cqi); } }
 
 /* ---------- Product detail page ---------- */
-/* The tab bar (plus the buy panel on wide screens) sticks under the navbar. When the navbar
-   retracts on the way down, they close the gap with it, on its own timing, so the stack never
-   shows a hole. --nav-offset is the navbar's height, or nothing while hidden. */
-.pdp { --nav-offset: var(--header-h); }
-body:has(.site-header.is-hidden) .pdp { --nav-offset: 0px; }
-html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 52px); }
+/* The tab bar (plus the buy panel on wide screens) sticks under the navbar and the product bar.
+   When the navbar retracts on the way down, they close the gap with it, on its own timing, so
+   the stack never shows a hole. --nav-offset is the height of both bars, or of the product bar
+   alone while the navbar is hidden. --bar-h, the product bar's height, sits on the root so the
+   scroll padding can see it too. */
+html:has(.pdp) { --bar-h: 48px; scroll-padding-top: calc(var(--header-h) + var(--bar-h) + 52px); }
+@media (min-width: 768px) { html:has(.pdp) { --bar-h: 52px; } }
+@media (min-width: 1280px) { html:has(.pdp) { --bar-h: 56px; } }
+.pdp { --nav-offset: calc(var(--header-h) + var(--bar-h)); }
+body:has(.site-header.is-hidden) .pdp { --nav-offset: var(--bar-h); }
+
+/* The product's bar, after gamesir.com's: 48px on a phone (52, then 56 wider), the short name
+   in small semibold type on the left and a compact Beli on the right, in the site's own primary
+   button. It sticks under the navbar, and the tabs and buy panel stick under it. */
+.pdp-bar {
+  position: sticky; top: var(--header-h); z-index: 30;
+  background: rgba(12, 3, 16, .94); /* --ink-950, a touch see-through for the blur */
+  -webkit-backdrop-filter: saturate(150%) blur(32px);
+  backdrop-filter: saturate(150%) blur(32px);
+  transition: top 440ms var(--ease-nav);
+}
+/* a plain hairline in the dividers' colour, drawn over the button's foot too */
+.pdp-bar::after {
+  content: ""; position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; height: 1px;
+  pointer-events: none; background: var(--line);
+}
+body:has(.site-header.is-hidden) .pdp-bar { top: 0; }
+.pdp-bar__inner {
+  display: flex; align-items: stretch; justify-content: space-between; gap: var(--s-4);
+  height: var(--bar-h);
+  /* the name lines up with the page's content column; the button runs to the screen's edge */
+  padding-left: max(var(--gutter), (100% - var(--container)) / 2);
+}
+.pdp-bar__name {
+  align-self: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: .75rem; font-weight: 600; color: var(--text);
+}
+/* Beli Sekarang fills the bar's height, square, with its left side sliced on a slant. The
+   clip would cut off the lift and glow, so it presses in place instead. The left padding
+   counts from the slant's midpoint, so the label sits centred in the shape. */
+.pdp-bar__buy.btn {
+  --slice: 14px;
+  --btn-h: 100%; flex: none; height: 100%;
+  padding: 0 var(--gutter) 0 calc(var(--slice) / 2 + var(--gutter));
+  border: 0; border-radius: 0;
+  clip-path: polygon(var(--slice) 0, 100% 0, 100% 100%, 0 100%);
+}
+.pdp-bar__buy.btn:hover { translate: 0 0; box-shadow: none; background: linear-gradient(120deg, #7C3AB4, #C24AD4); }
+.pdp-bar__buy.btn:active { transform: none; box-shadow: none; }
+@media (min-width: 768px) {
+  .pdp-bar__name { font-size: var(--fs-sm); }
+  .pdp-bar__buy.btn { --slice: 16px; }
+}
+@media (min-width: 1280px) { .pdp-bar__name { font-size: var(--fs-body); } }
 
 .pdp-layout { padding-top: var(--s-5); }
 /* Below 900px the photo starts right under the navbar. */
@@ -1198,6 +1571,9 @@ html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 52px); }
 .gallery { grid-area: gallery; min-width: 0; }
 .pdp-info { grid-area: info; min-width: 0; }
 .pdp-tabs { grid-area: tabs; min-width: 0; }
+/* Phones: the label sits mid-way down its 52px tab, so the rail rises by that inset, leaving
+   the same gap above the tab labels as the thumbnails leave above the price. */
+@media (max-width: 599px) { .pdp-tabs { margin-top: -14px; } }
 /* Gallery. Square, because every product photo is a square listing card. */
 .gallery__stage {
   position: relative; overflow: hidden;
@@ -1276,7 +1652,9 @@ html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 52px); }
 .pdp-info { display: grid; gap: var(--s-4); align-content: start; }
 .pdp-info__tags { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
 .pdp-info__tags .badge { align-self: auto; }
-.pdp-title { font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem); font-weight: 700; line-height: 1.25; letter-spacing: -.02em; text-wrap: pretty; }
+/* The long listing name reads as a sentence, not a headline: modest, medium weight as on the
+   cards, and loosely set, so the price below stays the boldest thing in the panel. */
+.pdp-title { font-size: clamp(1.1875rem, 1.05rem + .5vw, 1.5rem); font-weight: 500; line-height: 1.4; letter-spacing: -.01em; color: var(--text); text-wrap: pretty; }
 .pdp-rating { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: calc(-1 * var(--s-2)); font-size: var(--fs-sm); color: var(--mute); }
 .pdp-rating strong { color: var(--text); font-weight: 700; }
 .pdp-rating a { color: var(--lilac-300); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
@@ -1285,6 +1663,25 @@ html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 52px); }
 .pdp-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-3); }
 .pdp-price .price { font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem); letter-spacing: -.02em; line-height: 1.1; }
 .pdp-price .price-was { font-size: var(--fs-body); }
+/* On a phone the price leads, then the name close under it, then the rating; wider, the name
+   heads the panel. Reordered here rather than in the markup, so the h1 stays first. */
+@media (max-width: 599px) {
+  .pdp-info__tags { order: -2; }
+  /* The thumbnails get the same 12px under them as over them: the layout's row gap, pulled in
+     here only, since it also spaces the tabs further down. */
+  .gallery { margin-bottom: calc(var(--s-3) - var(--s-6)); }
+  /* The price on a band of the brand's purple-to-pink sweep, run edge to edge; the discount
+     turns white on it so it doesn't sink into the pink. */
+  .pdp-price {
+    order: -1; align-items: center;
+    margin-inline: calc(-1 * var(--gutter)); padding: var(--s-3) var(--gutter);
+    background: linear-gradient(90deg, var(--line-from), var(--line-to));
+  }
+  .pdp-price .price-was { color: rgba(255, 255, 255, .7); }
+  .pdp-price .pdp-off { background: #fff; color: var(--line-to); }
+  /* the same size as the Detail tab's paragraphs */
+  .pdp-title { font-size: 1rem; line-height: 1.55; }
+}
 /* The brand's pink, the far end of the purple-to-pink sweep, so the saving reads as brand news
    rather than as an alarm. #B33AC6 holds 4.8:1 under the white type. */
 .pdp-off {
@@ -1339,11 +1736,26 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 }
 .pdp-input::placeholder { color: var(--faint); }
 .pdp-input:hover { border-color: #584066; }
-.pdp-input:focus { outline: none; border-color: var(--violet-400); }
+/* In use, the outline turns into the navbar underline's purple-to-pink, as the search's does:
+   the field's own fill on the padding box over the gradient on the border box, the border
+   itself see-through, so the corners keep their radius. */
+.pdp-input:focus {
+  outline: none; border-color: transparent;
+  background: linear-gradient(var(--ink-950), var(--ink-950)) padding-box, linear-gradient(90deg, #8E48C4, #DB4DFF) border-box;
+  box-shadow: 0 0 0 3px rgba(219, 77, 255, .14);
+}
+/* Browser autofill paints its own light fill, which background can't override: cover it with an
+   inset shadow in the field colour and keep the text light. */
+.pdp-input:-webkit-autofill,
+.pdp-input:-webkit-autofill:hover,
+.pdp-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--ink-950) inset; box-shadow: 0 0 0 1000px var(--ink-950) inset;
+  -webkit-text-fill-color: var(--text); caret-color: var(--text);
+}
 .pdp-hint { font-size: var(--fs-xs); color: var(--faint); }
 /* empty until it carries an error, so it takes no room under the field */
 .pdp-hint:empty { display: none; }
-.pdp-field.is-invalid .pdp-input { border-color: var(--err); }
+.pdp-field.is-invalid .pdp-input, .pdp-field.is-invalid .pdp-input:focus { border-color: var(--err); background: var(--ink-950); box-shadow: none; }
 .pdp-field.is-invalid .pdp-hint { color: var(--err); font-weight: 600; }
 
 .pdp-qty { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); }
@@ -1462,10 +1874,12 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 
 /* Tabs: a hairline rail with a violet bar under the open tab, the nav's hover rule made
    permanent. The rail scrolls sideways on a phone rather than wrapping, and runs edge to edge
-   there so the last tab visibly continues past the screen. */
+   there so the last tab visibly continues past the screen. Below the two-column layout, where
+   the rail is wider than the tabs, the spare room goes between them so they span it edge to
+   edge; beside the buy panel they sit together from the left. */
 .tabs {
   position: sticky; top: var(--nav-offset); z-index: 3;
-  display: flex; overflow-x: auto; scrollbar-width: none;
+  display: flex; justify-content: space-between; overflow-x: auto; scrollbar-width: none;
   margin-inline: calc(-1 * var(--gutter)); padding-inline: calc(var(--gutter) - var(--s-3));
   background: var(--ink-950); border-bottom: 1px solid var(--line);
   transition: top 440ms var(--ease-nav);
@@ -1478,12 +1892,21 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 }
 .tab:hover { color: var(--text-soft); }
 .tab[aria-selected="true"] { color: var(--text); }
+/* On the product page every tab reads white; the bar and the scale mark the open one. */
+.pdp .tab, .pdp .tab:hover { color: var(--text); }
 .tab::after {
   content: ""; position: absolute; left: var(--s-3); right: var(--s-3); bottom: -1px; height: 3px;
-  border-radius: 3px 3px 0 0; background: linear-gradient(90deg, #8E48C4, #DB4DFF);
+  border-radius: 3px 3px 0 0; background: linear-gradient(90deg, var(--line-from), var(--line-to));
   transform: scaleX(0); transition: transform var(--t-fast) ease-out;
 }
-.tab[aria-selected="true"]::after { transform: scaleX(1); }
+/* as wide as the swollen label below, from the same origin, so the text never overhangs it */
+.tab[aria-selected="true"]::after { transform: scaleX(1.12); }
+/* The open tab's label swells a little, as if under a lens: it grows past its size and settles
+   back (the overshoot in the curve), while the one it left shrinks back. Only the label scales,
+   so the rail doesn't shift; the underline stretches to match it. */
+.tab__label { display: inline-block; transition: transform 380ms cubic-bezier(.34, 1.56, .64, 1); }
+.tab[aria-selected="true"] .tab__label { transform: scale(1.12); }
+@media (prefers-reduced-motion: reduce) { .tab__label { transition: none; } }
 .tab:focus-visible { outline-offset: -6px; }
 .tab-panel { padding-top: var(--s-5); }
 .tab-panel:focus-visible { outline-offset: 4px; border-radius: var(--r-sm); }
@@ -1494,6 +1917,8 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 /* …but paragraphs that follow each other are one run of text, spaced like the paragraphs
    inside a .prose block. */
 [data-panel="detail"] > .prose + .prose { margin-top: var(--s-3); }
+/* The Detail tab reads in white throughout: the copy, the box contents and the games line. */
+.pdp [data-panel="detail"] .prose, .pdp [data-panel="detail"] li, .pdp [data-panel="detail"] .pdp-games, .pdp [data-panel="detail"] strong { color: var(--text); }
 
 /* One column at every width: two columns paired up lines of different lengths, so a wrapped
    line left a gap in the row beside it. */
@@ -1514,14 +1939,14 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 .spec-row dt { padding: var(--s-3) var(--s-4); color: var(--mute); }
 .spec-row dd { margin: 0; padding: var(--s-3) var(--s-4); color: var(--text); font-weight: 500; }
 
-/* The stats band's surface (Ulasan pembeli on the home page): violet-600 into violet-700 along
-   the same 115deg, a white sheen across the top, the violet-500 rim. Secondary text moves to
-   lilac-200 for the same reason it does there — mute and faint drop under 4.5:1 on violet. */
+/* The stats band's surface (Ulasan pembeli on the home page): the primary button's
+   purple-to-pink, a white sheen across the top, the violet-500 rim. Secondary text is white for
+   the same reason it is there: anything softer drops under 4.5:1 at the pink end. */
 .rating-summary {
   position: relative; isolation: isolate; overflow: hidden;
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5);
   margin-bottom: var(--s-4); padding: var(--s-4) var(--s-5);
-  background: linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  background: linear-gradient(120deg, #6A2E9E, #B33AC6);
   border: 1px solid var(--violet-500); border-radius: var(--r-md);
 }
 .rating-summary::before {
@@ -1529,14 +1954,14 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
   background-image: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 52%);
 }
 .rating-summary__score { font-size: 2.75rem; font-weight: 800; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.rating-summary__score span { font-size: 1rem; font-weight: 600; color: var(--lilac-200); letter-spacing: 0; }
-.rating-summary__meta { display: grid; gap: var(--s-1); font-size: var(--fs-sm); color: var(--lilac-200); }
+.rating-summary__score span { font-size: 1rem; font-weight: 600; color: #fff; letter-spacing: 0; }
+.rating-summary__meta { display: grid; gap: var(--s-1); font-size: var(--fs-sm); color: #fff; }
 .rating-summary__meta .stars .icon { width: 18px; height: 18px; }
 /* where the figures come from, and when: a full-width line under the score, on a hairline */
 .rating-summary__source {
   flex-basis: 100%; display: flex; align-items: flex-start; gap: var(--s-2);
   margin: 0; padding-top: var(--s-3); border-top: 1px solid rgba(255, 255, 255, .18);
-  font-size: var(--fs-xs); line-height: 1.5; color: var(--lilac-200);
+  font-size: var(--fs-xs); line-height: 1.5; color: #fff;
 }
 .rating-summary__source .icon { flex: none; margin-top: 1px; color: #fff; }
 .rating-summary__source a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
@@ -1567,7 +1992,7 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 .cmp__prod { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: var(--s-2); text-align: center; }
 /* The other product's picker: a bare underlined button, like a heading that can be changed.
    Its list is the products page's sort menu (.menu): text rows, a check in a fixed slot on the
-   one in use, sold-out ones noted. This product's slot keeps the same line so the two photos
+   one in use. This product's slot keeps the same line so the two photos
    start level. */
 .cmp__dd { position: relative; justify-self: stretch; }
 .cmp__pick {
@@ -1580,7 +2005,7 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
 .cmp__pick { position: relative; }
 .cmp__pick::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-  background: linear-gradient(90deg, #8E48C4, #DB4DFF);
+  background: linear-gradient(90deg, var(--line-from), var(--line-to));
   opacity: 0; transition: opacity var(--t-fast) ease-out; pointer-events: none;
 }
 .cmp__pick--self::after { display: none; }
@@ -1589,11 +2014,14 @@ button.cmp__pick:hover::after, .cmp__dd.is-open .cmp__pick::after { opacity: 1; 
 .cmp__chev { flex: none; width: 18px; height: 18px; color: var(--mute); transition: rotate var(--t-fast) ease-out; }
 .cmp__dd.is-open .cmp__chev { rotate: 180deg; color: var(--text); }
 .cmp__pick--self { display: block; line-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cmp__list { top: calc(44px + 4px); left: 0; right: 0; width: auto; min-width: 180px; z-index: 4; margin: 0; list-style: none; }
+/* As wide as its longest name (never narrower than the picker); capped at the screen for phones. */
+.cmp__list {
+  top: calc(44px + 4px); left: 0; width: max-content; min-width: max(100%, 180px); max-width: calc(100vw - 32px);
+  z-index: 4; margin: 0; list-style: none;
+}
 .cmp__dd.is-open .cmp__list { opacity: 1; visibility: visible; translate: 0 0; transition-delay: 0s; }
 .cmp__opt { gap: var(--s-2); cursor: pointer; }
-.cmp__opt-name { flex: 1 1 auto; min-width: 0; }
-.cmp__opt-note { flex: none; font-size: var(--fs-2xs); font-weight: 500; color: var(--faint); }
+.cmp__opt-name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .cmp__opt[aria-selected="true"] { color: var(--text); font-weight: 600; }
 .cmp__opt[aria-selected="true"] .menu__check { visibility: visible; }
 /* Framed like the product cards: the same hairline and radius, the same lift on hover. */
@@ -1620,7 +2048,7 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
   .cmp__pick { height: 36px; margin-bottom: var(--s-1); padding-inline: 2px; font-size: var(--fs-xs); }
   .cmp__pick--self { line-height: 36px; }
   .cmp__chev { width: 14px; height: 14px; }
-  .cmp__list { top: calc(36px + 4px); left: auto; right: 0; min-width: 170px; }
+  .cmp__list { top: calc(36px + 4px); left: auto; right: 0; min-width: max(100%, 170px); }
   .cmp__media { border-radius: var(--r-sm); }
   .cmp__label, .cmp__cell { padding-block: var(--s-3); font-size: var(--fs-xs); line-height: 1.45; }
   .cmp__label { padding-left: 0; overflow-wrap: break-word; }
@@ -1659,9 +2087,11 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
   .pdp-info { align-self: start; }
   /* Inside the column the rail starts at the column edge, so the first tab's text lines up
      with the photos above it. */
-  .tabs { margin-inline: 0; padding-inline: 0; }
+  .tabs { margin-inline: 0; padding-inline: 0; justify-content: flex-start; gap: var(--s-2); }
   .tab:first-child { padding-left: 0; }
-  .tab:first-child::after { left: 0; }
+  .tab:first-child::after { left: 0; transform-origin: left; }
+  /* grows rightward, so its first letter stays on the column edge */
+  .tab:first-child .tab__label { transform-origin: left; }
 }
 /* Sticks only where the whole panel fits under the bars, or its bottom would be unreachable
    until the end of the page. */
@@ -1731,6 +2161,20 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
   background: var(--ink-800); border: 1px solid var(--line); isolation: isolate;
 }
 .clip__link img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease); }
+/* Every headline clip's art is the card's own 9:16, so it shows whole. Ivan's "Ivan" starts highest,
+   4.9% down, and a zoom can only lift a headline, so the rest are lifted to Ivan's line by the least
+   zoom that gets there, about a point o% down: o + s x (top - o) = 4.9. `scale`, not transform, so
+   the hover zoom still adds on top.
+     Alviro "Alviro"      5.3%: 45.3 + 1.01 x (5.3 - 45.3) = 4.9
+     Kabuki "Team Liquid" 5.6%: 38.6 + 1.02 x (5.6 - 38.6) = 4.9  (Jeje's "Jeje" the same)
+     Tazz   "EVOS"        6.5%: 47 + 1.04 x (6.5 - 47) = 4.9
+     Cadera "Geek Fam"    6.9%: 47.7 + 1.05 x (6.9 - 47.7) = 4.9
+     Rinee  "Alter Ego"   9.9%: 55.7 + 1.11 x (9.9 - 55.7) = 4.9 */
+.clip__img--alviro { scale: 1.01; transform-origin: 50% 45.3%; }
+.clip__img--kabuki, .clip__img--jeje { scale: 1.02; transform-origin: 50% 38.6%; }
+.clip__img--tazz { scale: 1.04; transform-origin: 50% 47%; }
+.clip__img--cadera { scale: 1.05; transform-origin: 50% 47.7%; }
+.clip__img--rinee { scale: 1.11; transform-origin: 50% 55.7%; }
 .clip__link::after {
   content: ""; position: absolute; inset: 0; z-index: 1;
   background: linear-gradient(to top, rgba(12, 3, 16, .94) 0%, rgba(12, 3, 16, .7) 22%, rgba(12, 3, 16, 0) 48%);
@@ -1779,8 +2223,8 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
 @media (min-width: 600px) { .clips-divider { margin-block: var(--s-6); gap: var(--s-4); } }
 @media (min-width: 1024px) { .clips-divider { margin-block: var(--s-7); gap: var(--s-5); } }
 /* violet at the card edges, brightening to pink at the words */
-.clips-divider__line { flex: 1; min-width: var(--s-4); height: 1px; background: linear-gradient(90deg, #8E48C4, #DB4DFF); }
-.clips-divider__line:last-child { background: linear-gradient(90deg, #DB4DFF, #8E48C4); }
+.clips-divider__line { flex: 1; min-width: var(--s-4); height: 1px; background: linear-gradient(90deg, var(--line-from), var(--line-to)); }
+.clips-divider__line:last-child { background: linear-gradient(90deg, var(--line-to), var(--line-from)); }
 .clips-divider__text {
   flex: none; margin: 0; white-space: nowrap;
   font-size: .75rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; line-height: 1;
@@ -1844,18 +2288,24 @@ body.is-overlay-open .clip-strip__track { animation-play-state: paused; }
 .rail-dots { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .rail-dots button {
   position: relative; display: inline-block; width: 8px; height: 8px; padding: 0; border: 0;
-  border-radius: 999px; background: var(--mute); opacity: .3; cursor: pointer;
-  transition: opacity .45s cubic-bezier(.22, 1, .36, 1), width .45s cubic-bezier(.22, 1, .36, 1), background .45s cubic-bezier(.22, 1, .36, 1);
+  border-radius: 999px; background: linear-gradient(90deg, var(--line-from), var(--line-to)); opacity: .45; cursor: pointer;
+  transition: opacity .45s cubic-bezier(.22, 1, .36, 1), width .45s cubic-bezier(.22, 1, .36, 1), background .45s cubic-bezier(.22, 1, .36, 1),
+              box-shadow .45s cubic-bezier(.22, 1, .36, 1);
 }
 /* a 16 x 24 target around an 8px dot */
 .rail-dots button::before { content: ""; position: absolute; inset: -8px -4px; }
-@media (hover: hover) { .rail-dots button:not([aria-current="true"]):hover { opacity: .6; width: 18px; } }
+@media (hover: hover) { .rail-dots button:not([aria-current="true"]):hover { opacity: .8; width: 18px; } }
+/* The dots in the primary button's purple-to-pink; the active one's track is a dim violet and its
+   fill the full gradient, with a violet-pink glow around the pill (a box-shadow, so its own
+   overflow clip doesn't cut it). */
 .rail-dots button[aria-current="true"] {
-  width: 40px; opacity: 1; overflow: hidden; background: rgba(255, 255, 255, .28);
+  width: 40px; opacity: 1; overflow: hidden; background: rgba(142, 72, 196, .3);
+  box-shadow: 0 0 8px rgba(179, 58, 198, .75), 0 0 18px rgba(142, 72, 196, .45);
 }
 /* A transform, not a width: a 40px fill over 5s moves under a pixel a frame and would stutter. */
 .rail-dots button[aria-current="true"]::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; background: #fff;
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(90deg, var(--line-from), var(--line-to));
   transform: scaleX(0); transform-origin: left center; will-change: transform;
   animation: dot-progress var(--rail-autoplay, 5000ms) linear forwards;
 }
@@ -2021,23 +2471,22 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
    the better answer to that: once the boundary is drawn, the gap reads as spacing again, so
    the override is gone and this section measures like its neighbours.
    Same full-bleed hairline #streamers and .section--textured use. */
-#ulasan { border-top: 1px solid #8E48C4; }
-/* On a phone the section is tall and narrow, so the stretched art's violet corner glows ran
-   down both edges. Covered instead, it shows only the dark striped middle of the art. */
-@media (max-width: 599px) {
-  #ulasan::before {
-    background:
-      linear-gradient(rgba(12, 3, 16, .42), rgba(12, 3, 16, .42)),
-      url("../img/bg-streamers.jpg") center / cover no-repeat;
-  }
+#ulasan { border-top: 1px solid var(--line-from); border-image: linear-gradient(90deg, var(--line-from), var(--line-to)) 1; }
+/* Apa Kata Pembeli sits on the aurora instead of the streamers texture, at part strength: the
+   page's near-black laid over it, lighter at the top where the lights are (about 70% of the art
+   showing) and heavier toward the bright ice at the foot (about 40%), so the review cards keep
+   their contrast. Covered, anchored to the sky, at every width. */
+#ulasan::before {
+  background:
+    linear-gradient(rgba(12, 3, 16, .3), rgba(12, 3, 16, .6)),
+    url("../img/cat-card-aurora.jpg") center 30% / cover no-repeat;
 }
-/* Edge to edge, in the same surface as the ticker's "Mobile gaming gear #1" tab: violet-600
-   running into violet-700 along the tab's own 115deg cut, lit by a white sheen along the top,
-   with the tab's violet-500 rim as the top and bottom edge. Kept slim: a strip of proof under
-   the heading, not a section of its own. */
+/* Edge to edge, in the primary button's purple-to-pink, lit by a white sheen along the top,
+   with a violet-500 rim as the top and bottom edge. Kept slim: a strip of proof under the
+   heading, not a section of its own. */
 .stats-band {
   position: relative; isolation: isolate; margin-top: var(--s-4);
-  background: linear-gradient(115deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  background: linear-gradient(120deg, #6A2E9E, #B33AC6);
   border-block: 1px solid var(--violet-500);
 }
 /* The tab's top-edge highlight. Negative z-index paints over the gradient but under the
@@ -2066,9 +2515,8 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
   font-size: var(--stat-num); font-weight: 800;
   line-height: 1.05; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
 }
-/* lilac-200 rather than lilac-300: the token exists for exactly this case, where the lighter
-   label drops under 4.5:1 once it sits on violet instead of on the page. */
-.stat__label { font-size: var(--fs-2xs); color: var(--lilac-200); line-height: 1.3; }
+/* White, not lilac: lilac-200 drops to 3.7:1 at the gradient's pink end; white holds 4.8:1. */
+.stat__label { font-size: var(--fs-2xs); color: #fff; line-height: 1.3; }
 
 /* Rating stars are the brand's bright violet, the same as the one star on a product card.
    Amber stays for scarcity alone. */
@@ -2090,7 +2538,7 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
      up with the figures rather than running off the edge of the screen */
   background: linear-gradient(rgba(255, 255, 255, .18), rgba(255, 255, 255, .18))
     top center / calc(100% - 2 * var(--gutter)) 1px no-repeat;
-  font-size: var(--fs-2xs); color: var(--lilac-200); line-height: 1.3; text-align: center;
+  font-size: var(--fs-2xs); color: #fff; line-height: 1.3; text-align: center;
 }
 .stats-source strong { color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
 /* The big figures and the words around them centred on one line, not sat on a shared
@@ -2113,15 +2561,22 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
 .mp--tiktok { color: #000; font-size: 12px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
 .mp--tiktok svg { width: 14px; height: 14px; }
 .stats-source__asof { opacity: .8; }
+/* On phones the store link takes a line of its own, centred under the rest, so the dot
+   before it goes. */
+@media (max-width: 599px) {
+  .stats-source__dot { display: none; }
+  .stats-source__link { flex-basis: 100%; text-align: center; }
+}
+.stats-source__link { font-weight: 600; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+.stats-source__link:hover { text-decoration-thickness: 2px; }
 
 /* Wider screens: each label beside its number, so the strip is a single line of figures. */
 @media (min-width: 768px) {
   /* Both boxes centred at line-height 1, where Inter's box middle falls on its cap middle,
-     so the label's capitals line up with the figure. The label is mostly lowercase, though,
-     and reads low at that point, so it comes up a further .12em to centre its x-height. */
+     so the label sits on the figure's middle. */
   .stat { flex-direction: row; align-items: center; gap: var(--s-3); }
   .stat__value { order: 0; line-height: 1; }
-  .stat__label { order: 1; font-size: var(--fs-sm); line-height: 1; transform: translateY(-.12em); }
+  .stat__label { order: 1; font-size: var(--fs-sm); line-height: 1; }
   .stats-source { font-size: var(--fs-sm); padding-block: var(--s-5); }
   .stats { padding-block: var(--s-6) var(--s-5); }
 }
@@ -2166,16 +2621,17 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
    legible on a desktop; on a phone it is small, so the card is a button that opens it full
    size (.review-zoom). Every screenshot is cropped to the same 620 x 304, so the cards match. */
 .marquee__row:has(.review-shot) { align-items: flex-start; }
-/* Outlined like the clip cards: a 1px --line border on the same --r-md corners. */
+/* Outlined like the clip cards (a 1px --line border), but rounded rather than cut: the one
+   card frame that keeps soft corners, its own 12px since --r-md is square now. */
 .review-shot {
   /* 78vw on a phone, so a card (stars to sticker) fits whole in the clear middle of the row,
      between its faded ends, for a moment as it drifts past: that is when it pops (main.js) */
   position: relative; flex: none; width: min(78vw, 360px); margin: 0 var(--mq-gap) 0 0;
   container-type: inline-size;
-  border: 1px solid var(--line); border-radius: var(--r-md); background: #fff;
+  border: 1px solid var(--line); border-radius: 12px; background: #fff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
 }
-.review-shot img { display: block; width: 100%; height: auto; border-radius: calc(var(--r-md) - 1px); }
+.review-shot img { display: block; width: 100%; height: auto; border-radius: 11px; }
 /* The stars, again, on top of the screenshot's own: the box is the screenshot's star row to the
    pixel (18-111 x 14-26 of every 620 x 304 crop), on white, so at rest it matches the
    screenshot exactly and hides its stars. Popped, they animate (below), each about its own
@@ -2296,7 +2752,7 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 #ulasan .marquee {
   position: relative; isolation: isolate; overflow: hidden;
   margin: 0 var(--gutter); padding-bottom: 20px;
-  border-radius: 28px;
+  border-radius: var(--r-lg);
   background: linear-gradient(180deg, rgba(26, 11, 38, .62), rgba(12, 3, 16, .72));
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   box-shadow: 0 0 32px rgba(142, 72, 196, .28), inset 0 0 40px rgba(219, 77, 255, .08);
@@ -2312,8 +2768,6 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
    under the strip instead of sitting flush against it. */
 #ulasan .stats-band + .marquee { margin-top: var(--s-5); }
 @media (min-width: 600px) { #ulasan .stats-band + .marquee { margin-top: var(--s-6); } }
-@media (min-width: 600px) { #ulasan .marquee { border-radius: 32px; } }
-@media (min-width: 1024px) { #ulasan .marquee { border-radius: 40px; } }
 
 /* With motion off the strip stops being a strip: the duplicate half goes, the drift stops,
    and each row turns into the same swipe rail the clips and tech cards use, so every quote
@@ -2337,31 +2791,27 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
    past the bottom of the screen, and a link over the lot. It sits flush under the textured
    reviews section, so that section's bottom rule is the only divider between them. */
 .cta-banner {
-  position: relative;
+  position: relative; container-type: inline-size;
   background: var(--ink-950);
 }
 .cta-banner__media { position: relative; display: block; width: 100%; overflow: hidden; }
+/* Anchored to its foot: where the fold caps the box, the art loses its top, never its bottom. */
 .cta-banner__media img {
-  width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%;
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%;
 }
 /* Same bargain the hero strikes: the banner paints its own button, so the whole thing is the
    target. The inset outline keeps the focus ring inside the artwork's edges. */
 .cta-banner__link { position: absolute; inset: 0; z-index: 1; }
 .cta-banner__link:focus-visible { outline-offset: -6px; }
 
-/* Phones get their own portrait artwork, shown whole at its own ratio. */
-@media (max-width: 767px) {
-  .cta-banner__media { aspect-ratio: 941 / 1672; }
+/* The art's own proportions, 16:9 and below 600px the portrait phone cut, so nothing is
+   cropped until the viewport is shorter than the art is tall — at which point the cap takes
+   over and trims the top instead of the page. */
+.cta-banner__media {
+  aspect-ratio: 16 / 9;
+  max-height: calc(100svh - var(--header-h));
 }
-
-@media (min-width: 768px) {
-  /* The banner's own ratio, so nothing is cropped until the viewport is shorter than the art
-     is tall — at which point the cap takes over and trims the sides instead of the page. */
-  .cta-banner__media {
-    aspect-ratio: 1672 / 941;
-    max-height: calc(100svh - var(--header-h));
-  }
-}
+@media (max-width: 599px) { .cta-banner__media { aspect-ratio: 1050 / 1498; } }
 
 /* ---------- Banner placeholders ---------- */
 /* Stand-ins for banner art not made yet (assets/img/placeholder). The dashed frame is drawn
@@ -2393,7 +2843,7 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 /* the same purple-to-pink rule as under the navbar, so the page is framed top and bottom alike */
 .site-footer::before {
   content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
-  pointer-events: none; background: linear-gradient(90deg, #8E48C4, #DB4DFF);
+  pointer-events: none; background: linear-gradient(90deg, var(--line-from), var(--line-to));
 }
 .footer {
   max-width: 1600px; margin-inline: auto; padding: var(--s-7) var(--footer-x) var(--s-6);
@@ -2481,9 +2931,13 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 .menu-list__item {
   display: flex; align-items: center; justify-content: space-between; width: 100%;
   min-height: 52px; padding: 0 var(--s-3); border-radius: var(--r-sm);
-  font-size: 1.0625rem; font-weight: 600; text-align: left; color: var(--text-soft);
+  font-size: 1.0625rem; font-weight: 600; text-align: left; color: var(--text);
 }
 .menu-list__item:hover { background: var(--ink-800); color: var(--text); }
+/* Scan QR in the drawer: the primary button, under the categories, with what it gets you
+   over it in the same type as Beranda. */
+.menu-scan { margin-top: var(--s-4); padding-inline: var(--s-3); }
+.menu-scan__sub { margin-bottom: var(--s-3); font-size: 1.0625rem; font-weight: 600; line-height: 1.35; color: var(--text); }
 /* Tentang Kami, Hubungi Kami and FAQ have no page yet: no href, but they still read as links. */
 .nav__link[aria-disabled="true"], .menu-list__item[aria-disabled="true"] { cursor: pointer; }
 /* Produk is a heading over its categories, not a toggle: they are always showing. */
@@ -2500,10 +2954,46 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 .menu-cats { display: grid; gap: var(--s-1); padding-bottom: var(--s-2); margin-bottom: var(--s-2); border-bottom: 1px solid var(--line); }
 /* the rule only separates the categories from links after them; last in the menu, it goes */
 .menu-cats:last-child { border-bottom: 0; margin-bottom: 0; }
+/* Signed in: the drawer's foot is the account. Avatar and name, folding open on its links. */
+/* even space above and below the avatar row: the row's own 8px either side, plus the same 8px here */
+.drawer__foot.menu-acc { gap: 0; padding: var(--s-2) var(--s-3) calc(var(--s-2) + env(safe-area-inset-bottom)); }
+.menu-acc__avatar {
+  display: grid; place-items: center; flex: none; width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--line-from), var(--line-to)); color: #fff;
+  font-size: 1rem; font-weight: 700; letter-spacing: .02em;
+  overflow: hidden;
+}
+.menu-acc__name { min-width: 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.2; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-acc__toggle, .menu-acc__item {
+  display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px;
+  padding: 0 var(--s-3); border-radius: var(--r-sm); background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: 1.0625rem; font-weight: 500; text-align: left; color: var(--text);
+}
+/* No hover or tap fill on the row itself: only the chevron answers, turning as the links slide. */
+.menu-acc__toggle { justify-content: flex-start; gap: var(--s-4); min-height: 64px; -webkit-tap-highlight-color: transparent; }
+.menu-acc__toggle .icon { display: block; margin-left: auto; color: var(--text); transition: transform 300ms var(--ease); }
+.menu-acc__toggle[aria-expanded="true"] .icon { transform: rotate(180deg); }
+.menu-acc__item:hover { background: var(--ink-800); color: var(--text); }
+/* The links fold open by animating the panel's one grid row from 0fr to 1fr, which needs no
+   measured height. */
+.menu-acc__panel { display: grid; grid-template-rows: 0fr; overflow: hidden; transition: grid-template-rows 300ms var(--ease); }
+.menu-acc.is-open .menu-acc__panel { grid-template-rows: 1fr; }
+.menu-acc__list { display: grid; gap: var(--s-1); min-height: 0; }
+/* the space under the name sits inside the list, so a folded panel clips it to nothing */
+.menu-acc__list > li:first-child { margin-top: var(--s-1); }
+/* the panel clips, so the focus ring goes inside the link */
+.menu-acc__item:focus-visible { outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-acc__panel, .menu-acc__toggle .icon { transition: none; }
+}
+/* the links at the name's size, each icon centred under the right half of the avatar (the
+   second letter of a two-letter monogram) */
+.menu-acc__item { justify-content: flex-start; gap: var(--s-3); min-height: 44px; padding-left: 33px; font-size: var(--fs-sm); color: var(--text); }
+.menu-acc__item--out, .menu-acc__item--out:hover, .menu-acc__item--out .icon { color: var(--err); }
 .menu-cat {
   display: flex; align-items: center; gap: var(--s-3);
   min-height: 64px; padding: var(--s-2) var(--s-3) var(--s-2) var(--s-2); border-radius: var(--r-sm);
-  font-size: 1rem; font-weight: 600; color: var(--text-soft);
+  font-size: 1rem; font-weight: 600; color: var(--text);
   transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
 }
 .menu-cat:hover { background: var(--ink-800); color: var(--text); }
@@ -2515,7 +3005,7 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 .menu-cat__name { flex: 1 1 auto; min-width: 0; }
 .menu-cat__chev { flex: none; color: var(--faint); }
 /* Lihat Semua: a plain row under the photos, its text on the menu's left edge */
-.menu-cat--all { min-height: 48px; padding-left: var(--s-3); color: var(--lilac-300); font-size: var(--fs-sm); }
+.menu-cat--all { min-height: 48px; padding-left: var(--s-3); color: var(--text); font-size: var(--fs-sm); }
 
 /* cart: the tick box the cart page's lines and select-all bar share */
 .cart-item__check { display: grid; place-items: center; width: 28px; margin-left: -4px; cursor: pointer; }
@@ -2631,6 +3121,8 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 
 .cart-pay { display: grid; gap: var(--s-3); }
 .cart-pay__hint { font-size: var(--fs-xs); color: var(--faint); text-align: center; }
+/* The buy flow's action buttons a step heavier than the stock button (600): Beli Sekarang and
+   Keranjang on the product page, Buat Pesanan, Bayar Sekarang, Simpan QR / Buat QR Baru. */
 .cart-pay__total { display: flex; align-items: baseline; justify-content: space-between; }
 .cart-pay__total span { font-weight: 600; }
 .cart-pay__total .price { font-size: 1.25rem; }
@@ -2769,20 +3261,20 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .co__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); align-items: start; }
 .co__main { display: grid; gap: var(--s-4); min-width: 0; }
 .co-card { padding: var(--s-4); background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md); }
-.co-card__eyebrow { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.co-card__eyebrow { font-size: .9375rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
 
 /* Address */
 .co-address { display: grid; gap: var(--s-3); scroll-margin-block: calc(var(--header-h) + var(--s-4)); }
 .co-address.is-invalid { border-color: var(--err); }
-.co-address__filled { display: flex; align-items: center; gap: var(--s-4); }
+.co-address__filled { display: flex; align-items: flex-start; gap: var(--s-4); }
 .co-address__filled[hidden], .co-address__empty[hidden] { display: none; }
 .co-address__text { flex: 1; min-width: 0; display: grid; gap: var(--s-1); }
 .co-address__who { display: flex; align-items: flex-start; gap: var(--s-2); font-size: .9375rem; }
 .co-address__who strong { font-weight: 700; }
 .co-address__who .icon { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--violet-400); }
-.co-address__line { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-soft); padding-left: 26px; overflow-wrap: anywhere; }
-.co-address__pin { color: var(--lilac-300); font-size: var(--fs-xs); }
-.co-address__edit { --btn-h: 36px; flex: none; padding: 0 var(--s-4); font-size: var(--fs-sm); }
+/* One line, cut with an ellipsis; the full address is in the Ganti dialog */
+.co-address__line { font-size: var(--fs-sm); line-height: 1.5; color: var(--text-soft); padding-left: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-address__edit { flex: none; }
 .co-address__empty { display: grid; justify-items: start; gap: var(--s-3); }
 .co-error { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); font-weight: 600; color: var(--err); }
 .co-error[hidden] { display: none; }
@@ -2804,8 +3296,8 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 
 .co-ship { border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
 .co-ship__current {
-  display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 64px;
-  padding: var(--s-3) var(--s-4); text-align: left; border-radius: 7px 7px 0 0;
+  display: flex; align-items: center; gap: var(--s-3); width: 100%;
+  padding: var(--s-2) var(--s-4); text-align: left; border-radius: 7px 7px 0 0;
   transition: background-color var(--t-fast) ease-out;
 }
 .co-ship__current:hover { background: var(--ink-800); }
@@ -2817,11 +3309,11 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .co-ship__list { margin: 0; padding: var(--s-1) var(--s-2); border: 0; border-top: 1px solid var(--line); }
 .co-ship__list[hidden] { display: none; }
 .co-ship__ins {
-  display: flex; align-items: center; gap: var(--s-3); min-height: 52px;
+  display: flex; align-items: center; gap: var(--s-3); padding-block: var(--s-2);
   margin: 0 var(--s-4); border-top: 1px solid var(--line); cursor: pointer;
 }
 .co-ship__ins > .icon { flex: none; width: 18px; height: 18px; color: var(--mute); }
-.co-ship__ins-text { flex: 1; font-size: var(--fs-sm); color: var(--text-soft); }
+.co-ship__ins-text { flex: 1; font-size: var(--fs-sm); color: var(--mute); }
 .co-ship__ins-text .price { font-weight: 500; }
 .co-ship__ins .cart-item__check { margin: 0 -4px 0 0; }
 
@@ -2902,7 +3394,6 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .co-promo__form[hidden] { display: none; }
 .co-promo__form .pdp-input { text-transform: uppercase; }
 .co-promo__form .pdp-input::placeholder { text-transform: none; }
-.co-promo__form .btn { --btn-h: 44px; padding: 0 var(--s-4); }
 .co-promo__msg { font-size: var(--fs-xs); color: var(--lilac-300); }
 .co-promo__msg.is-error { color: var(--err); }
 .co-promo__msg[hidden] { display: none; }
@@ -2910,6 +3401,15 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .co-summary { display: grid; gap: var(--s-3); }
 .co-paybar { display: grid; gap: var(--s-3); }
 .co-paybar .btn .icon { width: 18px; height: 18px; }
+/* Pinned to the screen's foot below 900px (Keranjang and checkout): topped with the navbar's
+   purple-to-pink rule instead of the plain card border. */
+@media (max-width: 899px) {
+  .cart-pay, .co-paybar { border-top: 0; }
+  .cart-pay::before, .co-paybar::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    pointer-events: none; background: linear-gradient(90deg, var(--line-from), var(--line-to));
+  }
+}
 
 /* Address dialog */
 .co-dialog {
@@ -2956,31 +3456,25 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
   padding: var(--s-4) var(--s-5); border-top: 1px solid var(--line);
 }
 .co-dialog__title { margin-right: auto; }
+
+/* Scan QR clicked on a computer: the address dialog's frame, narrower, with a phone over the note */
+.scan-note { width: min(100% - 2 * var(--s-4), 420px); }
+.scan-note .co-dialog__head .icon-btn { flex: none; }
+.scan-note__body { display: grid; justify-items: center; gap: var(--s-3); padding: var(--s-6) var(--s-5) var(--s-5); text-align: center; color: var(--text-soft); line-height: 1.55; }
+.scan-note__body strong { color: var(--text); }
+.scan-note__icon {
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%;
+  background: var(--ink-800); border: 1px solid var(--line-strong); color: var(--lilac-300);
+}
+.scan-note__icon .icon { width: 28px; height: 28px; }
 .co-dialog__head:has([data-co-map-back]:not([hidden])) { padding-left: var(--s-3); }
 
-/* Map pin, top of the address form. Empty: a GPS button plus a "pick on the map" link. Set: the
-   picked address with Ubah, over a small still map of the spot. */
-/* Nothing to show (no location support, no saved pin): no empty row in the form either. */
+/* Map pin, top of the address form, for an address saved with one: the picked address with Ubah,
+   over a small still map of the spot. */
+/* No saved pin: no empty row in the form either. */
 .co-loc:not(:has(> :not([hidden]))) { display: none; }
 /* Divider between the location row and the typed fields. */
 .co-loc { padding-bottom: var(--s-4); border-bottom: 1px solid var(--line); }
-.co-loc__empty { display: grid; justify-items: start; gap: var(--s-3); }
-.co-loc__gps {
-  width: 100%; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4);
-  border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--ink-950);
-  text-align: left; transition: border-color var(--t-fast) ease-out;
-}
-.co-loc__gps:hover { border-color: #664878; }
-.co-loc__gps .icon { color: var(--lilac-300); }
-.co-loc__gps[aria-busy="true"] { cursor: progress; }
-.co-loc__gps[aria-busy="true"] .icon { animation: co-pulse 1s ease-in-out infinite; }
-.co-loc__gps-text { display: grid; gap: 2px; }
-.co-loc__gps-text strong { font-size: var(--fs-sm); font-weight: 600; }
-.co-loc__gps-text span { font-size: var(--fs-xs); color: var(--faint); }
-.co-loc__msg { font-size: var(--fs-xs); color: var(--err); font-weight: 600; }
-@keyframes co-pulse { 50% { opacity: .35; } }
-@media (prefers-reduced-motion: reduce) { .co-loc__gps[aria-busy="true"] .icon { animation: none; } }
-
 .co-loc__set { border: 1px solid var(--line-strong); border-radius: var(--r-sm); overflow: hidden; }
 .co-loc__head, .co-map__addr { display: flex; align-items: flex-start; gap: var(--s-3); }
 .co-loc__head { padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4); align-items: center; }
@@ -2989,7 +3483,6 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .co-loc__title { font-size: var(--fs-sm); font-weight: 600; overflow-wrap: anywhere; }
 .co-loc__sub { font-size: var(--fs-xs); color: var(--mute); overflow-wrap: anywhere; }
 .co-loc__sub:empty { display: none; }
-.co-loc__edit { height: 36px; padding-inline: var(--s-3); }
 .co-loc__preview { height: 112px; border-top: 1px solid var(--line); cursor: pointer; }
 
 /* The map step replaces the form inside the same dialog. The pin is fixed at the centre and the
@@ -3008,14 +3501,6 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 }
 .co-map__pin circle { fill: #fff; stroke: none; }
 .co-map.is-moving .co-map__pin { transform: translate(-50%, calc(-100% - 8px)); }
-.co-map__locate {
-  position: absolute; right: var(--s-3); bottom: var(--s-3); z-index: 500;
-  display: inline-flex; align-items: center; gap: var(--s-2); height: 40px; padding: 0 var(--s-4) 0 var(--s-3);
-  border-radius: 999px; background: var(--ink-800); color: var(--text); font-size: var(--fs-sm); font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, .5); transition: background-color var(--t-fast) ease-out;
-}
-.co-map__locate:hover { background: var(--ink-700); }
-.co-map__locate .icon { width: 20px; height: 20px; color: var(--lilac-300); }
 .co-map__sheet { display: grid; gap: var(--s-3); padding: var(--s-4); border-top: 1px solid var(--line); }
 .co-map__sheet .btn { width: 100%; }
 
@@ -3073,6 +3558,124 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
   .co-side .co-promo { padding-block: var(--s-2); }
   .co-side .co-promo:has(.co-promo__form:not([hidden])) { padding-bottom: var(--s-5); }
 }
+
+/* ---------- Pembayaran (/pembayaran/) ---------- */
+/* QRIS after Bayar Sekarang, in checkout's cards. One column on phones: time left and total,
+   the QR, how to pay. From 900px the QR column is on the left and how to pay sticks in a
+   400px column on the right, as checkout's payment column does. */
+.pay { padding-block: var(--section-y) var(--s-6); }
+.pay__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+.pay__main, .pay__side { display: grid; gap: var(--s-4); min-width: 0; }
+
+.pay-status { display: grid; gap: var(--s-4); }
+.pay-status__timer {
+  display: grid; justify-items: center; gap: 2px; padding: var(--s-4); text-align: center;
+  background: var(--ink-950); border: 1px solid var(--line); border-radius: var(--r-sm);
+}
+.pay-status__label { font-size: var(--fs-sm); color: var(--mute); }
+.pay-status__clock { font-size: 2.25rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.pay-status__due { font-size: var(--fs-xs); color: var(--faint); }
+/* The last minute in amber (scarcity), the deadline passed in the error colour */
+.pay-status__timer.is-low .pay-status__clock { color: var(--amber-400); }
+.pay-status__timer.is-over .pay-status__clock, .pay-status__timer.is-over .pay-status__label { color: var(--err); }
+.pay-status__rows { display: grid; gap: var(--s-2); margin: 0; }
+.pay-status__rows div { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.pay-status__rows dt { font-size: var(--fs-sm); color: var(--mute); }
+.pay-status__rows dd { margin: 0; }
+.pay-status__total { font-size: 1.25rem; }
+.pay-status__amount { display: flex; align-items: center; gap: var(--s-3); }
+.pay-status__id { font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Icon only, in a 32px tap box pulled in so the mark itself sits a step from the price */
+.pay-copy { display: inline-grid; place-items: center; width: 32px; height: 32px; margin: -6px; border-radius: 6px; color: var(--lilac-300); }
+.pay-copy:hover { color: var(--text); background: var(--ink-800); }
+.pay-copy .icon { width: 18px; height: 18px; }
+
+.pay-qr { display: grid; gap: var(--s-4); }
+/* A printed QRIS on white, so any scanner reads it */
+.pay-qr__sheet {
+  justify-self: center; width: 100%; max-width: 320px; display: grid; justify-items: center; gap: 2px;
+  padding: var(--s-4) var(--s-5) var(--s-5); background: #fff; color: #14091A; border-radius: 12px; text-align: center;
+}
+.pay-qr__mark { width: auto; height: 44px; }
+.pay-qr__nmid { margin-top: var(--s-3); font-size: var(--fs-2xs); color: #5A4A63; font-variant-numeric: tabular-nums; }
+.pay-qr__code { position: relative; width: 100%; max-width: 240px; aspect-ratio: 1; margin-top: var(--s-3); }
+.pay-qr__code img { width: 100%; height: 100%; transition: opacity var(--t-fast) ease-out, filter var(--t-fast) ease-out; }
+.pay-qr__sheet.is-expired .pay-qr__code img { opacity: .25; filter: blur(3px); }
+.pay-qr__expired {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--s-2);
+  font-size: var(--fs-sm); font-weight: 700; color: #14091A;
+}
+.pay-qr__expired .icon { width: 32px; height: 32px; }
+.pay-dock { display: grid; }
+/* Cek Status beside Simpan QR, the main action, on the right where the thumb is; equal halves */
+.pay-dock__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); }
+.pay-dock__actions [hidden] + .btn:last-child, .pay-dock__actions .btn:only-child { grid-column: 1 / -1; }
+.pay-dock__actions .btn[aria-busy="true"] { cursor: progress; }
+.pay-qr__apps { font-size: var(--fs-xs); color: var(--faint); text-align: center; }
+
+.pay-steps__list { display: grid; gap: var(--s-3); margin-top: var(--s-4); counter-reset: pay-step; }
+/* The number sits outside the text's flow, so bold words inside a step stay inline */
+.pay-steps__list li { counter-increment: pay-step; position: relative; min-height: 24px; padding-left: 36px; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-soft); }
+.pay-steps__list li::before {
+  content: counter(pay-step); position: absolute; left: 0; top: -1px;
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--plum-800); color: var(--lilac-300); font-size: var(--fs-xs); font-weight: 700;
+}
+.pay-steps__list strong { color: var(--text); font-weight: 600; }
+
+
+@media (max-width: 899px) {
+  .pay-dock {
+    position: fixed; inset: auto 0 0; z-index: 38;
+    padding: var(--s-3) var(--gutter) calc(var(--s-3) + env(safe-area-inset-bottom));
+    background: var(--ink-900); box-shadow: 0 -12px 24px -12px rgba(0, 0, 0, .6);
+  }
+  /* The navbar's purple-to-pink rule on top, as on the other pinned pay bars */
+  .pay-dock::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    pointer-events: none; background: linear-gradient(90deg, var(--line-from), var(--line-to));
+  }
+}
+@media (min-width: 900px) {
+  .pay { padding-bottom: var(--s-7); }
+  .pay__layout { grid-template-columns: minmax(0, 1fr) 400px; gap: var(--s-5); }
+  .pay__side { position: sticky; top: calc(var(--header-h) + var(--s-4)); }
+}
+
+/* ---------- Pembayaran Berhasil (/pembayaran/berhasil/) ---------- */
+/* One centred card: a tick, the headline and the amount, then the receipt rows and what
+   happens next, with the way back into the shop at the foot. */
+/* The card's top edge sits where checkout's headline does: the plain page head's top padding
+   plus the title's (or, below 900px, the title bar's) top margin, at each width. */
+.paid { padding-block: calc(var(--s-3) + var(--s-4)) var(--s-7); }
+@media (min-width: 600px) { .paid { padding-top: calc(var(--s-4) + var(--s-4)); } }
+@media (min-width: 900px) { .paid { padding-top: calc(var(--s-4) + var(--s-5)); } }
+@media (min-width: 1024px) { .paid { padding-top: calc(var(--s-5) + var(--s-6)); } }
+.paid-card { max-width: 480px; margin-inline: auto; display: grid; justify-items: center; text-align: center; padding: var(--s-6) var(--s-5) var(--s-5); }
+.paid-card__badge {
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--line-from), var(--line-to)); color: #fff;
+  box-shadow: 0 10px 28px rgba(179, 58, 198, .4);
+}
+.paid-card__badge .icon { width: 32px; height: 32px; stroke-width: 2.5; }
+.paid-card__title { margin-top: var(--s-4); font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+.paid-card__lead { margin-top: var(--s-1); font-size: var(--fs-sm); color: var(--mute); }
+.paid-card__amount { margin-top: var(--s-4); font-size: 1.75rem; }
+.paid-card__rows {
+  width: 100%; display: grid; gap: var(--s-2); margin: var(--s-5) 0 0; padding-top: var(--s-4);
+  border-top: 1px solid var(--line); font-size: var(--fs-sm); text-align: left;
+}
+.paid-card__rows div { display: flex; justify-content: space-between; gap: var(--s-4); }
+.paid-card__rows dt { color: var(--mute); }
+.paid-card__rows dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.paid-card__note {
+  width: 100%; display: flex; align-items: flex-start; gap: var(--s-2); margin-top: var(--s-4); padding: var(--s-3);
+  background: var(--ink-950); border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-size: var(--fs-xs); line-height: 1.5; color: var(--mute); text-align: left;
+}
+.paid-card__note .icon { flex: none; margin-top: 1px; color: var(--lilac-300); }
+.paid-card__note strong { color: var(--text); font-weight: 600; white-space: nowrap; }
+.paid-card__actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); margin-top: var(--s-5); }
 
 /* ---------- Tentang Kami ---------- */
 /* After GameSir's About page: a title and an intro opening the page (here over a screen of
@@ -3194,8 +3797,8 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
    navbar's gradient line. */
 .about-cta {
   text-align: center;
-  border-top: 1px solid #8E48C4;
-  border-image: linear-gradient(90deg, #8E48C4, #DB4DFF) 1;
+  border-top: 1px solid var(--line-from);
+  border-image: linear-gradient(90deg, var(--line-from), var(--line-to)) 1;
   background:
     radial-gradient(60% 80% at 50% 0%, rgba(142, 72, 196, .28), transparent 70%),
     linear-gradient(180deg, var(--plum-800), var(--ink-950));
@@ -3473,3 +4076,885 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 @keyframes chat-in { from { opacity: 0; scale: .4; } }
 @media (prefers-reduced-motion: reduce) { .chat-bubble { animation: none; } }
 
+
+/* ---------- Accounts: Masuk, Daftar, Akun ---------- */
+/* The top of each page's first block sits where checkout's headline does (see .paid). */
+.auth, .acc { padding-block: calc(var(--s-3) + var(--s-4)) var(--s-8); }
+/* Akun fills the first screen, so the footer waits below the fold. */
+.acc { min-height: calc(100vh - var(--header-h)); min-height: calc(100svh - var(--header-h)); }
+@media (min-width: 600px) { .auth, .acc { padding-top: calc(var(--s-4) + var(--s-4)); } }
+@media (min-width: 900px) { .auth, .acc { padding-top: calc(var(--s-4) + var(--s-5)); } }
+@media (min-width: 1024px) { .auth, .acc { padding-top: calc(var(--s-5) + var(--s-6)); } }
+
+/* Signed in, the account icon opens a dropdown (main.js), right-aligned under the icon: who
+   is signed in, the account's pages, Keluar. Only from 768px, where the icon shows. */
+.nav__acc { display: none; }
+@media (min-width: 768px) {
+  .nav__acc { display: block; }
+  .nav__acc .nav__account { position: relative; }
+  .dropdown--acc { left: auto; right: 0; top: 100%; width: 260px; }
+  .dropdown-acc__who { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3) var(--s-3); margin-bottom: var(--s-1); border-bottom: 1px solid var(--line); }
+  .dropdown-acc__avatar {
+    flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+    background: linear-gradient(135deg, var(--line-from), var(--line-to)); color: #fff; font-size: .8125rem; font-weight: 800;
+  }
+  .dropdown-acc__avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .dropdown-acc__text { display: grid; min-width: 0; }
+  .dropdown-acc__text > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dropdown-acc__text strong { font-size: var(--fs-sm); }
+  .dropdown-acc__text span { font-size: var(--fs-xs); color: var(--mute); }
+  .dropdown-acc__out {
+    display: flex; align-items: center; width: 100%; min-height: 44px; margin-top: var(--s-1); padding: 0 var(--s-3);
+    border-top: 1px solid var(--line); font-size: var(--fs-sm); font-weight: 500; color: var(--err);
+  }
+  .dropdown-acc__out:hover { color: var(--err-hover); background: var(--ink-800); }
+  .dropdown--acc a, .dropdown-acc__out { gap: var(--s-3); }
+  .dropdown--acc a .icon { flex: none; width: 18px; height: 18px; color: var(--mute); transition: color var(--t-fast) ease-out; }
+  .dropdown--acc a:hover .icon { color: currentColor; }
+  .dropdown-acc__out .icon { flex: none; width: 18px; height: 18px; }
+}
+
+/* Signed in, the navbar's account icon carries a dot in the brand pink. */
+.nav__account.is-signed-in::after {
+  content: ""; position: absolute; top: 9px; right: 7px; width: 9px; height: 9px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--line-from), #DB4DFF); box-shadow: 0 0 0 2px var(--ink-925);
+}
+
+/* One card: the form alone, centred, at every width. */
+.auth-card { position: relative; max-width: 460px; margin-inline: auto; background: var(--ink-900); border: 1px solid var(--line); }
+.auth-card__main { padding: var(--s-6) var(--s-5) var(--s-5); }
+@media (min-width: 600px) { .auth-card__main { padding: var(--s-7) var(--s-6) var(--s-6); } }
+/* The Mobile Gaming Gear #1 banner over the card, outside it: the full width on a phone, a
+   little wider than the card from 600px. It starts right under the header and runs on behind
+   the card, the products fading out beside it. The card comes up to sit as far under the
+   headline as the headline sits under the header: in banner pixels (1080 wide), the headline
+   runs 72 to 393 and the art ends at 984, so the card climbs (984 - 393 - 72) / 1080 of the
+   banner's width. */
+.auth:has(.auth-banner) { justify-content: flex-start; padding-top: 0; }
+.auth-banner {
+  --ban-w: min(100vw, 560px);
+  position: relative; z-index: 0; width: var(--ban-w); margin: 0 auto calc(var(--ban-w) * -519 / 1080);
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+}
+.auth-banner { display: block; }
+.auth-banner img { display: block; width: 100%; height: auto; }
+.auth-banner + .container { position: relative; z-index: 1; }
+/* wider than the phone, its sides fade into the page too (to 899px; from 900px it is a panel) */
+@media (min-width: 600px) and (max-width: 899px) {
+  .auth-banner {
+    -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 96%), linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+    mask-image: linear-gradient(to bottom, #000 62%, transparent 96%), linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect;
+  }
+}
+/* From 900px: the banner and the card side by side and joined, one shape. The banner is the
+   left panel, as tall as the form, the headline at its top and the products under it; the
+   pair keeps the outer cut corners (the banner's top left, the card's bottom right) and loses
+   the two where they meet. Centred in the screen again, as there is room. */
+@media (min-width: 900px) {
+  .auth:has(.auth-banner) {
+    display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 460px); justify-content: center; align-content: center;
+    padding-block: var(--s-6);
+  }
+  .auth-banner {
+    --cut: 14px;
+    width: auto; margin: 0; position: relative; overflow: hidden;
+    border: 1px solid var(--line); border-right: 0; background: var(--ink-900);
+    -webkit-mask-image: none; mask-image: none;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
+  }
+  .auth-banner::before {
+    content: ""; position: absolute; inset: -1px; z-index: 1; pointer-events: none;
+    background: linear-gradient(to bottom right, transparent 50%, var(--line) 50% calc(50% + 1.5px), transparent calc(50% + 1.5px)) top left / var(--cut) var(--cut) no-repeat;
+  }
+  .auth-banner img { position: absolute; inset: 0; height: 100%; object-fit: cover; object-position: center top; }
+  .auth-banner + .container { width: auto; margin: 0; }
+  .auth-banner + .container .auth-card {
+    max-width: none; margin: 0;
+    clip-path: polygon(-2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% - var(--cut) - 2px),
+      calc(100% - var(--cut) - 2px) calc(100% + 2px), -2px calc(100% + 2px));
+  }
+  .auth-banner + .container .auth-card::before {
+    background: linear-gradient(to top left, transparent 50%, var(--cut-line) 50% calc(50% + 1.5px), transparent calc(50% + 1.5px)) bottom right / var(--cut) var(--cut) no-repeat;
+  }
+}
+/* The headline centred over the form, with the switch to the other page right under it. At
+   every width the card sits in the middle of the screen under the header, which keeps the
+   footer below the fold on arrival. */
+.auth-card__main { display: flex; flex-direction: column; }
+/* align-self rather than auto margins: a headline that wraps is wider than the card before its
+   squeeze, and only flex centring keeps an overflowing box centred */
+.auth-card__title { align-self: center; margin-top: 0; text-align: center; transform-origin: center; font-size: 1.5rem; }
+.auth {
+  display: flex; flex-direction: column; justify-content: center;
+  min-height: calc(100vh - var(--header-h)); min-height: calc(100svh - var(--header-h)); padding-block: var(--s-5);
+}
+.auth-form { display: grid; gap: var(--s-4); margin-top: var(--s-5); }
+/* the floating labels cut the border against the card's ink-900 */
+.auth-form .pdp-input, .acc-form .pdp-input, .sensi-code .pdp-input { height: 48px; }
+.auth-form .pdp-hint, .acc-form .pdp-hint, .sensi-code .pdp-hint { margin-top: 6px; }
+/* Masuk and Daftar have no label above the box, so the field's gap only sits over the hint;
+   halved, so the hint reads as part of its field (10px in all, from 14px). */
+.auth-form .pdp-field { gap: var(--s-1); }
+/* Room on the right for the eye, which sits inside the field. */
+.auth-pw { position: relative; }
+.auth-pw .pdp-input { padding-right: 52px; }
+/* a resting label stops short of the eye too */
+.auth-pw .co-float__label { max-width: calc(100% - 64px); }
+.auth-pw__toggle { position: absolute; right: 2px; top: 2px; color: var(--mute); }
+.auth-pw__toggle:hover { color: var(--text); }
+.auth-pw__toggle:focus-visible { outline: 2px solid var(--violet-400); outline-offset: -4px; }
+.auth-form__forgot { justify-self: end; margin-top: calc(-1 * var(--s-2)); font-size: var(--fs-sm); background: none; border: 0; padding: 0; cursor: pointer; }
+/* Reset dialog on Masuk: an email, then a note that the code is on its way. */
+.auth-reset { width: min(100% - 2 * var(--s-4), 440px); }
+.auth-reset .co-dialog__head { align-items: flex-start; border-bottom: 0; }
+/* the close button keeps its circle however long the lead under the title runs */
+.auth-reset .co-dialog__head .icon-btn { flex: none; }
+.auth-reset .co-dialog__body { padding-block: var(--s-3); }
+.auth-reset .co-dialog__foot { border-top: 0; padding-bottom: var(--s-5); }
+.auth-reset__heading { display: grid; gap: var(--s-1); padding-top: var(--s-2); }
+.auth-reset__lead { font-size: var(--fs-sm); line-height: 1.5; color: var(--mute); }
+.auth-reset .pdp-input { height: 48px; }
+.auth-reset .pdp-hint { margin-top: 6px; }
+.auth-reset__sent { justify-items: center; text-align: center; font-size: var(--fs-sm); line-height: 1.5; color: var(--mute); }
+.auth-reset__sent strong { color: var(--text); word-break: break-all; }
+.auth-reset__icon { width: 40px; height: 40px; color: var(--lilac-300); }
+/* Ganti Kata Sandi on Akun: the reset dialog's frame, the forgot link under the fields as on
+   Masuk, and a plain Kembali under the send button. */
+/* the email moves to its own line before it ever breaks inside */
+.auth-reset__lead strong { color: var(--text); overflow-wrap: anywhere; }
+.acc-pw .auth-reset__sent strong { word-break: normal; overflow-wrap: anywhere; }
+.acc-pw__forgot { justify-self: end; margin-top: calc(-1 * var(--s-2)); font-size: var(--fs-sm); }
+.acc-pw__back { justify-self: center; padding: var(--s-2); font-size: var(--fs-sm); }
+.auth-reset__foot { grid-template-columns: 1fr; }
+.auth-reset [hidden] { display: none; }
+.auth-form__error {
+  display: flex; align-items: flex-start; gap: var(--s-2); padding: var(--s-3);
+  background: var(--err-wash); border: 1px solid rgba(255, 138, 158, .4); border-radius: var(--r-sm);
+  font-size: var(--fs-sm); line-height: 1.45; color: var(--err);
+}
+.auth-form__error[hidden] { display: none; }
+.auth-form__error .icon { flex: none; margin-top: 1px; }
+.auth-form__error .link-btn { color: var(--err); }
+.auth-form .btn--lg { margin-top: var(--s-1); }
+.auth-card__switch { margin-top: var(--s-3); font-size: var(--fs-sm); color: var(--mute); text-align: center; }
+
+/* Akun: who is signed in, then the tabs. */
+.acc-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); }
+@media (min-width: 600px) { .acc-head { column-gap: var(--s-4); } }
+.acc-avatar {
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--line-from), var(--line-to)); color: #fff;
+  font-size: 1.25rem; font-weight: 800; letter-spacing: .02em;
+  overflow: hidden;
+}
+/* a photo, once set, fills the circle in place of the initials */
+.acc-avatar img, .menu-acc__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.acc-avatar:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+/* The name in the Draco headline, squeezed from its left edge as .page-title is. */
+.acc-head__name { font-size: .9375rem; transform-origin: left; }
+.acc-head__email { margin-top: 2px; font-size: var(--fs-sm); color: var(--mute); overflow-wrap: anywhere; }
+/* One layout at every width: the overview, and each tab in its place under its title. The
+   email lives in Profil, Keluar in the menu drawer (and, from 900px, the sidebar). */
+.acc-back { display: none; }
+/* Greeting on the left, avatar on the right. */
+.acc-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "text avatar"; }
+.acc-head__text { grid-area: text; }
+.acc-avatar { grid-area: avatar; align-self: start; width: 44px; height: 44px; font-size: 1rem; }
+/* trimmed to the cap height, so the 28px above it measures to the letters, as under the name */
+.acc-head__hi { display: block; font-size: 1rem; font-weight: 500; line-height: 1.3; color: var(--text-soft); text-box-trim: trim-start; text-box-edge: cap alphabetic; }
+.acc-head__name { font-size: .9375rem; margin-top: var(--s-2); margin-bottom: -.287em; }
+.acc-head__email, .acc-head__out { display: none; }
+
+.acc-tabs { display: none; }
+.acc[data-view="home"] .acc-panel { display: none; }
+.acc:not([data-view="home"]) .acc-head, .acc:not([data-view="home"]) .acc-home { display: none; }
+.acc:not([data-view="home"]) .acc-back { display: block; }
+/* GameSir's Settings at phone width: 28px from the header to the headline's capitals (the
+   page's own padding, .acc) and the same 28px from its baseline to the content. */
+.acc-panel { padding-top: 28px; }
+
+/* From 900px, GameSir's account page: a sidebar card (who, the pages, Keluar) beside the page.
+   The avatar moves into the sidebar. */
+.acc-side { display: none; }
+@media (min-width: 900px) {
+  @media (min-width: 1024px) { .acc .acc-side { --side-gap: calc(var(--s-5) + var(--s-6)); } }
+  .acc-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: var(--s-6); align-items: start; }
+  .acc-side {
+    --cut: 12px;
+    /* as far under the header as the page's own top padding, and as much clear at the foot */
+    --side-gap: calc(var(--s-4) + var(--s-5));
+    position: sticky; top: calc(var(--header-h) + var(--side-gap));
+    display: flex; flex-direction: column;
+    height: calc(100vh - var(--header-h) - 2 * var(--side-gap)); height: calc(100svh - var(--header-h) - 2 * var(--side-gap));
+    min-height: 480px; overflow-y: auto;
+    padding: var(--s-4); background: var(--ink-900); border: 1px solid var(--line);
+  }
+  .acc-side__who { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-2) var(--s-4); border-bottom: 1px solid var(--line); }
+  .acc-side__avatar {
+    flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
+    background: linear-gradient(135deg, var(--line-from), var(--line-to)); color: #fff; font-size: 1rem; font-weight: 800;
+  }
+  .acc-side__avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .acc-side__text { min-width: 0; }
+  .acc-side__name, .acc-side__email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acc-side__name { font-weight: 700; }
+  .acc-side__email { margin-top: 2px; font-size: var(--fs-xs); color: var(--mute); }
+  .acc-side__nav { display: grid; gap: 2px; padding-top: var(--s-2); }
+  .acc-side__group { padding: var(--s-4) var(--s-3) var(--s-2); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+  .acc-side__link, .acc-side__out {
+    position: relative; display: flex; align-items: center; gap: var(--s-3); min-height: 44px; padding: 0 var(--s-3);
+    border-radius: var(--r-sm); font-size: var(--fs-sm); font-weight: 600; color: var(--text-soft);
+    transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+  }
+  .acc-side__link .icon, .acc-side__out .icon { flex: none; width: 18px; height: 18px; color: var(--mute); }
+  .acc-side__chev { margin-left: auto; opacity: 0; }
+  .acc-side__link:hover, .acc-side__out:hover { background: var(--ink-800); color: var(--text); }
+  .acc-side__link[aria-current="page"] { background: rgba(142, 72, 196, .16); color: var(--text); }
+  .acc-side__link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: #8E48C4; }
+  .acc-side__link[aria-current="page"] .icon { color: var(--lilac-300); }
+  .acc-side__link[aria-current="page"] .acc-side__chev { opacity: 1; }
+  .acc-side__out { margin-top: auto; width: 100%; color: var(--err); }
+  .acc-side__out::before { content: ""; position: absolute; left: 0; right: 0; top: calc(-1 * var(--s-3)); border-top: 1px solid var(--line); }
+  .acc-side__out .icon { color: currentColor; }
+  .acc-side__out:hover { color: var(--err-hover); }
+
+  .acc-head .acc-avatar { display: none; }
+  .acc-head { grid-template-areas: "text"; grid-template-columns: minmax(0, 1fr); }
+  .acc-head__name { font-size: 1.25rem; }
+  /* the panel's name in Draco at the size of the name on the overview */
+  .acc .acc-back .page-title { font-size: 1.25rem; }
+  .acc-panel { padding-top: var(--s-5); }
+  .acc .acc-search, .acc .acc-empty, .acc .acc-orders, .acc .acc-filter { max-width: none; }
+}
+
+/* 28px under the name's baseline, as much as the page leaves above the greeting. */
+.acc-home { margin-top: 28px; }
+
+/* The four stages in one card: a round icon over its name, the count a badge on the icon. */
+.acc-stats {
+  --cut: 10px;
+  position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-1);
+  padding: var(--s-2); background: var(--ink-900); border: 1px solid var(--line);
+}
+.acc-stat {
+  display: grid; justify-items: center; gap: var(--s-2); padding: var(--s-3) 2px;
+  border-radius: var(--r-md); transition: background-color var(--t-fast) ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.acc-stat__icon {
+  position: relative; display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: 50%; color: var(--lilac-300); background: rgba(142, 72, 196, .16);
+}
+.acc-stat__icon .icon { width: 20px; height: 20px; }
+.acc-stat__n {
+  position: absolute; top: -4px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px;
+  display: grid; place-items: center; border-radius: 999px; border: 2px solid var(--ink-900);
+  background: #8E48C4; color: #fff; font-size: 10px; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums; box-sizing: content-box;
+}
+.acc-stat__n[hidden] { display: none; }
+.acc-stat__text { display: contents; }
+.acc-stat__total { display: none; }
+.acc-stat__label { font-size: .75rem; font-weight: 600; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+/* From 900px each stage is a card of its own: the icon, then the count over the stage's name. */
+@media (min-width: 900px) {
+  .acc .acc-stats { --cut: 0px; gap: var(--s-4); padding: 0; background: none; border: 0; clip-path: none; }
+  .acc .acc-stats::before { content: none; }
+  .acc .acc-stat {
+    --cut: 10px; --cut-line: var(--line);
+    position: relative; display: flex; align-items: center; justify-items: start; gap: var(--s-4); padding: var(--s-5);
+    background: var(--ink-900); border: 1px solid var(--line); border-radius: 0;
+    clip-path: polygon(calc(var(--cut) + 2px) -2px, calc(100% + 2px) -2px,
+      calc(100% + 2px) calc(100% - var(--cut) - 2px), calc(100% - var(--cut) - 2px) calc(100% + 2px),
+      -2px calc(100% + 2px), -2px calc(var(--cut) + 2px));
+    transition: border-color var(--t-fast) ease-out;
+  }
+  .acc .acc-stat::before {
+    content: ""; position: absolute; inset: -1px; z-index: 3; pointer-events: none;
+    background:
+      linear-gradient(to bottom right, transparent 50%, var(--cut-line) 50% calc(50% + 1.5px), transparent calc(50% + 1.5px))
+        top left / var(--cut) var(--cut) no-repeat,
+      linear-gradient(to top left, transparent 50%, var(--cut-line) 50% calc(50% + 1.5px), transparent calc(50% + 1.5px))
+        bottom right / var(--cut) var(--cut) no-repeat;
+  }
+  .acc .acc-stat:hover { --cut-line: #8E48C4; border-color: #8E48C4; background: var(--ink-900); }
+  .acc-stat__icon { flex: none; width: 48px; height: 48px; }
+  .acc-stat__icon .icon { width: 22px; height: 22px; }
+  .acc .acc-stat__n { display: none; }
+  .acc-stat__text { display: grid; gap: 2px; min-width: 0; }
+  .acc-stat__total { display: block; font-size: 1.5rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .acc-stat__label { font-size: var(--fs-sm); font-weight: 500; }
+}
+
+.acc-sec-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); margin: var(--s-7) 0 var(--s-4); }
+.acc-sec-head--first { margin-top: 0; }
+/* the next block's title as far under the block above as Pesanan Saya is under the name */
+.acc-home > .acc-sec-head:not(.acc-sec-head--first) { margin-top: 28px; }
+/* In the body font, not Draco: a quieter label for each block of the overview. */
+.acc-sec-title { min-width: 0; font-size: 1rem; font-weight: 700; line-height: 1.3; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acc-sec-link { flex: none; display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; }
+
+/* The latest order, or the empty nudge. */
+.acc-recent {
+  position: relative; display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-4); background: var(--ink-900); border: 1px solid var(--line);
+  transition: border-color var(--t-fast) ease-out;
+}
+.acc-recent .acc-order__thumb { width: 64px; height: 64px; }
+.acc-recent__text { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.acc-recent__top { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-xs); color: var(--mute); }
+.acc-recent__name { font-size: var(--fs-sm); font-weight: 500; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.acc-recent__total { font-size: var(--fs-xs); color: var(--mute); }
+.acc-recent__total .price { font-size: var(--fs-sm); color: var(--text); }
+.acc-recent--empty { display: block; padding: var(--s-5) var(--s-4); }
+.acc-recent__title { font-weight: 700; }
+.acc-recent__lead { margin-top: var(--s-1); font-size: var(--fs-sm); line-height: 1.5; color: var(--mute); }
+.acc-recent__btn { margin-top: var(--s-4); }
+
+@media (hover: hover) {
+  .acc-stat:hover { background: rgba(255, 255, 255, .04); }
+  .acc-recent:hover { --cut-line: #8E48C4; border-color: #8E48C4; }
+  a.acc-recent:hover .acc-recent__name, .acc-sec-link:hover { color: var(--text); }
+}
+.acc-stat:focus-visible, .acc-recent:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+
+/* Inside a panel on a phone: the panel's name in the Draco headline, as Keranjang and
+   Checkout have it, with no back arrow; the phone's own back returns to the overview. */
+/* The box runs .287em past Draco's baseline; taken back out so the 28px under it measures to
+   the type. */
+.acc-back .page-title { flex: none; margin-top: 0; margin-bottom: -.287em; font-size: .9375rem; }
+
+/* The product page's tab rail, without its sticking. */
+.acc-tabs { position: static; margin-top: var(--s-5); }
+@media (min-width: 900px) { .acc-tabs { margin-top: var(--s-6); } }
+.acc-panel:focus-visible { outline: none; }
+/* Status: an underlined rail, the product page's tabs without their sticking, scrolling
+   sideways when it runs out of room. */
+.acc-filter {
+  display: flex; overflow-x: auto; scrollbar-width: none; max-width: 860px;
+  margin: 0 0 var(--s-4) calc(-1 * var(--s-3)); border-bottom: 1px solid var(--line);
+}
+.acc-filter::-webkit-scrollbar { display: none; }
+.acc-stage {
+  position: relative; flex: none; height: 48px; padding: 0 var(--s-3);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--faint); white-space: nowrap;
+  transition: color var(--t-fast) ease-out;
+}
+.acc-stage:hover { color: var(--text-soft); }
+.acc-stage[aria-pressed="true"] { color: var(--text); }
+.acc-stage::after {
+  content: ""; position: absolute; left: var(--s-3); right: var(--s-3); bottom: -1px; height: 3px;
+  border-radius: 3px 3px 0 0; background: linear-gradient(90deg, var(--line-from), var(--line-to));
+  transform: scaleX(0); transition: transform var(--t-fast) ease-out;
+}
+/* The picked one swells under the lens as the product page's tabs do (.tab__label), its
+   underline stretching to match. */
+.acc-stage[aria-pressed="true"]::after { transform: scaleX(1.12); }
+.acc-stage__label { display: inline-block; transition: transform 380ms cubic-bezier(.34, 1.56, .64, 1); }
+.acc-stage[aria-pressed="true"] .acc-stage__label { transform: scale(1.12); }
+@media (prefers-reduced-motion: reduce) { .acc-stage__label { transition: none; } }
+.acc-stage:focus-visible { outline-offset: -6px; }
+/* Search over the chips, a touch taller than the catalogue's to sit as the panel's first field. */
+.acc-search { max-width: 860px; margin-bottom: var(--s-4); }
+.acc-search .catalog-search__input { height: 48px; padding-left: 42px; font-size: var(--fs-body); }
+.acc-search .catalog-search__icon { left: 14px; width: 20px; height: 20px; }
+/* No orders (or none that match): the empty note in a card, like an order would be. */
+.acc-empty { position: relative; max-width: 860px; padding: var(--s-7) var(--s-5); background: var(--ink-900); border: 1px solid var(--line); }
+.acc-empty .catalog-empty__text { max-width: 32ch; margin-bottom: 0; line-height: 1.5; }
+.acc-empty .btn { margin-top: var(--s-4); }
+/* Phones: the rail runs to the screen's edges rather than stopping short at the gutter. */
+@media (max-width: 599px) {
+  .acc-filter { margin-inline: calc(-1 * var(--gutter)); padding-inline: calc(var(--gutter) - var(--s-3)); }
+}
+
+/* Pesanan Saya: one card per order, marketplace-style. */
+.acc-orders { display: grid; gap: var(--s-3); max-width: 860px; }
+.acc-order { position: relative; background: var(--ink-900); border: 1px solid var(--line); }
+.acc-order__head {
+  display: flex; align-items: center; gap: var(--s-3);
+  padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--line); font-size: var(--fs-xs); color: var(--mute);
+}
+.acc-order__id { display: inline-flex; align-items: center; gap: var(--s-2); min-width: 0; font-weight: 700; color: var(--text-soft); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.acc-order__id .icon { flex: none; color: var(--mute); }
+.acc-status {
+  margin-left: auto; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap;
+  background: rgba(142, 72, 196, .25); color: var(--lilac-200);
+}
+.acc-status--unpaid { background: var(--amber-400); color: var(--on-amber); }
+.acc-status--shipped { background: linear-gradient(120deg, #6A2E9E, #B33AC6); color: #fff; }
+.acc-status--done { background: rgba(255, 255, 255, .1); color: var(--text-soft); }
+.acc-status--cancelled { background: var(--err-wash); color: var(--err); }
+.acc-order__item { display: flex; gap: var(--s-3); padding: var(--s-4); }
+.acc-order__thumb { flex: none; width: 72px; height: 72px; overflow: hidden; border-radius: var(--r-sm); background: var(--ink-800); }
+.acc-order__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.acc-order__text { min-width: 0; display: grid; align-content: start; gap: 2px; }
+.acc-order__name { font-size: var(--fs-body); font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.acc-order__meta, .acc-order__qty { font-size: var(--fs-xs); color: var(--mute); }
+.acc-order__price { margin-top: var(--s-1); font-size: var(--fs-body); color: var(--text); }
+.acc-order__more { margin-top: 2px; font-size: var(--fs-xs); font-weight: 600; color: var(--lilac-300); }
+/* The date beside the total, under a rule; then the action on the right. */
+.acc-order__foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2) var(--s-3);
+  padding: var(--s-3) var(--s-4); border-top: 1px solid var(--line);
+}
+.acc-order__date { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-xs); color: var(--mute); }
+.acc-order__date .icon { flex: none; }
+.acc-order__total { font-size: var(--fs-xs); color: var(--mute); }
+.acc-order__total .price { font-size: 1.0625rem; color: var(--text); }
+.acc-order__act { display: flex; justify-content: flex-end; padding: 0 var(--s-4) var(--s-4); }
+
+/* Lacak: the steps down a line, done ones in the brand sweep, then where it is going. */
+.acc-track { margin: 0 var(--s-4) var(--s-4); padding: var(--s-4); background: var(--ink-950); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.acc-steps { display: grid; }
+.acc-step { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: var(--s-3); padding-bottom: var(--s-4); }
+.acc-step:last-child { padding-bottom: 0; }
+/* the line to the next dot */
+.acc-step:not(:last-child)::before {
+  content: ""; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: var(--line-strong);
+}
+.acc-step.is-done:not(.is-current)::before { background: linear-gradient(180deg, var(--line-from), var(--line-to)); }
+.acc-step__dot {
+  grid-row: span 2; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  border: 2px solid var(--line-strong); background: var(--ink-950); color: #fff;
+}
+.acc-step__dot .icon { width: 13px; height: 13px; stroke-width: 3.5; }
+.acc-step.is-done .acc-step__dot { border-color: transparent; background: linear-gradient(135deg, var(--line-from), var(--line-to)); }
+.acc-step.is-current .acc-step__dot { box-shadow: 0 0 0 4px rgba(219, 77, 255, .22); }
+.acc-step__label { font-size: var(--fs-sm); font-weight: 600; color: var(--faint); line-height: 24px; }
+.acc-step.is-done .acc-step__label { color: var(--text); }
+.acc-step__time { font-size: var(--fs-xs); color: var(--faint); font-variant-numeric: tabular-nums; }
+.acc-track__rows { display: grid; gap: var(--s-2); margin: var(--s-4) 0 0; padding-top: var(--s-4); border-top: 1px solid var(--line); font-size: var(--fs-xs); }
+.acc-track__rows div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: var(--s-3); }
+.acc-track__rows dt { color: var(--mute); }
+.acc-track__rows dd { margin: 0; color: var(--text-soft); line-height: 1.5; }
+.acc-track__rows .is-pending { color: var(--faint); font-style: italic; }
+
+/* Sensi Saya */
+.acc-scan {
+  position: relative; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4);
+  background: linear-gradient(120deg, rgba(106, 46, 158, .35), rgba(179, 58, 198, .2)), var(--ink-900);
+  border: 1px solid var(--line-strong);
+  transition: border-color var(--t-fast) ease-out;
+}
+.acc-scan:hover { border-color: #8E48C4; }
+.acc-scan__icon { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--line-from), var(--line-to)); color: #fff; }
+.acc-scan__text { flex: 1; min-width: 0; display: grid; gap: 2px; font-size: var(--fs-xs); color: var(--mute); }
+.acc-scan__text strong { font-size: var(--fs-body); color: var(--text); }
+.acc-scan__chev { flex: none; color: var(--mute); }
+.sensi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); margin-top: var(--s-4); }
+@media (min-width: 600px) { .sensi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4); } }
+@media (min-width: 1024px) { .sensi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.sensi-tile { display: grid; gap: 2px; width: 100%; text-align: left; }
+.sensi-tile__art { display: block; aspect-ratio: 3 / 4; overflow: hidden; margin-bottom: var(--s-2); border: 1px solid var(--line); background: var(--ink-800); transition: border-color var(--t-fast) ease-out; }
+.sensi-tile__art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; transition: transform 400ms var(--ease); }
+.sensi-tile__name { font-size: var(--fs-sm); font-weight: 700; }
+.sensi-tile__date { font-size: var(--fs-xs); color: var(--mute); }
+.sensi-tile:focus-visible { outline: none; }
+.sensi-tile:focus-visible .sensi-tile__art { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+@media (hover: hover) {
+  .sensi-tile:hover .sensi-tile__art { border-color: #8E48C4; }
+  .sensi-tile:hover .sensi-tile__art img { transform: scale(1.04); }
+}
+
+/* Profil */
+/* Pengaturan: Profil, Alamat Pengiriman and Keamanan, each a chamfered card with an icon
+   title; the address and password sit in rows that fold their form open under them. */
+.acc-sets { display: grid; gap: var(--s-4); max-width: 640px; }
+.acc-set { position: relative; padding: var(--s-5) var(--s-4); background: var(--ink-900); border: 1px solid var(--line); }
+@media (min-width: 600px) { .acc-set { padding: var(--s-5); } }
+.acc-set__title { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-4); font-size: 1.125rem; font-weight: 800; }
+.acc-set__title .icon { width: 20px; height: 20px; color: var(--lilac-300); }
+/* The avatar with a camera badge on its lower right, which opens the file picker. */
+.acc-photo { position: relative; width: 80px; margin: 0 auto var(--s-5); }
+.acc-set .acc-set__avatar { width: 80px; height: 80px; font-size: 1.5rem; }
+.acc-photo__btn {
+  position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center;
+  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  background: var(--text); color: var(--ink-950); border: 3px solid var(--ink-900);
+  transition: transform var(--t-fast) ease-out;
+}
+.acc-photo__btn .icon { width: 15px; height: 15px; }
+.acc-photo__btn:hover { transform: scale(1.08); }
+.acc-photo__input:focus-visible + .acc-photo__btn { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+.acc-set__form { display: grid; gap: var(--s-4); }
+.acc-set .pdp-input { height: 48px; }
+.acc-set .pdp-hint { margin-top: 6px; }
+.acc-set .co-dialog__area { display: block; height: auto; min-height: 96px; padding-top: 14px; }
+.acc-set input[readonly], .acc-pw input[readonly] { color: var(--mute); border-style: dashed; }
+/* The date field in the dark scheme, so the browser's own picker icon and calendar match. */
+.acc-date { color-scheme: dark; }
+.acc-date::-webkit-calendar-picker-indicator { opacity: .7; cursor: pointer; }
+
+.acc-row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--s-3); row-gap: var(--s-4);
+  padding: var(--s-4); background: var(--ink-950); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.acc-row__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ink-800); color: var(--mute); }
+.acc-row__icon .icon { width: 18px; height: 18px; }
+.acc-row__text { display: grid; gap: 4px; align-content: center; min-width: 0; }
+.acc-row__title { font-weight: 700; }
+.acc-row__sub { font-size: var(--fs-sm); color: var(--mute); line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+.acc-row__btn { grid-column: 1 / -1; }
+.acc-row__btn { width: 100%; }
+.acc-row + .acc-row { margin-top: var(--s-3); }
+
+/* From 900px, GameSir's Settings: the cards fill the page; Profil puts the photo beside the
+   fields, WhatsApp and birthday side by side; each row's button sits on its right. */
+@media (min-width: 900px) {
+  .acc-sets { max-width: none; gap: var(--s-5); }
+  .acc-set { padding: var(--s-6); }
+  .acc-set__title { font-size: 1.25rem; margin-bottom: var(--s-5); }
+  .acc-set[aria-labelledby="set-profil"] { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--s-6); align-items: start; }
+  .acc-set[aria-labelledby="set-profil"] .acc-set__title { grid-column: 1 / -1; }
+  .acc-set .acc-photo { width: 96px; margin: 0; }
+  .acc-set .acc-set__avatar { width: 96px; height: 96px; font-size: 1.75rem; }
+  .acc-set__form { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s-4); }
+  .acc-set__form > .pdp-field:nth-child(-n+2), .acc-set__form > .acc-form__foot { grid-column: 1 / -1; }
+  .acc-row { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; padding: var(--s-5); }
+  .acc-row__btn { grid-column: auto; width: auto; }
+}
+
+/* Kelola Alamat: a card per saved address, the text on the left (Utama tag over the first),
+   edit and delete stacked on the right; Tambah Alamat on the right of the foot. */
+.acc-addr [data-acc-addr-view][hidden] { display: none; }
+.acc-addr__form { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.acc-addr__list { display: grid; gap: var(--s-3); }
+.acc-addr__empty { padding: var(--s-5) 0; text-align: center; font-size: var(--fs-sm); color: var(--mute); }
+.acc-addr__foot { display: flex; justify-content: flex-end; }
+.acc-addr-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-3);
+  padding: var(--s-4); background: var(--ink-950); border: 1px solid var(--line); border-radius: var(--r-sm);
+}
+.acc-addr-card.is-main { border-color: var(--line-strong); }
+.acc-addr-card__text { display: grid; gap: 4px; align-content: start; min-width: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--text-soft); overflow-wrap: anywhere; }
+.acc-addr-card__tag {
+  justify-self: start; margin-bottom: var(--s-1); padding: 2px var(--s-2); border-radius: var(--r-sm);
+  background: var(--ink-800); font-size: var(--fs-2xs); font-weight: 600; color: var(--mute);
+}
+.acc-addr-card__name { font-size: var(--fs-body); font-weight: 700; color: var(--text); }
+.acc-addr-card__main { justify-self: start; margin-top: var(--s-1); font-size: var(--fs-sm); }
+.acc-addr-card__actions { display: grid; align-content: start; gap: var(--s-2); }
+.acc-addr-card__actions .icon { width: 18px; height: 18px; }
+.acc-addr-card__del { color: var(--err); }
+.acc-addr-card__del:hover { background: none; color: var(--err-hover); }
+
+/* Keluar: the destructive red, at the foot of Pengaturan on phones (the header has it above). */
+.acc-out {
+  display: none; width: 100%; max-width: 640px; margin-top: var(--s-5);
+  background: var(--err-wash); border: 1px solid var(--err); color: var(--err);
+  transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+}
+.acc-out:hover { background: rgba(255, 138, 158, .2); color: var(--err-hover); }
+@media (max-width: 899px) { .acc-out { display: inline-flex; } }
+
+.acc-form { position: relative; display: grid; gap: var(--s-4); max-width: 520px; padding: var(--s-5); background: var(--ink-900); border: 1px solid var(--line); }
+.acc-form input[readonly] { color: var(--mute); border-style: dashed; }
+.acc-form input[readonly]:hover { border-color: var(--line-strong); }
+.acc-form__foot { display: flex; align-items: center; gap: var(--s-4); }
+.acc-form__title { font-size: 1.0625rem; font-weight: 700; }
+.acc-form__status { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--fs-sm); font-weight: 600; color: var(--lilac-300); }
+.acc-form__status[hidden] { display: none; }
+
+/* ---------- Sensi Pro Player (/sensi/) ---------- */
+/* Scan QR: the screen under the header and nothing else, like a phone's camera. The
+   viewfinder takes all the height there is, its frame a square in the middle; the status and
+   Upload Foto QR sit at the foot. Edge to edge on a phone; wider, a column of up to 640px. */
+.scan { display: flex; flex-direction: column; height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h)); }
+.scan__inner { flex: 1; min-height: 0; display: flex; flex-direction: column; width: min(100% - 2 * var(--gutter), 640px); padding-bottom: calc(var(--s-4) + env(safe-area-inset-bottom)); }
+.scan .sensi-scan__view { flex: 1; min-height: 0; aspect-ratio: auto; margin-inline: calc(-1 * var(--gutter)); border: 0; }
+.scan .sensi-scan__frame { inset: auto; left: 50%; top: 50%; translate: -50% -50%; aspect-ratio: 1; }
+/* Upload Foto QR as far under the camera as it is over the screen's foot; the status line
+   takes no room until it has something to say. */
+.scan .sensi-scan__actions { grid-template-columns: 1fr; margin-top: var(--s-4); }
+.scan .sensi-scan__status { text-align: center; }
+.scan .sensi-scan__status:empty { display: none; }
+/* The page's name centred above the camera. */
+/* The box runs .287em past Draco's baseline (its top is trimmed to the capitals); taken back out
+   underneath, so the space under the letters equals the space over them. */
+.scan__title { align-self: center; margin: var(--s-5) 0 calc(var(--s-5) - .287em); font-size: 1.5rem; text-align: center; transform-origin: center; }
+@media (min-width: 640px) {
+  .scan .sensi-scan__view { margin-inline: 0; border: 1px solid var(--line); }
+}
+/* the viewfinder's message is the button that opens the camera again */
+.scan .sensi-scan__idle { width: 100%; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* Until the camera is on, a photo of what to scan: a pack held up, its QR in view. */
+.scan .sensi-scan__idle { background: url("../img/scan-contoh.jpg") center 62% / cover no-repeat; }
+/* The scan frame shows all the time, over the photo or the camera, as a banking app's QR
+   scanner does: big corner brackets and the laser sweeping between them, nothing dimmed. */
+.scan .sensi-scan__frame { opacity: 1; z-index: 1; width: min(80%, 340px); --l: 44px; --w: 5px; --c: rgba(255, 255, 255, .9); box-shadow: none; }
+.scan .sensi-scan__idle:focus-visible { outline: 2px solid var(--violet-400); outline-offset: -4px; }
+.scan .sensi-scan__view, .scan .sensi-scan__actions { max-width: none; }
+
+/* The viewfinder: square, the camera feed filling it, a frame with corner brackets in the
+   middle and a laser sweeping it while live. Idle, it says what the button below does. */
+.sensi-scan__view {
+  position: relative; aspect-ratio: 1; overflow: hidden; max-width: 520px;
+  background:
+    radial-gradient(60% 60% at 50% 45%, rgba(142, 72, 196, .28), transparent 70%),
+    var(--ink-900);
+  border: 1px solid var(--line);
+}
+@media (max-width: 599px) { .sensi-scan__view { margin-inline: calc(-1 * var(--gutter)); border-inline: 0; max-width: none; } }
+.sensi-scan__view video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 300ms ease-out; }
+.sensi-scan__view.is-live video { opacity: 1; }
+.sensi-scan__idle {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--s-3);
+  padding: var(--s-6); text-align: center; font-size: var(--fs-sm); color: var(--mute);
+  transition: opacity 200ms ease-out;
+}
+.sensi-scan__idle .icon { width: 56px; height: 56px; stroke-width: 1.25; color: var(--lilac-300); }
+.sensi-scan__idle strong { color: var(--text); }
+.sensi-scan__view.is-live .sensi-scan__idle { opacity: 0; pointer-events: none; }
+.sensi-scan__frame {
+  position: absolute; inset: 18%; pointer-events: none; opacity: 0; transition: opacity 200ms ease-out;
+  /* four corner brackets, drawn as gradients */
+  --c: #fff; --l: 28px; --w: 3px;
+  background:
+    linear-gradient(var(--c) 0 0) top left / var(--l) var(--w), linear-gradient(var(--c) 0 0) top left / var(--w) var(--l),
+    linear-gradient(var(--c) 0 0) top right / var(--l) var(--w), linear-gradient(var(--c) 0 0) top right / var(--w) var(--l),
+    linear-gradient(var(--c) 0 0) bottom left / var(--l) var(--w), linear-gradient(var(--c) 0 0) bottom left / var(--w) var(--l),
+    linear-gradient(var(--c) 0 0) bottom right / var(--l) var(--w), linear-gradient(var(--c) 0 0) bottom right / var(--w) var(--l);
+  background-repeat: no-repeat;
+  box-shadow: 0 0 0 100vmax rgba(12, 3, 16, .45);
+}
+.sensi-scan__view.is-live .sensi-scan__frame { opacity: 1; }
+.sensi-scan__laser {
+  position: absolute; left: 6%; right: 6%; top: 0; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #DB4DFF, transparent);
+  box-shadow: 0 0 12px 2px rgba(219, 77, 255, .6);
+  animation: sensi-laser 2.2s ease-in-out infinite alternate;
+}
+@keyframes sensi-laser { from { top: 4%; } to { top: 96%; } }
+@media (prefers-reduced-motion: reduce) { .sensi-scan__laser { animation: none; top: 50%; } }
+.sensi-scan__status { min-height: 1.5em; margin-top: var(--s-3); font-size: var(--fs-sm); color: var(--mute); }
+.sensi-scan__status.is-error { color: var(--err); font-weight: 600; }
+.sensi-scan__actions { display: grid; gap: var(--s-2); margin-top: var(--s-2); max-width: 520px; }
+@media (min-width: 600px) { .sensi-scan__actions { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sensi-scan__actions [hidden] { display: none; }
+.sensi-scan__upload { cursor: pointer; }
+.sensi-scan__upload:has(input:focus-visible) { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+.sensi-code { max-width: 520px; margin-top: var(--s-5); }
+.sensi-code__or { display: flex; align-items: center; gap: var(--s-3); font-size: var(--fs-xs); color: var(--faint); }
+.sensi-code__or::before, .sensi-code__or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.sensi-code__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--s-2); margin-top: var(--s-4); }
+.sensi-code .co-float__label { background: var(--ink-950); }
+.sensi-code .co-float:has(.pdp-input:focus, .pdp-input:not(:placeholder-shown), .pdp-input:autofill) .co-float__label { background: var(--ink-950); }
+.sensi-code .pdp-input { text-transform: uppercase; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+
+.sensi-how { position: relative; padding: var(--s-5); background: var(--ink-900); border: 1px solid var(--line); }
+.sensi-how__title { font-size: 1.125rem; font-weight: 800; }
+.sensi-steps { display: grid; gap: var(--s-4); margin-top: var(--s-4); }
+.sensi-steps li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--s-3); }
+.sensi-steps__n {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--line-from), var(--line-to)); color: #fff; font-weight: 800; font-size: var(--fs-sm);
+}
+.sensi-steps strong { display: block; font-size: var(--fs-sm); line-height: 32px; }
+.sensi-steps p { font-size: var(--fs-xs); line-height: 1.5; color: var(--mute); }
+.sensi-how__roster-title { margin-top: var(--s-5); padding-top: var(--s-4); border-top: 1px solid var(--line); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--lilac-300); }
+.sensi-roster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); margin-top: var(--s-3); }
+.sensi-roster__p { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+.sensi-roster__art { display: block; width: min(100%, 80px); aspect-ratio: 1; overflow: hidden; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--ink-800); }
+.sensi-roster__art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 34%; transform: scale(1.9); transform-origin: 50% 36%; }
+.sensi-roster__name { max-width: 100%; font-size: var(--fs-2xs); font-weight: 600; color: var(--text-soft); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 600px) and (max-width: 899px) { .sensi-roster { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+/* The card a pack opens: the portrait on top on a phone, beside the settings from 600px. A new
+   one flips in out of the light; from Sensi Saya it just fades up. */
+.sensi-dialog {
+  width: min(100% - 2 * var(--s-4), 760px); max-height: calc(100dvh - 2 * var(--s-4));
+  margin: auto; padding: 0; border: 0; background: none; color: var(--text); overflow: visible;
+}
+.sensi-dialog::backdrop { background: rgba(6, 1, 9, .78); backdrop-filter: blur(6px); }
+.sensi-card {
+  position: relative; display: grid; max-height: calc(100dvh - 2 * var(--s-4)); overflow-y: auto; overscroll-behavior: contain;
+  background: var(--ink-900); border: 1px solid var(--line-strong);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 0 60px -10px rgba(179, 58, 198, .45);
+  animation: sensi-up 260ms var(--ease-out) both;
+}
+.sensi-card.is-fresh { animation: sensi-flip 700ms cubic-bezier(.2, .9, .25, 1.15) both; }
+@keyframes sensi-up { from { opacity: 0; translate: 0 16px; } }
+@keyframes sensi-flip {
+  0% { opacity: 0; transform: perspective(1200px) rotateY(-80deg) scale(.86); filter: brightness(2.2); }
+  60% { opacity: 1; filter: brightness(1.3); }
+  100% { transform: none; filter: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sensi-card, .sensi-card.is-fresh { animation: none; } }
+.sensi-card__close { position: absolute; top: var(--s-2); right: var(--s-2); z-index: 2; background: rgba(12, 3, 16, .6); }
+.sensi-card__close:hover { background: var(--ink-800); }
+.sensi-card__art { position: relative; margin: 0; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ink-800); }
+.sensi-card__art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; }
+/* a sweep of light across the portrait as a new card lands */
+.sensi-card.is-fresh .sensi-card__art::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .45) 50%, transparent 65%);
+  transform: translateX(-100%); animation: sensi-shine 900ms 450ms ease-out forwards;
+}
+@keyframes sensi-shine { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .sensi-card.is-fresh .sensi-card__art::after { content: none; } }
+.sensi-card__body { padding: var(--s-5); }
+@media (min-width: 600px) {
+  .sensi-card { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+  .sensi-card__art { aspect-ratio: auto; min-height: 100%; }
+  .sensi-card__art img { position: absolute; inset: 0; object-position: 50% 30%; }
+  .sensi-card__body { padding: var(--s-6) var(--s-6) var(--s-5); }
+}
+.sensi-card__eyebrow { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--lilac-300); }
+.sensi-card__name { margin-top: var(--s-2); font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); font-weight: 800; line-height: 1.15; }
+.sensi-card__role { margin-top: var(--s-1); font-size: var(--fs-sm); color: var(--mute); }
+.sensi-card__rows { display: grid; margin: var(--s-4) 0 0; border-top: 1px solid var(--line); }
+.sensi-card__rows div { display: flex; justify-content: space-between; gap: var(--s-4); padding: 10px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-sm); }
+.sensi-card__rows dt { color: var(--mute); }
+.sensi-card__rows dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.sensi-card__rows dd.is-pending { font-weight: 500; font-style: italic; color: var(--faint); }
+.sensi-card__code { margin-top: var(--s-3); font-size: var(--fs-2xs); color: var(--faint); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.sensi-card__actions { margin-top: var(--s-4); }
+.sensi-card__saved { display: flex; align-items: center; justify-content: center; gap: var(--s-2); margin-top: var(--s-3); font-size: var(--fs-xs); font-weight: 600; color: var(--lilac-300); text-align: center; }
+a.sensi-card__saved:hover { color: var(--text); }
+.sensi-card__saved.is-guest { font-weight: 500; color: var(--mute); }
+.sensi-card__saved .icon { flex: none; width: 15px; height: 15px; }
+
+/* Cut corners: the cards lose their top-left and bottom-right corners to a 45° chamfer, the
+   esports-card look. clip-path does the cut, but it also cuts the border away along the
+   diagonal, so a pseudo drawn 1px out over the border box puts the hairline back: two corner
+   gradients whose 1.5px stripe sits just inside the clip edge. --cut-line follows each card's
+   border colour (transparent on the borderless ones). The :where() keeps position: relative
+   from outranking any position a card already sets. Rating summary already uses ::before, so
+   it draws the line on ::after instead. The straight sides of the clip sit 2px outside the
+   box (the diagonals stay put), so a card whose height lands on a fractional pixel doesn't
+   lose its bottom border to the clip edge. */
+:root { --cut: 14px; }
+.product-card, .more-card, .catalog-bar, .shop-banner__card, .gallery__stage, .pdp-buy,
+.spec-table, .rating-summary, .cmp__media, .showcase, .video, .clip__link, .tech-card, .review,
+.cart-panel, .cart-summary, .co-card, .co-methods, .co-promo, .co-summary, .about-value,
+.contact-card, .find-card, .contact-info, .contact-form-card, .contact-faq-link,
+.auth-card, .acc-order, .acc-scan, .acc-form, .sensi-how, .sensi-card, .cat-card,
+.acc-stats, .acc-recent, .acc-empty, .acc-set, .acc-side {
+  --cut-line: var(--line);
+  clip-path: polygon(calc(var(--cut) + 2px) -2px, calc(100% + 2px) -2px,
+    calc(100% + 2px) calc(100% - var(--cut) - 2px), calc(100% - var(--cut) - 2px) calc(100% + 2px),
+    -2px calc(100% + 2px), -2px calc(var(--cut) + 2px));
+}
+:where(.more-card, .pdp-buy, .spec-table, .cmp__media, .showcase, .review, .cart-panel,
+  .cart-summary, .co-card, .co-methods, .co-promo, .co-summary, .about-value, .contact-card,
+  .contact-info, .contact-form-card, .contact-faq-link) { position: relative; }
+.product-card::before, .more-card::before, .catalog-bar::before, .shop-banner__card::before,
+.gallery__stage::before, .pdp-buy::before, .spec-table::before, .rating-summary::after,
+.cmp__media::before, .video::before, .clip__link::before, .tech-card::before, .review::before,
+.cart-panel::before, .cart-summary::before, .co-card::before, .co-methods::before,
+.co-promo::before, .co-summary::before, .about-value::before, .contact-card::before,
+.find-card::before, .contact-info::before, .contact-form-card::before,
+.contact-faq-link::before, .auth-card::before, .acc-order::before, .acc-scan::before,
+.acc-form::before, .sensi-how::before, .sensi-card::before, .cat-card::before,
+.acc-stats::before, .acc-recent::before, .acc-empty::before, .acc-set::before, .acc-side::before {
+  content: ""; position: absolute; inset: -1px; z-index: 3; pointer-events: none;
+  background:
+    linear-gradient(to bottom right, transparent 50%, var(--cut-line) 50% calc(50% + 1.5px), transparent calc(50% + 1.5px))
+      top left / var(--cut) var(--cut) no-repeat,
+    linear-gradient(to top left, transparent 50%, var(--cut-line) 50% calc(50% + 1.5px), transparent calc(50% + 1.5px))
+      bottom right / var(--cut) var(--cut) no-repeat;
+}
+.more-card, .contact-faq-link, .acc-scan, .sensi-card, .cat-card { --cut-line: var(--line-strong); }
+/* The catalog bar holds the Filter menu, which drops past the bar's bottom edge, so the bar
+   itself can't be clipped. Its fill and border move to a clipped layer underneath instead (the
+   same polygon, on a box the size of the bar's border box), and the bar stays unclipped. */
+.catalog-bar { clip-path: none; background: none; border-color: transparent; }
+.catalog-bar::after {
+  content: ""; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
+  background: var(--ink-925); border: 1px solid var(--line); border-radius: inherit;
+  clip-path: polygon(calc(var(--cut) + 2px) -2px, calc(100% + 2px) -2px,
+    calc(100% + 2px) calc(100% - var(--cut) - 2px), calc(100% - var(--cut) - 2px) calc(100% + 2px),
+    -2px calc(100% + 2px), -2px calc(var(--cut) + 2px));
+}
+/* The category cards take the whole frame in the violet-to-pink gradient instead: the same
+   pseudo, filled with the gradient and masked down to the outline (four straight sides plus
+   the two diagonals). The border underneath goes transparent. --frame-w thickens it on the
+   picked card; --frame-o brings it to full strength on hover and when picked. */
+.cat-card { --frame-w: 1.5px; --frame-o: .8; border-color: transparent; }
+.cat-card::before {
+  background: linear-gradient(120deg, #8E48C4, #DB4DFF);
+  opacity: var(--frame-o); transition: opacity var(--t-fast) ease-out;
+  --m: linear-gradient(#000, #000);
+  --d: transparent 50%, #000 50% calc(50% + var(--frame-w)), transparent calc(50% + var(--frame-w));
+  -webkit-mask:
+    var(--m) right top / calc(100% - var(--cut)) var(--frame-w) no-repeat,
+    var(--m) left bottom / var(--frame-w) calc(100% - var(--cut)) no-repeat,
+    var(--m) left bottom / calc(100% - var(--cut)) var(--frame-w) no-repeat,
+    var(--m) right top / var(--frame-w) calc(100% - var(--cut)) no-repeat,
+    linear-gradient(to bottom right, var(--d)) top left / var(--cut) var(--cut) no-repeat,
+    linear-gradient(to top left, var(--d)) bottom right / var(--cut) var(--cut) no-repeat;
+          mask:
+    var(--m) right top / calc(100% - var(--cut)) var(--frame-w) no-repeat,
+    var(--m) left bottom / var(--frame-w) calc(100% - var(--cut)) no-repeat,
+    var(--m) left bottom / calc(100% - var(--cut)) var(--frame-w) no-repeat,
+    var(--m) right top / var(--frame-w) calc(100% - var(--cut)) no-repeat,
+    linear-gradient(to bottom right, var(--d)) top left / var(--cut) var(--cut) no-repeat,
+    linear-gradient(to top left, var(--d)) bottom right / var(--cut) var(--cut) no-repeat;
+}
+.acc-scan:hover { --cut-line: #8E48C4; }
+.rating-summary { --cut-line: var(--violet-500); }
+.find-card:hover, .contact-faq-link:hover { --cut-line: #8E48C4; }
+a.cmp__media:hover { --cut-line: #584066; }
+@media (hover: hover) {
+  .product-card:not(.is-out):hover { --cut-line: #584066; }
+  .more-card:hover { --cut-line: var(--violet-400); }
+}
+/* On phones the buy card is a bottom sheet and the product photo runs edge to edge: no cut on
+   either, they span the screen. */
+@media (max-width: 599px) {
+  .pdp-buy, .gallery__stage { clip-path: none; }
+  .pdp-buy::before, .gallery__stage::before { content: none; }
+}
+
+/* ---------- Pop-up motion ---------- */
+/* Every pop-up eases in and back out: the box rises 12px into place from 97% and fades, the
+   dimmed backdrop fades with it. Closing plays the same in reverse, which needs display and
+   overlay kept alive for the length of the transition (allow-discrete); browsers without that
+   just close at once. The search panel drops from above instead, as it hangs off the top. The
+   Sensi card animates its own entrance inside the dialog, so its dialog only fades. */
+.search-dialog, .co-dialog, .review-zoom, .sensi-dialog {
+  --pop-y: 12px; --pop-scale: .97;
+  opacity: 0; translate: 0 var(--pop-y); scale: var(--pop-scale);
+  transition: opacity 220ms var(--ease), translate 260ms var(--ease), scale 260ms var(--ease),
+              overlay 260ms allow-discrete, display 260ms allow-discrete;
+}
+.search-dialog { --pop-y: -12px; --pop-scale: 1; }
+.sensi-dialog { --pop-y: 0px; --pop-scale: 1; }
+:is(.search-dialog, .co-dialog, .review-zoom, .sensi-dialog)[open] { opacity: 1; translate: 0 0; scale: 1; }
+@starting-style {
+  :is(.search-dialog, .co-dialog, .review-zoom, .sensi-dialog)[open] { opacity: 0; translate: 0 var(--pop-y); scale: var(--pop-scale); }
+}
+:is(.search-dialog, .co-dialog, .review-zoom, .sensi-dialog)::backdrop {
+  opacity: 0;
+  transition: opacity 220ms var(--ease), overlay 260ms allow-discrete, display 260ms allow-discrete;
+}
+:is(.search-dialog, .co-dialog, .review-zoom, .sensi-dialog)[open]::backdrop { opacity: 1; }
+@starting-style {
+  :is(.search-dialog, .co-dialog, .review-zoom, .sensi-dialog)[open]::backdrop { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-dialog, .co-dialog, .review-zoom, .sensi-dialog { --pop-y: 0px; --pop-scale: 1; }
+}
+
+/* ---------- Font preview (localhost:8001 only) ---------- */
+/* main.js tags the root .font-preview when the site is opened on port 8001, the second local
+   server, and everything set in Draco or Anton switches to Tungsten there. Draco's section
+   titles are drawn squeezed and unslanted to undo the face's own width and lean, and nudged
+   down .287em for its deep baseline; Tungsten needs none of that, so those are reset. */
+.font-preview .section-title {
+  --squeeze: 1; --unslant: 0deg;
+  font-family: "Tungsten", "Anton", var(--font); letter-spacing: .02em;
+}
+.font-preview .section-head .section-title:not(.section-title--sub),
+.font-preview .acc-head__name, .font-preview .acc-back .page-title { margin-bottom: 0; }
+.font-preview .scan__title { margin-bottom: var(--s-5); }
+.font-preview .cat-card__label, .font-preview .shop-banner__title { font-family: "Tungsten", "Anton", var(--font); }
+/* Beranda's section headlines, about double in Tungsten (the sub-heads about 90% up). On a phone
+   13.4cqi keeps the longest, "Apa Kata Streamers" (6.66em in Tungsten Bold, so 15cqi at most),
+   on one line. Draco's sizes were set for a face drawn squeezed to 63%, so Tungsten read small. */
+.font-preview .home .section-head .section-title { font-size: clamp(3.125rem, 9.2cqi, 7rem); line-height: 1; }
+@media (max-width: 599px) { .font-preview .home .section-head .section-title { font-size: 13.4cqi; } }
+.font-preview .home .section-head .section-title--sub { font-size: clamp(1.75rem, 9.2vw - 4.4px, 3.25rem); }
+@media (min-width: 1024px) { .font-preview .home .section-head .section-title--sub { font-size: clamp(3.25rem, 1.9rem + 2.85vw, 4rem); } }

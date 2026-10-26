@@ -5,7 +5,7 @@
  *
  * Product fields
  *   featured   shown in "Produk Andalan" on the home page (first three); every product is on /produk/
- *   price      in Rupiah, integer. A colour can override it (see FrostSpire Silver)
+ *   price      in Rupiah, integer. A colour can override it with its own `price`
  *   compareAt  original price, shown crossed out. Leave out when there is no real original price
  *   stock      "in" | "low" (badge "Stok terakhir") | "out" (badge "Restock segera", button disabled)
  *   popular    rank for the "Terpopuler" sort on /produk/, 1 = best seller. Must be unique
@@ -39,14 +39,14 @@
  *   specs      [label, value] rows for the Spesifikasi tab. Kategori and the variant list are
  *              added automatically
  *
- * TODO: popular — ranks 1–11 follow real sold figures: Vortex (100rb+, Tokopedia), then
+ * TODO: popular — ranks 1–12 follow real sold figures: Vortex (100rb+, Tokopedia), then
  * IceGlow (21.136), Hydrogel Matte
  * (10.094), Reflex, Hydrogel Clear HD and Vortex Bundle (all 10rb+, order among them unknown),
- * YinYang (7.198), Hydrogel Privacy Matte (3.520), Hydrogel Privacy (850, Shopee), FrostNova
- * (672, Shopee), Hydrogel Privacy HD (591, Shopee); ranks 12–13 are placeholders. Every `added` date is a
+ * FrostSpire (8.394), YinYang (7.198), Hydrogel Privacy Matte (3.520), Hydrogel Privacy (850, Shopee), FrostNova
+ * (672, Shopee), Hydrogel Privacy HD (591, Shopee); rank 13 is a placeholder. Every `added` date is a
  * placeholder too. Replace both with real figures before launch.
- * TODO: rating / ratingCount / sold — known for IceGlow (rating, sold), Hydrogel Matte (sold) and
- * Reflex (all three). Fill in the other listings' figures from Tokopedia.
+ * TODO: rating / ratingCount / sold — known for IceGlow (rating, sold), Hydrogel Matte (sold), and
+ * Reflex and FrostSpire (all three). Fill in the other listings' figures from Tokopedia.
  */
 window.NEXURA = {
   categories: {
@@ -70,8 +70,8 @@ window.NEXURA = {
     'Bilah kipas': 'Jumlah bilah',
     'Cooling system': 'Mode pendinginan',
     'Mode': 'Mode pendinginan',
+    'Fan control': 'Kontrol',
     'Display': 'Layar',
-    'Metode pemasangan': 'Pemasangan',
     'Kompatibel': 'Kompatibilitas',
   },
 
@@ -114,7 +114,7 @@ window.NEXURA = {
       // Copy from the brand's own listing text (10 Oct 2026).
       description: [
         'NEXURA ICEGLOW NXI01 Phone Cooler – Pendingin HP Gaming AI 15W. Quickly Frozen, gaming tetap stabil!',
-        'Tersedia 3 warna: Hitam, Ungu Gelap, dan Pink.',
+        'Pasangnya 2in1: tempel pakai magnet atau jepit dengan back clip.',
       ],
       usage: {
         tips: [
@@ -150,7 +150,6 @@ window.NEXURA = {
         ['Lampu', 'Rainbow RGB Light Effect'],
         ['Port', 'USB Type-C'],
         ['Material', 'Aluminium Alloy + ABS'],
-        ['Metode pemasangan', 'Magnetic & Back Clip (2in1)'],
         ['Kompatibilitas', 'iPhone, Android, tablet'],
         ['Garansi', '1 bulan (S&K berlaku)'],
       ],
@@ -164,7 +163,7 @@ window.NEXURA = {
       price: 139000,
       compareAt: 200000,
       stock: 'out',
-      popular: 12,
+      popular: 13,
       added: '2026-03-01',
       keywords: 'kipas pendingin cooler hp 27w',
       colors: [
@@ -182,7 +181,7 @@ window.NEXURA = {
       ],
       description: [
         'Frostbyte NXC01 adalah pendingin HP 27W dengan bodi aluminium alloy. Kipas 7 bilahnya berputar sampai 5000 RPM, dengan 3 level kecepatan yang kelihatan langsung di layar digital.',
-        'Pasangnya pakai magnet atau back clip, dan ada tiga warna, ungu, putih, dan hitam, biar cocok sama aura setup kamu.',
+        'Pasangnya pakai magnet atau back clip.',
         'Paketnya lengkap: magnetic pad, kabel Type-C ke Type-C, back clip holder, dan carbon pouch.',
       ],
       inBox: ['1 unit Frostbyte', 'Magnetic pad', 'Kabel USB Type-C ke Type-C', 'Back clip holder', 'Carbon pouch'],
@@ -193,7 +192,6 @@ window.NEXURA = {
         ['Bilah kipas', '7 bilah'],
         ['Material', 'Aluminium alloy'],
         ['Layar', 'Digital, menampilkan level kipas'],
-        ['Pemasangan', 'Magnet atau back clip'],
         ['Lampu', 'RGB rainbow'],
         ['Kabel', 'USB Type-C ke Type-C (termasuk)'],
       ],
@@ -219,6 +217,8 @@ window.NEXURA = {
       cover: 'p-vortex',
       alt: 'Sarung jempol Nexura Vortex warna ungu, biru, dan merah',
       rating: '4,7',
+      // Tokopedia shows "16,9rb rating"; the exact count isn't given.
+      ratingCount: 16900,
       sold: 100000,
       // TODO: thickness is not on the listing.
       gallery: [
@@ -233,7 +233,7 @@ window.NEXURA = {
       ],
       description: [
         'Level Up Your Aura. Precision in Every Swipe. Buat setiap gerakan jadi lebih akurat dan responsif dengan Sarung Jempol Gaming NEXURA Vortex Series.',
-        'Didesain khusus untuk para gamer mobile yang haus kemenangan, Vortex Series hadir dengan desain modern, material premium, dan performa tinggi yang mendukung gameplay kompetitif! Ada tiga warna: merah, biru, dan ungu.',
+        'Didesain khusus untuk para gamer mobile yang haus kemenangan, Vortex Series hadir dengan desain modern, material premium, dan performa tinggi yang mendukung gameplay kompetitif!',
       ],
       showcase: [
         { image: 'd-vortex-1', alt: 'Vortex thumb sleeve for gaming warna ungu, biru, dan merah; get your Vortex sets: kemasan isi 2 pcs plus sepasang sarung jempol' },
@@ -241,11 +241,9 @@ window.NEXURA = {
       ],
       inBox: ['2 pcs sarung jempol (untuk kiri & kanan)'],
       specs: [
-        ['Jenis', 'Sarung jempol gaming (thumb sleeve)'],
         ['Material', 'Silver fiber'],
         ['Kompatibel', 'Semua jenis layar sentuh'],
-        ['Ukuran', 'All size, elastis dan nyaman untuk semua ukuran jempol'],
-        ['Fitur', 'Ultra sensitif, no ghost touch, menyerap keringat'],
+        ['Ukuran', 'All size, elastis dan nyaman'],
       ],
     },
     {
@@ -297,10 +295,8 @@ window.NEXURA = {
       ],
       tagline: 'Layar halus, bebas silau, responsif, dan terlindungi penuh.',
       specs: [
-        ['Jenis', 'Pelindung layar hydrogel'],
         ['Permukaan', 'Matte finish, anti silau'],
         ['Ketebalan', '±0,15mm'],
-        ['Cakupan', 'Full coverage'],
         ['Perlindungan', 'Shock proof & explosion proof, Nano Repair, hydrophobic'],
         ['Sidik jari', 'Mendukung sensor sidik jari di layar'],
         ['Kompatibilitas', 'Semua tipe smartphone (cantumkan tipe HP saat order)'],
@@ -310,40 +306,75 @@ window.NEXURA = {
       id: 'frostspire',
       featured: false,
       category: 'fan-cooler',
-      name: 'Fan Cooler FrostSpire | Pendingin HP 27W Premium Design',
+      name: 'Fan Cooler FrostSpire NXC10 | Pendingin HP Khusus Gaming Mode AI, Overclock Speed 27W',
       short: 'FrostSpire',
-      price: 199000,
-      stock: 'out',
-      popular: 13,
+      // Price, rating, sold and copy from the brand's Tokopedia listing (23 Oct 2026). Both
+      // colours are the same price there.
+      price: 174000,
+      compareAt: 289000,
+      stock: 'in',
+      popular: 7,
       added: '2026-05-01',
-      keywords: 'kipas pendingin cooler hp 27w',
+      keywords: 'kipas pendingin cooler hp ai rgb 27w tec overclock',
       colors: [
-        { id: 'hitam', label: 'Hitam', swatch: '#1C1922', image: 'p-frostspire-hitam' },
-        { id: 'silver', label: 'Silver', swatch: '#C9CCD3', image: 'p-frostspire-silver', price: 195000 },
+        { id: 'hitam', label: 'Hitam', swatch: '#1C1922', image: 'c-frostspire-hitam' },
+        { id: 'silver', label: 'Silver', swatch: '#C9CCD3', image: 'c-frostspire-silver' },
       ],
+      // The card keeps the two-colour lineup rather than the black shot.
+      cover: 'p-frostspire-hitam',
       alt: 'Fan cooler Nexura FrostSpire NXC10',
-      // TODO: the listing only shows the bonus pouch, so inBox is left out until the full
-      // box contents are confirmed.
+      rating: '4,8',
+      ratingCount: 1481,
+      sold: 8394,
       gallery: [
         { image: 'p-frostspire-hitam', alt: 'FrostSpire NXC10 silver dan hitam dengan bonus carbon pouch' },
-        { image: 'p-frostspire-silver', alt: 'Detail bodi FrostSpire silver dengan logo NXC10' },
-        { image: 'g-frostspire-airflow', alt: 'FrostSpire silver di belakang HP, aliran udara mengarah menjauhi tangan' },
         { image: 'g-frostspire-performa', alt: 'FrostSpire silver dengan layar minus 9 derajat' },
+        { image: 'g-frostspire-airflow', alt: 'FrostSpire silver di belakang HP, aliran udara mengarah menjauhi tangan' },
         { image: 'g-frostspire-overclock', alt: 'FrostSpire dengan layar menunjukkan kecepatan 100' },
+        { image: 'g-frostspire-fitur', alt: 'FrostSpire silver dengan ikon 7 bilah turbin, 8000 RPM, layar real-time, dan magnet kuat' },
+        { image: 'g-frostspire-display', alt: 'Layar digital FrostSpire menunjukkan minus 9 derajat' },
+        { image: 'g-frostspire-ai', alt: 'Ilustrasi chip AI yang mengatur kipas sesuai suhu HP' },
+        { image: 'g-frostspire-desain', alt: 'Detail bodi FrostSpire silver dengan logo NXC10' },
+        { image: 'g-frostspire-isi', alt: 'Isi paket FrostSpire: unit cooler, magnetic pad, kabel Type-C, back clip holder, dan carbon pouch' },
+        { image: 'c-frostspire-silver', alt: 'FrostSpire NXC10 warna silver' },
+        { image: 'c-frostspire-hitam', alt: 'FrostSpire NXC10 warna hitam' },
       ],
       description: [
-        'FrostSpire NXC10 dari seri Nexura Cooler Frost: pendingin HP 27W dengan desain premium dan Mode AI.',
-        'Kecepatan kipas bisa di-overclock dari 0 sampai 100, suhunya tampil di layar digital, dan aliran udaranya diarahkan supaya hawa panas nggak nyembur ke tangan kamu.',
-        'Ada dua warna, hitam dan silver, plus bonus carbon pouch besar di setiap pembelian.',
+        'NEXURA FROSTSPIRE NXC10 Phone Cooler – Pendingin HP Gaming 27W. Dingin maksimal, main sampai beku!',
+        'Chipset TEC berdaya tinggi menurunkan suhu HP secara agresif, dan Mode AI menyesuaikan pendinginan dengan suhu HP secara real-time. Kecepatan kipas bisa di-overclock dari 0 sampai 100, dengan 3 level pendinginan (Normal / Ultra / Extreme) yang tampil di layar digital. Dayanya sekitar 17W di level 1, 21W di level 2, dan 27W di level 3.',
+        'Pasangnya 2in1: tempel pakai magnet atau jepit dengan back clip.',
+      ],
+      usage: {
+        tips: [
+          'Wajib gunakan adaptor minimal 30W untuk performa pendinginan maksimal.',
+          'Pastikan airflow tidak tertutup saat digunakan.',
+        ],
+        games: ['Mobile Legends', 'PUBG Mobile', 'CODM', 'Genshin Impact', 'Honkai: Star Rail'],
+      },
+      tagline: 'High Performance Cooler – Cool Your Phone to Next Level',
+      inBox: [
+        '1× NEXURA FrostSpire Phone Cooler',
+        '1× Kabel Type-C to C',
+        '1× Magnetic Pad',
+        '1× Back Clip Holder',
+        '1× Carbon Pouch Besar (penyimpanan)',
+        '1× Kartu Quality Control',
+        '1× Panduan Penggunaan',
       ],
       specs: [
         ['Model', 'NXC10'],
         ['Seri', 'Nexura Cooler Frost Series'],
-        ['Daya', '27W'],
-        ['Kecepatan kipas', '0–100 (overclock)'],
-        ['Mode', 'Mode AI, mengikuti suhu HP'],
-        ['Layar', 'Digital, menampilkan suhu'],
-        ['Lampu', 'RGB rainbow'],
+        ['Power maksimal', '27W'],
+        ['Cooling system', 'AI Smart Cooling + Manual Control'],
+        ['Kecepatan kipas', 'Hingga 8000 RPM'],
+        ['Fan control', 'Overclock Speed 0–100'],
+        ['Jumlah bilah', '7 Turbine Blades'],
+        ['Display', 'Digital LED (real-time cooling info)'],
+        ['Lampu', 'Rainbow RGB Light Effect'],
+        ['Port', 'USB Type-C'],
+        ['Material', 'Aluminium Alloy + ABS'],
+        ['Kompatibilitas', 'iPhone, Android, tablet'],
+        ['Garansi', '1 bulan (S&K berlaku)'],
       ],
     },
     {
@@ -394,11 +425,8 @@ window.NEXURA = {
       ],
       tagline: 'Layar smartphone yang jernih, responsif, dan tahan lama.',
       specs: [
-        ['Jenis', 'Pelindung layar hydrogel'],
-        ['Material', 'Premium Hydrogel Film'],
         ['Permukaan', 'HD Clear, jernih'],
         ['Ketebalan', '±0,15mm'],
-        ['Cakupan', 'Full coverage'],
         ['Perlindungan', 'Shock proof, Self Healing & Nano Repair, hydrophobic'],
         ['Kompatibilitas', 'Semua tipe smartphone (cantumkan tipe HP saat order)'],
       ],
@@ -414,7 +442,7 @@ window.NEXURA = {
       price: 54000,
       compareAt: 179000,
       stock: 'in',
-      popular: 8,
+      popular: 9,
       added: '2026-07-01',
       keywords: 'hydrogel anti gores screen protector pelindung layar privacy anti spy anti intip matte',
       variantLabel: 'Tipe cutting',
@@ -452,10 +480,8 @@ window.NEXURA = {
       ],
       tagline: 'Layar yang halus, private, dan bebas pantulan, untuk gaming maupun aktivitas harian.',
       specs: [
-        ['Jenis', 'Pelindung layar hydrogel, gaming grade'],
         ['Permukaan', 'Privacy (anti spy) + matte anti-glare'],
         ['Ketebalan', '±0,15mm'],
-        ['Cakupan', 'Full coverage'],
         ['Perlindungan', 'Shock & scratch resistant, Nano Repair, hydrophobic + oleophobic'],
         ['Sidik jari', 'Sensor di layar kurang responsif karena lapisan privacy'],
         ['Kompatibilitas', 'Semua tipe smartphone (cantumkan tipe HP saat order)'],
@@ -473,7 +499,7 @@ window.NEXURA = {
       price: 64000,
       compareAt: 189000,
       stock: 'in',
-      popular: 7,
+      popular: 8,
       added: '2026-04-01',
       keywords: 'sarung jempol thumb sleeve finger sleeve yinyang yin yang naga dragon 4 pcs',
       image: 'p-yinyang',
@@ -511,10 +537,10 @@ window.NEXURA = {
       tagline: 'Gear Your Aura – Swing Your Thumb Like a Pro.',
       specs: [
         ['Seri', 'YinYang Series, Limited Edition'],
+        ['Material', 'Serat kain impor'],
         ['Warna', 'Red-Gold Dragon & Blue-Ice Dragon (2 pcs per warna)'],
-        ['Material', 'Serat kain impor, elastis'],
-        ['Fitur', 'Ultra responsive, super lightweight, sweat absorbent'],
-        ['Cocok untuk', 'MLBB, PUBG Mobile, CODM, Free Fire, Honor of Kings, dan game mobile lainnya'],
+        ['Ukuran', 'All size, elastis dan nyaman'],
+        ['Kompatibel', 'Semua jenis layar sentuh'],
       ],
     },
     {
@@ -565,7 +591,7 @@ window.NEXURA = {
         ['Seri', 'Vortex Edition'],
         ['Material', 'Silver Fiber'],
         ['Warna', 'Crimson Spiral, Blue Pulse, Violet Eclipse (Limited Edition)'],
-        ['Ukuran', 'All size – elastis dan nyaman dipakai semua ukuran jempol'],
+        ['Ukuran', 'All size, elastis dan nyaman'],
         ['Kompatibel', 'Semua jenis layar sentuh'],
       ],
     },
@@ -580,7 +606,7 @@ window.NEXURA = {
       short: 'FrostNova',
       price: 400000,
       stock: 'out',
-      popular: 10,
+      popular: 11,
       added: '2026-09-15',
       keywords: 'kipas pendingin cooler hp ai rgb 30w frostnova nx005',
       colors: [
@@ -595,8 +621,8 @@ window.NEXURA = {
         { image: 'p-frostnova', alt: 'FrostNova NX005, phone cooler 30W warna ungu dan putih, dengan bonus carbon pouch besar' },
       ],
       description: [
-        'FrostNova NX005 adalah phone cooler gaming 30W dengan AI Tech, kipas 7 turbine blades berkecepatan 5000–5600 RPM, dan layar real-time untuk daya dan suhu.',
-        'Tersedia 2 warna, Ungu Gelap dan Putih, dengan bonus carbon pouch besar.',
+        'FrostNova NX005 adalah phone cooler gaming 30W dengan AI Tech, kipas 7 turbine blades berkecepatan 5000–5600 RPM, dan layar real-time untuk daya dan suhu. Pasangnya cukup ditempel pakai magnet.',
+        'Bonus carbon pouch besar untuk penyimpanan.',
       ],
       specs: [
         ['Model', 'NX005'],
@@ -604,7 +630,6 @@ window.NEXURA = {
         ['Kecepatan kipas', '5000–5600 RPM'],
         ['Bilah kipas', '7 Turbine Blades'],
         ['Display', 'Real-time power & temperature'],
-        ['Pemasangan', 'Magnet'],
         ['Lampu', 'Rainbow RGB'],
         ['Bonus', 'Large Carbon Pouch'],
       ],
@@ -620,7 +645,7 @@ window.NEXURA = {
       price: 79000,
       compareAt: 179000,
       stock: 'out',
-      popular: 11,
+      popular: 12,
       added: '2026-08-15',
       keywords: 'hydrogel anti gores screen protector pelindung layar privacy anti spy anti intip hd clear',
       variantLabel: 'Tipe cutting',
@@ -643,9 +668,7 @@ window.NEXURA = {
       ],
       inBox: ['2 lembar Hydrogel Privacy HD (varian yang sama)', 'Toolkit pemasangan'],
       specs: [
-        ['Jenis', 'Pelindung layar hydrogel'],
         ['Permukaan', 'Privacy (anti spy) + Clear+'],
-        ['Cakupan', 'Full coverage'],
         ['Perlindungan', 'Explosion-proof & shock-proof, Nano Repair, hydrophobic & oleophobic'],
         ['Sidik jari', 'Sensor di layar kurang responsif karena lapisan privacy'],
         ['Kompatibilitas', 'Semua tipe HP (cantumkan tipe HP saat order)'],
@@ -661,7 +684,7 @@ window.NEXURA = {
       short: 'Hydrogel Privacy',
       price: 149000,
       stock: 'out',
-      popular: 9,
+      popular: 10,
       added: '2026-03-15',
       keywords: 'hydrogel anti gores screen protector pelindung layar privacy anti spy anti intip',
       variantLabel: 'Tipe cutting',
@@ -684,7 +707,6 @@ window.NEXURA = {
       ],
       inBox: ['2 lembar Hydrogel Privacy (varian yang sama)', 'Toolkit pemasangan'],
       specs: [
-        ['Jenis', 'Pelindung layar hydrogel'],
         ['Permukaan', 'Privacy (anti spy)'],
         ['Perlindungan', 'Shock proof, self healing, hydrophobic'],
         ['Sidik jari', 'Sensor di layar kurang responsif karena lapisan privacy'],
@@ -759,7 +781,6 @@ window.NEXURA = {
         ['Material', 'Silver Fiber + Reflective Fabric'],
         ['Ukuran', 'All size, elastis dan nyaman'],
         ['Kompatibel', 'Semua jenis layar sentuh smartphone'],
-        ['Cocok untuk', 'Gaming, scrolling, editing, dan penggunaan harian'],
       ],
     },
   ],
@@ -793,14 +814,54 @@ window.NEXURA = {
       { id: 'express', label: 'Express', price: 22000, days: [1, 1] },
     ],
     insurance: { rate: 0.002, min: 1500 },
+    // Minutes a QRIS code stays payable after Bayar Sekarang; the payment page counts it down.
+    // TODO: match the expiry set at the payment gateway.
+    qrisMinutes: 15,
     payments: [
-      { id: 'qris', label: 'QRIS', logo: 'qris.png', w: 255, h: 130, note: 'Scan pakai e-wallet atau m-banking apa aja' },
+      { id: 'qris', label: 'QRIS', logo: 'qr.png', w: 150, h: 150, note: 'Scan dari aplikasi mana pun' },
       { id: 'gopay', label: 'GoPay', logo: 'gopay.svg', w: 63, h: 16 },
       { id: 'ovo', label: 'OVO', logo: 'ovo.svg', w: 77, h: 24 },
       { id: 'dana', label: 'DANA', logo: 'dana.png', w: 260, h: 76 },
       { id: 'shopeepay', label: 'ShopeePay', logo: 'shopeepay.png', w: 159, h: 130 },
     ],
     promos: {},
+  },
+
+  /*
+   * Sensi Pro Player (/sensi/). Every Nexura pack carries a QR; scanning it on the site, or with
+   * the phone camera (the QR is a link to /sensi/?kode=<code>), opens one pro player's settings.
+   *   players    who can come out of a pack. `image` is the portrait card in assets/img (.jpg);
+   *              `settings` are [label, value] rows, shown in this order. A value left null shows
+   *              as "Menyusul"
+   *
+   * Codes look like NX-XXXX-XXXX: eight characters from Crockford's base 32 (no I, L, O, U), the
+   * last a check character, so a mistyped code is refused rather than opening someone at random.
+   * The first character picks the player (its place in the alphabet, wrapped over the list).
+   * Codes to try, one per player in list order:
+   *   NX-0M9S-346Y  NX-1Q3D-25V5  NX-2T4F-5V3J  NX-37E3-S3E2  NX-428J-T975  NX-5KB6-CQ6R
+   *
+   * TODO: every value below is empty on purpose. Fill each player's real settings, approved by
+   * that player (PRD 6: quotes and claims must be true), before this page goes live.
+   * TODO: the check character only catches typos. Real codes need the server: one code per pack,
+   * checked against the printed batch and claimed once, so a QR photo shared online is worth
+   * one claim, not thousands.
+   */
+  sensi: {
+    game: 'Mobile Legends',
+    players: [
+      { id: 'jeje', name: 'Jeje Adriel', role: 'Streamer & Ex-Pro MLBB', image: 'creator-jeje',
+        settings: [['Sensitivitas Kamera', null], ['Tinggi Kamera', null], ['Mode Cast', null], ['Lock Target', null], ['Frame Rate', null], ['Kualitas Grafik', null]] },
+      { id: 'tazz', name: 'Tazz', role: 'Streamer & Pro MLBB', image: 'creator-tazz',
+        settings: [['Sensitivitas Kamera', null], ['Tinggi Kamera', null], ['Mode Cast', null], ['Lock Target', null], ['Frame Rate', null], ['Kualitas Grafik', null]] },
+      { id: 'alviro', name: 'Alviro', role: 'Streamer MLBB', image: 'creator-alviro',
+        settings: [['Sensitivitas Kamera', null], ['Tinggi Kamera', null], ['Mode Cast', null], ['Lock Target', null], ['Frame Rate', null], ['Kualitas Grafik', null]] },
+      { id: 'cadera', name: 'Cadera', role: 'Streamer & Pro MLBB', image: 'creator-cadera',
+        settings: [['Sensitivitas Kamera', null], ['Tinggi Kamera', null], ['Mode Cast', null], ['Lock Target', null], ['Frame Rate', null], ['Kualitas Grafik', null]] },
+      { id: 'ivan', name: 'Ivan', role: 'Streamer MLBB', image: 'creator-ivan',
+        settings: [['Sensitivitas Kamera', null], ['Tinggi Kamera', null], ['Mode Cast', null], ['Lock Target', null], ['Frame Rate', null], ['Kualitas Grafik', null]] },
+      { id: 'kabuki', name: 'Kabuki', role: 'Streamer MLBB', image: 'creator-kabuki',
+        settings: [['Sensitivitas Kamera', null], ['Tinggi Kamera', null], ['Mode Cast', null], ['Lock Target', null], ['Frame Rate', null], ['Kualitas Grafik', null]] },
+    ],
   },
 
   // Compilation video for "Apa Kata Streamers". Paste the YouTube video ID (the part after v=).
