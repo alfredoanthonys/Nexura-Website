@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:opsz,wght@14..32,400..800&display=swap">
-  <link rel="stylesheet" href="../assets/css/styles.css?v=20261026054500">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20261026213000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -164,14 +164,19 @@
   </header>
 
   <main id="konten" class="scan" data-scan-page>
-    <!-- Scan QR: the camera, opened only when the visitor taps Buka Kamera (or the photo), or a
+    <!-- Scan QR: the camera, opened only when the visitor taps the photo, or a
          photo of the QR, and nothing else.
          The QR on each pack holds a Google Drive link; once read, main.js sends the visitor there. -->
     <div class="container scan__inner">
 
-      <h1 class="section-title scan__title">Scan QR</h1>
-      <!-- Until the camera is on, a photo of a pack with its QR; tapping it opens the camera, as
-           Buka Kamera does. The scan frame shows over either. -->
+      <div class="scan__head">
+        <!-- Closes the page: back to where the visitor came from on this site, else home (main.js) -->
+        <a class="scan__close" href="../" aria-label="Tutup Scan QR" data-page-back>
+          <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+        </a>
+        <h1 class="section-title scan__title">Scan QR</h1>
+      </div>
+      <!-- Until the camera is on, a photo of a pack with its QR; tapping it opens the camera. The scan frame shows over either. -->
       <div class="sensi-scan__view" data-scan-view>
         <video muted playsinline aria-hidden="true"></video>
         <button class="sensi-scan__idle" type="button" aria-label="Buka kamera" data-scan-start></button>
@@ -179,10 +184,7 @@
       </div>
       <p class="sensi-scan__status" role="status" data-scan-status></p>
       <div class="sensi-scan__actions">
-        <button class="btn btn--primary" type="button" data-scan-open>
-          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-camera"/></svg>Buka Kamera
-        </button>
-        <label class="btn btn--secondary sensi-scan__upload">
+        <label class="btn btn--primary sensi-scan__upload">
           <input class="sr-only" type="file" accept="image/*" data-scan-file>
           <svg class="icon icon--sm" aria-hidden="true"><use href="#i-image"/></svg>Upload Foto QR
         </label>
@@ -239,7 +241,7 @@
   <div class="backdrop" data-backdrop hidden></div>
   <div class="sr-only" aria-live="polite" data-live></div>
 
-  <script src="../assets/js/data.js?v=20261023178000"></script>
-  <script src="../assets/js/main.js?v=20261026001000"></script>
+  <script src="../assets/js/data.js?v=20261026150000"></script>
+  <script src="../assets/js/main.js?v=20261026183000"></script>
 </body>
 </html>

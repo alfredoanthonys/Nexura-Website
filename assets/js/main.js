@@ -429,6 +429,7 @@
     if (!drawer) return;
     drawer.classList.remove('is-open');
     drawer.inert = true;
+    drawer.dispatchEvent(new Event('drawerclose'));
     $$(`[aria-controls="${drawer.id}"]`).forEach((b) => b.setAttribute('aria-expanded', 'false'));
     if (openDrawer === drawer) {
       openDrawer = null;
@@ -458,7 +459,7 @@
     }
   });
 
-  /* Back button on Keranjang, checkout and the payment page (phones). Arriving from another page
+  /* Back button on Keranjang, checkout and the payment page (phones), and Scan QR's close. Arriving from another page
      of this site, it steps back in history, so the visitor lands where they were (scroll and
      all); opened directly or from elsewhere, it follows its link to the step before. */
   const pageBack = $('[data-page-back]');
@@ -3339,21 +3340,22 @@
     });
   }
 
-  /* Scan QR (/scan/)
-     The camera opens only when asked (Buka Kamera, or a tap on the viewfinder), never with the
+  /* Scan QR (/scan/, and the sheet every other page opens on a phone; see below)
+     The camera opens only when asked (a tap on the viewfinder), never with the
      page, and reads the QR live: the browser's own BarcodeDetector where it has one (Chrome on
      Android), else jsQR (assets/js/vendor), fetched only then (iPhone Safari). Without a camera,
      or with it refused, a photo of the QR does the same. The QR on each pack holds a Google Drive
      link (the pro player's sensi); once read, the visitor goes there. Only Google Drive and Docs
      links are followed, so a stranger's QR can't send anyone elsewhere from this page. */
   const scanPage = $('[data-scan-page]');
-  if (scanPage) {
-    const view = $('[data-scan-view]', scanPage);
+  if (scanPage) scanner(scanPage);
+  // Wires one viewfinder, status line and Upload Foto QR inside `root`; hands back its stop().
+  function scanner(root) {
+    const view = $('[data-scan-view]', root);
     const video = $('video', view);
-    const startBtn = $('[data-scan-start]', scanPage);
-    const openBtn = $('[data-scan-open]', scanPage);
-    const status = $('[data-scan-status]', scanPage);
-    const fileInput = $('[data-scan-file]', scanPage);
+    const startBtn = $('[data-scan-start]', root);
+    const status = $('[data-scan-status]', root);
+    const fileInput = $('[data-scan-file]', root);
     const DRIVE_HOSTS = ['drive.google.com', 'docs.google.com'];
     let stream = null;
     let timer = 0;
@@ -3441,11 +3443,11 @@
         return;
       }
       say('Membuka kamera…');
-      startBtn.disabled = openBtn.disabled = true;
+      startBtn.disabled = true;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
       } catch (err) {
-        startBtn.disabled = openBtn.disabled = false;
+        startBtn.disabled = false;
         // refused, the page stays quiet: the photo and Upload Foto QR are there, and a tap retries
         if (err.name === 'NotAllowedError') say('');
         else say('Kamera nggak bisa dibuka. Upload foto QR-nya aja.', true);
@@ -3454,8 +3456,7 @@
       video.srcObject = stream;
       try { await video.play(); } catch { /* autoplay of a muted inline video is allowed */ }
       view.classList.add('is-live');
-      startBtn.disabled = openBtn.disabled = false;
-      openBtn.hidden = true;
+      startBtn.disabled = false;
       lastBad = '';
       try { await decoder(); } catch { stop(); say('Pemindai QR gagal dimuat. Cek koneksi, lalu coba lagi.', true); return; }
       say('Arahkan kamera ke QR di kemasan.');
@@ -3468,13 +3469,11 @@
       stream = null;
       video.srcObject = null;
       view.classList.remove('is-live');
-      openBtn.hidden = false;
     }
 
-    // Nothing asks for the camera until the visitor does: Buka Kamera or a tap on the viewfinder.
+    // Nothing asks for the camera until the visitor does: a tap on the viewfinder.
     // Once on, its light goes off while the page is hidden and comes back with it.
     startBtn.addEventListener('click', start);
-    openBtn.addEventListener('click', start);
     let wasLive = false;
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) { wasLive = !!stream; if (stream) { stop(); say(''); } }
@@ -3503,6 +3502,8 @@
         URL.revokeObjectURL(url);
       }
     });
+
+    return { stop: () => { stop(); say(''); } };
   }
 
   /* ------------------------------------------------------------------
@@ -4048,11 +4049,52 @@
      Scan QR on a computer: the QR is on the pack and the camera that reads it is the phone's,
      so on a mouse-and-keyboard device (hover + fine pointer, not just a narrow window) any
      link to the scan page opens a note to use it on a phone instead.
+     Everywhere else (phones, tablets) the link opens Scan QR as a sheet over the page: it rises
+     from the bottom and stops at two thirds of the screen, its foot on the screen's foot. It
+     rides the drawers' backdrop, scroll lock and focus trap, and closing it turns the camera
+     off. The scan page itself stays for a direct visit.
      ------------------------------------------------------------------ */
   {
     const SCAN_PAGE = `${SITE}scan/`;
     const computer = window.matchMedia('(hover: hover) and (pointer: fine)');
     let note = null;
+    let sheet = null;
+    let sheetScan = null;
+
+    const buildSheet = () => {
+      sheet = document.createElement('div');
+      sheet.className = 'drawer scan-sheet';
+      sheet.id = 'scan-sheet';
+      sheet.setAttribute('role', 'dialog');
+      sheet.setAttribute('aria-modal', 'true');
+      sheet.setAttribute('aria-labelledby', 'scan-sheet-title');
+      sheet.inert = true;
+      sheet.innerHTML = `
+        <div class="scan">
+          <div class="container scan__inner">
+            <div class="scan__head">
+              <button class="scan__close" type="button" aria-label="Tutup Scan QR" data-drawer-close>${icon('x')}</button>
+              <h2 class="section-title scan__title" id="scan-sheet-title">Scan QR</h2>
+            </div>
+            <div class="sensi-scan__view" data-scan-view>
+              <video muted playsinline aria-hidden="true"></video>
+              <button class="sensi-scan__idle" type="button" aria-label="Buka kamera" data-scan-start></button>
+              <span class="sensi-scan__frame" aria-hidden="true"><span class="sensi-scan__laser"></span></span>
+            </div>
+            <p class="sensi-scan__status" role="status" data-scan-status></p>
+            <div class="sensi-scan__actions">
+              <label class="btn btn--primary sensi-scan__upload">
+                <input class="sr-only" type="file" accept="image/*" data-scan-file>
+                ${icon('image', 'icon icon--sm')}Upload Foto QR
+              </label>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(sheet);
+      $('[data-drawer-close]', sheet).addEventListener('click', () => hideDrawer());
+      sheetScan = scanner(sheet);
+      sheet.addEventListener('drawerclose', () => sheetScan.stop());
+    };
 
     const build = () => {
       note = document.createElement('dialog');
@@ -4077,13 +4119,20 @@
 
     document.addEventListener('click', (e) => {
       const a = e.target.closest('a[href]');
-      if (!a || !computer.matches || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return;
       const url = new URL(a.href, location.href);
       if (url.origin + url.pathname !== SCAN_PAGE) return;
-      e.preventDefault();
-      if (!note) build();
-      lockScroll(true);
-      note.showModal();
+      if (computer.matches) {
+        e.preventDefault();
+        if (!note) build();
+        lockScroll(true);
+        note.showModal();
+      } else if (!scanPage) {
+        e.preventDefault();
+        if (!sheet) buildSheet();
+        // from the menu drawer, focus comes back to the menu button rather than the shut drawer
+        showDrawer(sheet, a.closest('.drawer') ? $('[aria-controls="menu-drawer"]') : a);
+      }
     });
   }
 

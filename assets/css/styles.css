@@ -1262,10 +1262,12 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
     filter: drop-shadow(0 2px 10px rgba(20, 4, 36, .65));
   }
 }
-/* Phones: the desktop card shrunk, a third of the screen each. Only the corner cut gets
-   smaller, so it doesn't eat the little card. */
+/* Phones: the desktop card shrunk, a third of the screen each. The corner cut gets smaller,
+   so it doesn't eat the little card, and the name bigger (13cqi, about 14px on a 375px
+   phone), so it still reads at that size. */
 @media (max-width: 599px) {
   .cat-card { --cut: 8px; }
+  .cat-card__label { font-size: 13cqi; }
 }
 .cat-card[aria-pressed="false"] .cat-card__art { filter: saturate(.8) brightness(.85); }
 .cat-card[aria-pressed="false"] .cat-card__product { filter: drop-shadow(0 10px 22px rgba(20, 4, 36, .55)) saturate(.85) brightness(.88); }
@@ -2169,12 +2171,12 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
      Kabuki "Team Liquid" 5.6%: 38.6 + 1.02 x (5.6 - 38.6) = 4.9  (Jeje's "Jeje" the same)
      Tazz   "EVOS"        6.5%: 47 + 1.04 x (6.5 - 47) = 4.9
      Cadera "Geek Fam"    6.9%: 47.7 + 1.05 x (6.9 - 47.7) = 4.9
-     Rinee  "Alter Ego"   9.9%: 55.7 + 1.11 x (9.9 - 55.7) = 4.9 */
+     Rinee  "Alter Ego"   6.8%: 54.3 + 1.04 x (6.8 - 54.3) = 4.9 */
 .clip__img--alviro { scale: 1.01; transform-origin: 50% 45.3%; }
 .clip__img--kabuki, .clip__img--jeje { scale: 1.02; transform-origin: 50% 38.6%; }
 .clip__img--tazz { scale: 1.04; transform-origin: 50% 47%; }
 .clip__img--cadera { scale: 1.05; transform-origin: 50% 47.7%; }
-.clip__img--rinee { scale: 1.11; transform-origin: 50% 55.7%; }
+.clip__img--rinee { scale: 1.04; transform-origin: 50% 54.3%; }
 .clip__link::after {
   content: ""; position: absolute; inset: 0; z-index: 1;
   background: linear-gradient(to top, rgba(12, 3, 16, .94) 0%, rgba(12, 3, 16, .7) 22%, rgba(12, 3, 16, 0) 48%);
@@ -4686,6 +4688,30 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .scan .sensi-scan__frame { opacity: 1; z-index: 1; width: min(80%, 340px); --l: 44px; --w: 5px; --c: rgba(255, 255, 255, .9); box-shadow: none; }
 .scan .sensi-scan__idle:focus-visible { outline: 2px solid var(--violet-400); outline-offset: -4px; }
 .scan .sensi-scan__view, .scan .sensi-scan__actions { max-width: none; }
+/* The head: the close button on the left and the name centred, as an app's screen title. An
+   empty column on the right as wide as the button's keeps the name on the screen's middle.
+   The name's box keeps its .287em under the baseline (see .scan__title) out of the centring,
+   so the letters sit level with the button. */
+.scan__head { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: var(--s-3); margin: var(--s-4) 0; }
+.scan__head .scan__title { justify-self: center; margin: 0 0 -.287em; }
+/* A bare glyph in a 40px tap area, pulled left so the X itself lines up with the column's edge. */
+.scan__close {
+  flex: none; display: grid; place-items: center; width: 40px; height: 40px; margin-left: -8px;
+  color: #fff; transition: color var(--t-fast) ease-out;
+}
+.scan__close:hover { color: var(--violet-400); }
+.scan__close:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+/* Scan QR as a sheet over the page (phones and tablets; main.js): it rises from below the
+   screen and stops two thirds of the way up, its foot on the screen's foot, the same page
+   inside, filling it. Its top corners rounded, as a phone's own sheets are. */
+.scan-sheet {
+  top: auto; left: 0; right: 0; bottom: 0;
+  height: calc(100vh * 2 / 3); height: calc(100dvh * 2 / 3);
+  transform: translateY(100%);
+  border-top: 1px solid var(--line);
+  border-radius: 20px 20px 0 0; overflow: hidden;
+}
+.scan-sheet .scan { height: 100%; }
 
 /* The viewfinder: square, the camera feed filling it, a frame with corner brackets in the
    middle and a laser sweeping it while live. Idle, it says what the button below does. */
@@ -4950,6 +4976,9 @@ a.cmp__media:hover { --cut-line: #584066; }
 .font-preview .section-head .section-title:not(.section-title--sub),
 .font-preview .acc-head__name, .font-preview .acc-back .page-title { margin-bottom: 0; }
 .font-preview .scan__title { margin-bottom: var(--s-5); }
+/* Tungsten has no deep baseline to take back out, but its box still runs down to the
+   descenders; trimmed to the baseline as well, so the capitals centre on the close button. */
+.font-preview .scan__head .scan__title { margin-bottom: 0; text-box-trim: trim-both; font-size: 2.5rem; }
 .font-preview .cat-card__label, .font-preview .shop-banner__title { font-family: "Tungsten", "Anton", var(--font); }
 /* Beranda's section headlines, about double in Tungsten (the sub-heads about 90% up). On a phone
    13.4cqi keeps the longest, "Apa Kata Streamers" (6.66em in Tungsten Bold, so 15cqi at most),
@@ -4958,3 +4987,9 @@ a.cmp__media:hover { --cut-line: #584066; }
 @media (max-width: 599px) { .font-preview .home .section-head .section-title { font-size: 13.4cqi; } }
 .font-preview .home .section-head .section-title--sub { font-size: clamp(1.75rem, 9.2vw - 4.4px, 3.25rem); }
 @media (min-width: 1024px) { .font-preview .home .section-head .section-title--sub { font-size: clamp(3.25rem, 1.9rem + 2.85vw, 4rem); } }
+/* Masuk and Daftar's headline, and Akun's name and tab titles, read small in Tungsten at
+   Draco's sizes too, so they go up as well. */
+.font-preview .auth-card__title { font-size: 2.5rem; }
+@media (min-width: 600px) { .font-preview .auth-card__title { font-size: 3.25rem; } }
+.font-preview .acc-head__name, .font-preview .acc-back .page-title { font-size: 2.25rem; }
+@media (min-width: 900px) { .font-preview .acc-head__name, .font-preview .acc .acc-back .page-title { font-size: 3rem; } }

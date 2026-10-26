@@ -238,6 +238,7 @@ window.NEXURA = {
       showcase: [
         { image: 'd-vortex-1', alt: 'Vortex thumb sleeve for gaming warna ungu, biru, dan merah; get your Vortex sets: kemasan isi 2 pcs plus sepasang sarung jempol' },
         { image: 'd-vortex-2', alt: 'Tiga warna Vortex: Blue Pulse, Violet Purple, dan Crimson Spiral, dengan ikon premium quality, ultra sensitive, lightweight, sweat absorbent, dan no ghost touch' },
+        { image: 'd-vortex-3', alt: 'Keunggulan Vortex: sweat absorbent, level up your aura, lightweight, dan ultra sensitive' },
       ],
       inBox: ['2 pcs sarung jempol (untuk kiri & kanan)'],
       specs: [
