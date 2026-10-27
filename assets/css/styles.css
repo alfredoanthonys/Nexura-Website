@@ -26,26 +26,29 @@
   font-display: swap;
 }
 
-/* Desktop monitors (1800px up, so no laptop, the widest being 1728) get the whole page at 75%,
-   as if Safari were zoomed out twice: at 100% the page felt too full there. Laptops stay at
-   100%. zoom shrinks every length but leaves the viewport units at the unzoomed screen's size,
-   so they would shrink too (a banner capped at the screen's height would stop short of it).
-   Every viewport length in this sheet is therefore written in these, which undo the zoom:
-   --vw is 1vw at 100% and 1.33vw under it. */
+/* Big screens are zoomed out so the page takes the share of the screen it does on a 14"
+   MacBook in Safari at 75% (Ko Willy's reference): the 1200px column about 60% of the width.
+   So the zoom steps with the width: 75% from 1441 (1470 and 1512 MacBooks), 85% from 1600
+   (the 1728 MacBook), 97.5% from 1800 (1920 monitors), none from 2100; 1440 and under stay at
+   100%. zoom shrinks every length but leaves the viewport units at the unzoomed screen's
+   size, so they would shrink too (a banner capped at the screen's height would stop short of
+   it). Every viewport length in this sheet is therefore written in these, which undo the zoom
+   (--unzoom is 1 / --zoom). */
 /* Container units likewise: Chrome sizes them right under zoom, but Safari applies the zoom to
    them a second time (10cqw of a 1512px box comes out 113px, not 151px). main.js measures that
    and sets --cq-fix to undo it (1 where nothing needs undoing), so every container length is
    written in these. */
 :root {
-  --unzoom: 1;
+  --zoom: 1; --unzoom: calc(1 / var(--zoom));
   --vw: calc(1vw * var(--unzoom)); --vh: calc(1vh * var(--unzoom));
   --svh: calc(1svh * var(--unzoom)); --dvh: calc(1dvh * var(--unzoom));
   --cqw: calc(1cqw * var(--cq-fix, 1)); --cqi: calc(1cqi * var(--cq-fix, 1)); --cqh: calc(1cqh * var(--cq-fix, 1));
 }
-@media (min-width: 1800px) {
-  html { zoom: .75; }
-  :root { --unzoom: calc(1 / .75); }
-}
+html { zoom: var(--zoom); }
+@media (min-width: 1441px) { :root { --zoom: .75; } }
+@media (min-width: 1600px) { :root { --zoom: .85; } }
+@media (min-width: 1800px) { :root { --zoom: .975; } }
+@media (min-width: 2100px) { :root { --zoom: 1; } }
 
 :root {
   /* Matched to the campaign mood board (Oct 2026): lifted plum surfaces around hue 278
