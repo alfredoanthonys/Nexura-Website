@@ -26,6 +26,26 @@
   font-display: swap;
 }
 
+/* Big screens get the whole page at 75%, as if the browser were zoomed out three times
+   (Cmd + minus): at 100% a 1440px-plus desktop felt too full. zoom shrinks every length but
+   leaves the viewport units at the unzoomed screen's size, so they would shrink too (a banner
+   capped at the screen's height would stop short of it). Every viewport length in this sheet
+   is therefore written in these, which undo the zoom: --vw is 1vw at 100% and 1.33vw under it. */
+/* Container units likewise: Chrome sizes them right under zoom, but Safari applies the zoom to
+   them a second time (10cqw of a 1512px box comes out 113px, not 151px). main.js measures that
+   and sets --cq-fix to undo it (1 where nothing needs undoing), so every container length is
+   written in these. */
+:root {
+  --unzoom: 1;
+  --vw: calc(1vw * var(--unzoom)); --vh: calc(1vh * var(--unzoom));
+  --svh: calc(1svh * var(--unzoom)); --dvh: calc(1dvh * var(--unzoom));
+  --cqw: calc(1cqw * var(--cq-fix, 1)); --cqi: calc(1cqi * var(--cq-fix, 1)); --cqh: calc(1cqh * var(--cq-fix, 1));
+}
+@media (min-width: 1440px) {
+  html { zoom: .75; }
+  :root { --unzoom: calc(1 / .75); }
+}
+
 :root {
   /* Matched to the campaign mood board (Oct 2026): lifted plum surfaces around hue 278
      (poster grounds #1C0B27 to #2A0F3A) and softer, less neon violets (#7E40A2 to #9B53C4)
@@ -72,10 +92,10 @@
 
   /* Type */
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --fs-display: clamp(3.375rem, 2.3rem + 1.67vw, 4.3125rem);
-  --fs-h2: clamp(1.625rem, 1.15rem + 1.5vw, 2.5rem);
-  --fs-h3: clamp(1.125rem, 1rem + .4vw, 1.375rem);
-  --fs-lead: clamp(1rem, .95rem + .25vw, 1.125rem);
+  --fs-display: clamp(3.375rem, 2.3rem + calc(1.67 * var(--vw)), 4.3125rem);
+  --fs-h2: clamp(1.625rem, 1.15rem + calc(1.5 * var(--vw)), 2.5rem);
+  --fs-h3: clamp(1.125rem, 1rem + calc(.4 * var(--vw)), 1.375rem);
+  --fs-lead: clamp(1rem, .95rem + calc(.25 * var(--vw)), 1.125rem);
   --fs-body: 1rem;
   --fs-sm: .875rem;
   --fs-xs: .8125rem;
@@ -290,7 +310,7 @@ s { text-decoration-thickness: 1px; }
    navbar's icon. A modal <dialog>, so it renders in the top layer, clear of the header's
    blur (which would otherwise trap a fixed child inside the bar). */
 .search-dialog {
-  width: min(960px, calc(100% - 2 * var(--gutter))); max-width: none; max-height: calc(100dvh - 32px);
+  width: min(960px, calc(100% - 2 * var(--gutter))); max-width: none; max-height: calc(calc(100 * var(--dvh)) - 32px);
   margin: 16px auto auto; padding: 0; overflow: hidden;
   background: var(--ink-900); color: var(--text);
   border: 1px solid var(--line-strong); border-radius: var(--r-lg);
@@ -338,7 +358,7 @@ html:has(.search-dialog[open]) { overflow: hidden; }
 .search__hint { margin: 0; padding: var(--s-8) var(--s-4) var(--s-6); text-align: center; font-size: var(--fs-sm); color: var(--faint); }
 .search__results {
   margin: var(--s-4) 0 0; padding: 0; list-style: none;
-  min-height: 0; max-height: min(460px, 60dvh); overflow-y: auto; overscroll-behavior: contain;
+  min-height: 0; max-height: min(460px, calc(60 * var(--dvh))); overflow-y: auto; overscroll-behavior: contain;
 }
 .search__option {
   display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: var(--s-3);
@@ -379,8 +399,15 @@ html:has(.search-dialog[open]) { overflow: hidden; }
     background: currentColor; border-radius: 2px; transform: scaleX(0);
     transition: transform var(--t-fast) ease-out;
   }
-  .nav__link:hover, .nav__dropdown.is-open > .nav__link { color: var(--violet-400); }
-  .nav__link:hover::after, .nav__dropdown.is-open > .nav__link::after { transform: scaleX(1); }
+  /* Hovered, the label and its rule take the action icons' fill (g-icon-x): pink into white
+     at 120deg, clipped to the text. */
+  .nav__link:hover, .nav__dropdown.is-open > .nav__link {
+    background: linear-gradient(120deg, #FF89FD, #fff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .nav__link:hover::after, .nav__dropdown.is-open > .nav__link::after {
+    transform: scaleX(1); background: linear-gradient(120deg, #FF89FD, #fff);
+  }
   /* Chevron stays pointing down whether the dropdown is open or not. */
 
   .nav__dropdown { position: relative; }
@@ -464,17 +491,17 @@ html:has(.search-dialog[open]) { overflow: hidden; }
 .hero__slide-link:focus-visible { outline-offset: -6px; }
 /* The "Lihat Produk" buttons. On a phone, all three slides, at the site's standard button size,
    centred in the empty band under the headline of their portrait art: the art is shown whole at
-   the hero's full width and 1499/1049 of it tall, so a spot y% down it is y x 1.429cqw down
-   (--cta-m-y). Slide 1: between "Gaming Gear" and the products, 31.4% down, so 44.9cqw.
-   Slide 2: between "FROSTSPIRE" and the cap, 29% down, so 41.4cqw.
-   Slide 3: between "Sekarang" and the fans, 38.4% down, so 54.8cqw.
+   the hero's full width and 1499/1049 of it tall, so a spot y% down it is y x calc(1.429 * var(--cqw)) down
+   (--cta-m-y). Slide 1: between "Gaming Gear" and the products, 31.4% down, so calc(44.9 * var(--cqw)).
+   Slide 2: between "FROSTSPIRE" and the cap, 29% down, so calc(41.4 * var(--cqw)).
+   Slide 3: between "Sekarang" and the fans, 38.4% down, so calc(54.8 * var(--cqw)).
    The closing CTA banner borrows the same button on phones: it is not in the hero (no cqw
    there), but its box is its art's own shape, so the spot is a share of its height, 88% down,
    centred between "Dapatkan sensi pro player" (ends 80.9%) and the dark foot strip (95.3%)
    of the top-trimmed box
    (from 768 up, under it on the wide art; see the end of this block). From 768 up, all three slides too, where the wide art shows at full width: a
    spot on it is a fixed share of the width (cqw), --cta-x across and --cta-y down a 16:9
-   picture (56.25cqw tall). When the fold caps the box, the art loses max(0, 56.25cqw - box
+   picture (calc(56.25 * var(--cqw)) tall). When the fold caps the box, the art loses max(0, calc(56.25 * var(--cqw)) - box
    height) and the slide's object-position Y (--cta-trim) says how much of that comes off the
    top, so the button moves up by as much.
    Slide 1: centred in the empty band under "Gaming Gear" (48.4% to 64.3% down), so 56.3% down,
@@ -499,10 +526,10 @@ html:has(.search-dialog[open]) { overflow: hidden; }
   translate: -50% -50%; background: linear-gradient(120deg, #5A2787, #9A32AB);
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, .4);
 }
-.hero__slide { --cta-x: 50%; --cta-y: 31.7cqw; --cta-trim: 0; --cta-m-y: 44.9cqw; --zoom: 1; --zoom-x: 50%; }
+.hero__slide { --cta-x: 50%; --cta-y: calc(31.7 * var(--cqw)); --cta-trim: 0; --cta-m-y: calc(44.9 * var(--cqw)); --zoom: 1; --zoom-x: 50%; }
 .hero__slide:first-child { --cta-trim: 1; }
-.hero__slide--frostspire { --cta-x: 65.6%; --cta-y: 38.5cqw; --cta-trim: .75; --cta-m-y: 41.4cqw; }
-.hero__slide--iceglow { --cta-x: 69.8%; --cta-y: 40.8cqw; --cta-m-y: 54.8cqw; }
+.hero__slide--frostspire { --cta-x: 65.6%; --cta-y: calc(38.5 * var(--cqw)); --cta-trim: .75; --cta-m-y: calc(41.4 * var(--cqw)); }
+.hero__slide--iceglow { --cta-x: 69.8%; --cta-y: calc(40.8 * var(--cqw)); --cta-m-y: calc(54.8 * var(--cqw)); }
 .cta-banner { --cta-m-y: 88%; }
 /* Wide art cropped off the top: zoomed (--zoom) about a point on its bottom edge (--zoom-x
    across), so the foot stays put, the top is cut and everything rises toward it. None zoom at
@@ -515,20 +542,20 @@ html:has(.search-dialog[open]) { overflow: hidden; }
 }
 /* The button rides the zoom: a point (x, y) on art in a box Hb tall lands at
    zoom-x + zoom x (x - zoom-x) across and Hb - zoom x (Hb - y) down, Hb being the art's
-   56.25cqw or less where the fold caps it (y already moved up by any top trim). */
+   calc(56.25 * var(--cqw)) or less where the fold caps it (y already moved up by any top trim). */
 @media (min-width: 768px) {
-  .hero__slide { --hb: min(56.25cqw, calc(100svh - var(--header-h) - var(--bar-h, 0px))); }
+  .hero__slide { --hb: min(calc(56.25 * var(--cqw)), calc(calc(100 * var(--svh)) - var(--header-h) - var(--bar-h, 0px))); }
   .hero__cta {
     display: inline-flex;
     left: calc(var(--zoom-x) + var(--zoom) * (var(--cta-x) - var(--zoom-x)));
-    top: calc(var(--hb) - var(--zoom) * (var(--hb) - (var(--cta-y) - var(--cta-trim) * max(0px, 56.25cqw - (100svh - var(--header-h) - var(--bar-h, 0px))))));
-    --btn-h: clamp(52px, 4.6cqw, 76px); padding-inline: clamp(28px, 3.2cqw, 52px);
-    font-size: clamp(1.0625rem, 1.45cqw, 1.5rem);
+    top: calc(var(--hb) - var(--zoom) * (var(--hb) - (var(--cta-y) - var(--cta-trim) * max(0px, calc(56.25 * var(--cqw)) - (calc(100 * var(--svh)) - var(--header-h) - var(--bar-h, 0px))))));
+    --btn-h: clamp(52px, calc(4.6 * var(--cqw)), 76px); padding-inline: clamp(28px, calc(3.2 * var(--cqw)), 52px);
+    font-size: clamp(1.0625rem, calc(1.45 * var(--cqw)), 1.5rem);
   }
   /* The closing CTA's wide art: the button centred under "Dapatkan sensi pro player", in the
      middle and 115px (of 1080) up from the foot. The art is pinned to its foot (a short screen
-     loses its top), so the spot is measured up from the bottom: 115 / 1920 of the width, 6cqw. */
-  .cta-banner .hero__cta { left: 50%; top: calc(100% - 6cqw); }
+     loses its top), so the spot is measured up from the bottom: 115 / 1920 of the width, calc(6 * var(--cqw)). */
+  .cta-banner .hero__cta { left: 50%; top: calc(100% - calc(6 * var(--cqw))); }
 }
 
 .hero__arrow {
@@ -546,7 +573,7 @@ html:has(.search-dialog[open]) { overflow: hidden; }
    interval, so the next slide is never a surprise. */
 .hero__dots {
   position: absolute; z-index: 2; left: 50%; translate: -50% 0;
-  top: calc(75vw - 28px); top: calc(75cqw - 28px);
+  top: calc(calc(75 * var(--vw)) - 28px); top: calc(calc(75 * var(--cqw)) - 28px);
   display: flex; align-items: center; gap: var(--s-1);
 }
 .hero__dots button {
@@ -626,7 +653,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   .hero__text { gap: var(--s-2); justify-items: center; text-align: center; margin-inline: auto; }
   /* centred on the art, 20px above its bottom edge as on desktop: the square picture is the
      hero's full width tall, and the dots 24px */
-  .hero__dots { top: calc(100cqw - 44px); bottom: auto; }
+  .hero__dots { top: calc(calc(100 * var(--cqw)) - 44px); bottom: auto; }
 }
 
 @media (max-width: 599px) {
@@ -675,7 +702,7 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 @media (min-width: 768px) {
   /* Ends at the fold. On a screen shorter than 16/9 allows, the art keeps the full width and is
      pinned to the top, so only its bottom (the product floor) is trimmed, never the headline. */
-  .hero__media { aspect-ratio: 16 / 9; max-height: calc(100svh - var(--header-h) - var(--bar-h, 0px)); }
+  .hero__media { aspect-ratio: 16 / 9; max-height: calc(calc(100 * var(--svh)) - var(--header-h) - var(--bar-h, 0px)); }
   .hero__media img { object-position: 50% 0%; }
   /* FrostSpire's quote bubble sits low (to ~93% down its art), so this slide trims mostly off the
      top instead: at 75% a 1280 x 650 screen still shows the bubble whole; the logo goes first. */
@@ -705,15 +732,15 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
   }
   /* Arrows centred on each edge, dots centred along the bottom. */
   .hero__arrow { display: grid; top: 50%; bottom: auto; translate: 0 -50%; width: 48px; height: 48px; }
-  .hero__arrow--prev { left: clamp(16px, 2.2vw, 40px); right: auto; }
-  .hero__arrow--next { right: clamp(16px, 2.2vw, 40px); left: auto; }
-  .hero__dots { top: auto; left: 50%; translate: -50% 0; bottom: clamp(20px, 3cqw, 36px); }
+  .hero__arrow--prev { left: clamp(16px, calc(2.2 * var(--vw)), 40px); right: auto; }
+  .hero__arrow--next { right: clamp(16px, calc(2.2 * var(--vw)), 40px); left: auto; }
+  .hero__dots { top: auto; left: 50%; translate: -50% 0; bottom: clamp(20px, calc(3 * var(--cqw)), 36px); }
 }
 /* Tablet overlays the copy on the banner too, but 12% of 834px would eat a third of an
    already narrow column, so the indent drops back to the gutter and the type steps down. */
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero { --hero-left: clamp(56px, 11%, 120px); }
-  .hero__title { font-size: clamp(2rem, 4.24vw, 2.6875rem); }
+  .hero__title { font-size: clamp(2rem, calc(4.24 * var(--vw)), 2.6875rem); }
   .hero__text { gap: var(--s-3); }
   .hero__arrow { width: 40px; height: 40px; }
 }
@@ -871,7 +898,7 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
   font-family: "Draco", var(--font);
   font-weight: 400;
   text-transform: uppercase; letter-spacing: .01em;
-  font-size: clamp(1.25rem, .55rem + 3vw, 2.5rem);
+  font-size: clamp(1.25rem, .55rem + calc(3 * var(--vw)), 2.5rem);
   line-height: 1.1;
   /* trimmed to the cap height, so the space above a headline measures to the letters */
   text-box-trim: trim-start; text-box-edge: cap alphabetic;
@@ -887,21 +914,21 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
 /* A heading inside a section, under its headline ("Clip dari Live Mereka" under Apa Kata
    Streamers): the same face, at about 60% of the headline's size, so it reads as a part of the
    section rather than a second one starting. */
-.section-title--sub { font-size: clamp(1rem, .45rem + 1.8vw, 1.5rem); }
+.section-title--sub { font-size: clamp(1rem, .45rem + calc(1.8 * var(--vw)), 1.5rem); }
 /* Beranda's headlines (the only page with .section-head) run big, after the Produk Andalan
    mock-up: "PRODUK ANDALAN" on one line about 45% of the column wide (some 1.9 cards on
    desktop), so 6.8% of the column (cqi), 82px at the 1200px column. Phones go bigger, 11.8% of
    the column (about 40px at 390): as big as the longest headline, "Apa Kata Streamers" at
    8.2em wide, can go and still hold one line. */
 .section-head { container-type: inline-size; }
-.section-head .section-title { font-size: clamp(1.5rem, 4.4cqi, 3.25rem); line-height: 1.05; }
-@media (max-width: 599px) { .section-head .section-title { font-size: 6.4cqi; } }
+.section-head .section-title { font-size: clamp(1.5rem, calc(4.4 * var(--cqi)), 3.25rem); line-height: 1.05; }
+@media (max-width: 599px) { .section-head .section-title { font-size: calc(6.4 * var(--cqi)); } }
 /* the home sub-head ("Clip dari Live Mereka"): small, a quiet label between the video and the
    clips rather than a second headline. On a phone it runs nearly the column's width (about 16px
    at 390, 19px at 445) and tops out at 28px from about 630px; desktops grow it again, to 34px
    at 1440 */
-.section-head .section-title--sub { font-size: clamp(.9375rem, 4.82vw - 2.3px, 1.75rem); }
-@media (min-width: 1024px) { .section-head .section-title--sub { font-size: clamp(1.75rem, 1rem + 1.5vw, 2.125rem); } }
+.section-head .section-title--sub { font-size: clamp(.9375rem, calc(4.82 * var(--vw)) - 2.3px, 1.75rem); }
+@media (min-width: 1024px) { .section-head .section-title--sub { font-size: clamp(1.75rem, 1rem + calc(1.5 * var(--vw)), 2.125rem); } }
 /* A line break only phones take (see "Teknologi Ter- / Nyata"). */
 @media (min-width: 600px) { .br-phone { display: none; } }
 /* keeps a hyphenated word (Ter-Nyata) whole, so a line never breaks at its hyphen */
@@ -984,7 +1011,7 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
     linear-gradient(120deg, #8E48C4, #DB4DFF) border-box;
   border: 1px solid transparent;
   box-shadow: 0 0 0 5px rgba(219, 77, 255, .16), 0 10px 26px rgba(12, 3, 16, .6);
-  color: #fff; font-size: clamp(9px, .45rem + .4vw, 12px); font-weight: 800; line-height: 1.15;
+  color: #fff; font-size: clamp(9px, .45rem + calc(.4 * var(--vw)), 12px); font-weight: 800; line-height: 1.15;
   letter-spacing: .1em; text-transform: uppercase; text-align: center;
   text-shadow: 0 1px 2px rgba(12, 3, 16, .35);
 }
@@ -1052,9 +1079,9 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
      card's width (cqi), set so the longest pair on the site, Rp159.000 beside Rp219.000, fills
      at most the line; capped at the desktop sizes on wider cards. */
   .product-card__body { container-type: inline-size; }
-  .product-card__price { flex-wrap: nowrap; column-gap: 1.5cqi; white-space: nowrap; }
-  .product-card__price .price { font-size: min(10.6cqi, 1.0625rem); }
-  .product-card__price .price-was { font-size: min(7.4cqi, var(--fs-xs)); }
+  .product-card__price { flex-wrap: nowrap; column-gap: calc(1.5 * var(--cqi)); white-space: nowrap; }
+  .product-card__price .price { font-size: min(calc(10.6 * var(--cqi)), 1.0625rem); }
+  .product-card__price .price-was { font-size: min(calc(7.4 * var(--cqi)), var(--fs-xs)); }
   .product-card__meta::after { content: ""; flex-basis: 100%; order: 1; }
   .product-card__cat { order: 2; }
 }
@@ -1113,7 +1140,7 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
     url("../img/banner-produk-1024.jpg") 50% 78% / cover no-repeat;
 }
 @media (min-width: 768px) {
-  .page-head { --banner-h: clamp(240px, 26vw, 400px); min-height: var(--banner-h); }
+  .page-head { --banner-h: clamp(240px, calc(26 * var(--vw)), 400px); min-height: var(--banner-h); }
   .page-head::before {
     background:
       linear-gradient(90deg, rgba(12, 3, 16, .75), rgba(12, 3, 16, .35) 35%, transparent 55%),
@@ -1239,7 +1266,7 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
 .cat-card__label {
   position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; height: 100%;
   width: var(--free); padding-inline: 4%;
-  font-family: "Tungsten", "Anton", var(--font); font-weight: 400; font-size: 13cqi;
+  font-family: "Tungsten", "Anton", var(--font); font-weight: 400; font-size: calc(13 * var(--cqi));
   line-height: .95; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: #fff;
   text-shadow: 0 2px 12px rgba(20, 4, 36, .6);
   /* tilted up and leaning forward, the esports-title angle; rises like the Hydrogel pack */
@@ -1262,12 +1289,17 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
   .cat-card { --cut: 8px; }
   .cat-card[data-cat="hydrogel"] .cat-card__product { left: 56%; } /* clear of the name */
 }
+/* Unpicked, the whole card is faded back; the picked one comes up to full strength, and a
+   hovered one most of the way. */
+.cat-card { transition: border-color var(--t-fast) ease-out, opacity var(--t-fast) ease-out; }
+.cat-card[aria-pressed="false"] { opacity: .5; }
 .cat-card[aria-pressed="false"] .cat-card__art { filter: saturate(.8) brightness(.85); }
 .cat-card[aria-pressed="false"] .cat-card__product { filter: drop-shadow(0 10px 22px rgba(20, 4, 36, .55)) saturate(.85) brightness(.88); }
 .cat-card[aria-pressed="true"] { --frame-w: 3px; --frame-o: 1; }
 .cat-card:focus-visible { outline: 2px solid var(--violet-400); outline-offset: -3px; }
 @media (hover: hover) {
   .cat-card:hover { --frame-o: 1; }
+  .cat-card[aria-pressed="false"]:hover { opacity: .85; }
   .cat-card:hover .cat-card__art { transform: scale(1.04); filter: none; }
   .cat-card:hover .cat-card__product { transform: scale(1.05); filter: drop-shadow(0 10px 22px rgba(20, 4, 36, .55)) drop-shadow(0 0 18px rgba(179, 58, 198, .25)); }
 }
@@ -1451,12 +1483,12 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
   container-type: inline-size;
 }
 /* Anton, at its own width: the Draco squeeze and unslant switched off. Always one line: each
-   breakpoint's size is capped at 15cqi, about what "Gear Your Aura" (some 6.4em wide in Anton)
+   breakpoint's size is capped at calc(15 * var(--cqi)), about what "Gear Your Aura" (some 6.4em wide in Anton)
    needs to fit the copy column, so a narrow column shrinks it rather than wrapping it. */
 .shop-banner__title {
   --squeeze: 1; --unslant: 0deg;
   font-family: "Tungsten", "Anton", var(--font); letter-spacing: .02em; white-space: nowrap;
-  font-size: min(2.125rem, 15cqi); line-height: 1; text-align: left;
+  font-size: min(2.125rem, calc(15 * var(--cqi))); line-height: 1; text-align: left;
   margin: 0; transform-origin: 0 50%;
 }
 .shop-banner__lead { margin: var(--s-3) 0 0; max-width: 40ch; font-family: var(--font); font-weight: 400; font-size: .9375rem; line-height: 1.55; letter-spacing: 0; color: #fff; }
@@ -1478,7 +1510,7 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
   .shop-banner { padding-top: var(--s-5); }
   .shop-banner__card { grid-template-columns: minmax(0, 36fr) minmax(0, 64fr); min-height: 382px; }
   .shop-banner__text { padding: var(--s-5) 40px; }
-  .shop-banner__title { font-size: min(2.75rem, 15cqi); }
+  .shop-banner__title { font-size: min(2.75rem, calc(15 * var(--cqi))); }
   .shop-banner__lead { margin-top: var(--s-4); font-size: 1.125rem; line-height: 1.55; }
   /* still the card's background under the phone's shade, held to its right side where the
      products sit */
@@ -1489,14 +1521,14 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
   .shop-banner { padding-top: var(--s-6); }
   .shop-banner__card { min-height: 362px; }
   .shop-banner__text { padding-inline: 56px; }
-  .shop-banner__title { font-size: min(3.375rem, 15cqi); }
+  .shop-banner__title { font-size: min(3.375rem, calc(15 * var(--cqi))); }
 }
 /* Tungsten sets "Gear Your Aura" about 5.1em wide against Anton's 6.4em, so once it has loaded
    (main.js tags the root .has-tungsten) the title runs about a quarter bigger, with the cap
-   raised to match (19cqi still fits the column). Anton, the fallback, keeps the sizes above. */
-.has-tungsten .shop-banner__title { font-size: min(2.75rem, 19cqi); }
-@media (min-width: 768px) { .has-tungsten .shop-banner__title { font-size: min(3.5rem, 19cqi); } }
-@media (min-width: 1024px) { .has-tungsten .shop-banner__title { font-size: min(4.25rem, 19cqi); } }
+   raised to match (calc(19 * var(--cqi)) still fits the column). Anton, the fallback, keeps the sizes above. */
+.has-tungsten .shop-banner__title { font-size: min(2.75rem, calc(19 * var(--cqi))); }
+@media (min-width: 768px) { .has-tungsten .shop-banner__title { font-size: min(3.5rem, calc(19 * var(--cqi))); } }
+@media (min-width: 1024px) { .has-tungsten .shop-banner__title { font-size: min(4.25rem, calc(19 * var(--cqi))); } }
 
 /* ---------- Sub-bar ---------- */
 /* A slim bar stuck under the navbar, after gamesir.com's product bar: 48px on a phone (52 from
@@ -1651,14 +1683,14 @@ body:has(.site-header.is-hidden) .pdp { --nav-offset: 0px; }
 .pdp-info__tags .badge { align-self: auto; }
 /* The long listing name reads as a sentence, not a headline: modest, medium weight as on the
    cards, and loosely set, so the price below stays the boldest thing in the panel. */
-.pdp-title { font-size: clamp(1.1875rem, 1.05rem + .5vw, 1.5rem); font-weight: 500; line-height: 1.4; letter-spacing: -.01em; color: var(--text); text-wrap: pretty; }
+.pdp-title { font-size: clamp(1.1875rem, 1.05rem + calc(.5 * var(--vw)), 1.5rem); font-weight: 500; line-height: 1.4; letter-spacing: -.01em; color: var(--text); text-wrap: pretty; }
 .pdp-rating { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: calc(-1 * var(--s-2)); font-size: var(--fs-sm); color: var(--mute); }
 .pdp-rating strong { color: var(--text); font-weight: 700; }
 .pdp-rating a { color: var(--lilac-300); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .pdp-rating a:hover { color: var(--text); }
 .pdp-rating__sep { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); }
 .pdp-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-1) var(--s-3); }
-.pdp-price .price { font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem); letter-spacing: -.02em; line-height: 1.1; }
+.pdp-price .price { font-size: clamp(1.75rem, 1.4rem + calc(1.2 * var(--vw)), 2.25rem); letter-spacing: -.02em; line-height: 1.1; }
 .pdp-price .price-was { font-size: var(--fs-body); }
 /* On a phone the price leads, then the name close under it, then the rating; wider, the name
    heads the panel. Reordered here rather than in the markup, so the h1 stays first. */
@@ -1802,7 +1834,7 @@ legend.pdp-field__label { padding-bottom: var(--s-2); }
      backdrop. Same timing as the drawers, whose open/close code it shares. */
   .pdp-buy {
     position: fixed; inset: auto 0 0; z-index: 60;
-    max-height: 88svh; overflow-y: auto; overscroll-behavior: contain;
+    max-height: calc(88 * var(--svh)); overflow-y: auto; overscroll-behavior: contain;
     gap: var(--s-5); padding: 0 var(--gutter) calc(var(--s-4) + env(safe-area-inset-bottom));
     border-width: 1px 0 0; border-radius: var(--r-lg) var(--r-lg) 0 0;
     box-shadow: 0 -16px 40px rgba(0, 0, 0, .6);
@@ -2013,7 +2045,7 @@ button.cmp__pick:hover::after, .cmp__dd.is-open .cmp__pick::after { opacity: 1; 
 .cmp__pick--self { display: block; line-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* As wide as its longest name (never narrower than the picker); capped at the screen for phones. */
 .cmp__list {
-  top: calc(44px + 4px); left: 0; width: max-content; min-width: max(100%, 180px); max-width: calc(100vw - 32px);
+  top: calc(44px + 4px); left: 0; width: max-content; min-width: max(100%, 180px); max-width: calc(calc(100 * var(--vw)) - 32px);
   z-index: 4; margin: 0; list-style: none;
 }
 .cmp__dd.is-open .cmp__list { opacity: 1; visibility: visible; translate: 0 0; transition-delay: 0s; }
@@ -2079,7 +2111,7 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
     grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
     grid-template-rows: auto 1fr;
     grid-template-areas: "gallery info" "tabs info";
-    column-gap: clamp(32px, 4vw, 56px); row-gap: var(--s-7);
+    column-gap: clamp(32px, calc(4 * var(--vw)), 56px); row-gap: var(--s-7);
   }
   .pdp-info { align-self: start; }
   /* Inside the column the rail starts at the column edge, so the first tab's text lines up
@@ -2097,7 +2129,7 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
 @media (min-width: 900px) {
   .pdp-info {
     position: sticky;
-    top: min(calc(var(--nav-offset) + var(--s-7)), calc(100vh - var(--panel-h, 0px) - var(--s-7)));
+    top: min(calc(var(--nav-offset) + var(--s-7)), calc(calc(100 * var(--vh)) - var(--panel-h, 0px) - var(--s-7)));
     transition: top 440ms var(--ease-nav);
   }
 }
@@ -2124,10 +2156,10 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
    the tile's 1.0625rem name reads as an afterthought at this scale. */
 .video__meta {
   position: absolute; z-index: 2; left: 0; right: 0; bottom: 0;
-  padding: clamp(var(--s-4), 2.2vw, var(--s-6)); display: grid; gap: var(--s-1);
+  padding: clamp(var(--s-4), calc(2.2 * var(--vw)), var(--s-6)); display: grid; gap: var(--s-1);
 }
-.video__meta .clip__name { font-size: clamp(1.25rem, 1rem + 1vw, 1.875rem); }
-.video__meta .clip__role { font-size: clamp(.875rem, .8rem + .3vw, 1.0625rem); }
+.video__meta .clip__name { font-size: clamp(1.25rem, 1rem + calc(1 * var(--vw)), 1.875rem); }
+.video__meta .clip__role { font-size: clamp(.875rem, .8rem + calc(.3 * var(--vw)), 1.0625rem); }
 /* Same hover as a clip tile: button goes violet, still pushes in 4%. */
 @media (hover: hover) {
   .video:hover .video__empty .play-btn { background: var(--violet-600); color: #fff; }
@@ -2240,7 +2272,7 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
    white text). The body clips the overflow sideways. */
 .clip-strip {
   position: relative; overflow: hidden;
-  width: 100vw; margin-inline: calc(50% - 50vw);
+  width: calc(100 * var(--vw)); margin-inline: calc(50% - calc(50 * var(--vw)));
   margin-block: var(--s-5);
   background: linear-gradient(90deg, #6A2E9E, #B33AC6);
   border-block: 1px solid rgba(228, 182, 240, .28);
@@ -2316,6 +2348,12 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
 @media (prefers-reduced-motion: reduce) {
   .rail-dots button[aria-current="true"]::after { animation: none; transform: scaleX(1); }
 }
+/* Apa Kata Streamers' dots in the hero's white: a 40% white dot, the current one a faint white
+   track filling in solid white, and no glow. */
+#streamers .rail-dots button { background: rgba(255, 255, 255, .4); opacity: 1; }
+@media (hover: hover) { #streamers .rail-dots button:not([aria-current="true"]):hover { background: rgba(255, 255, 255, .75); } }
+#streamers .rail-dots button[aria-current="true"] { background: rgba(255, 255, 255, .3); box-shadow: none; }
+#streamers .rail-dots button[aria-current="true"]::after { background: #fff; }
 .rail-nav { position: absolute; right: 0; top: 50%; translate: 0 -50%; display: flex; gap: var(--s-2); }
 .rail-arrow {
   display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
@@ -2502,7 +2540,7 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
   max-width: 1600px; margin: 0 auto; padding: var(--s-5) var(--gutter) var(--s-4);
 }
 .stat {
-  --stat-num: clamp(1.625rem, 1.1rem + 1.9vw, 2.5rem);
+  --stat-num: clamp(1.625rem, 1.1rem + calc(1.9 * var(--vw)), 2.5rem);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   text-align: center; padding-inline: var(--s-2);
 }
@@ -2610,7 +2648,7 @@ body.is-overlay-open .rail-dots button[aria-current="true"]::after { animation-p
 body.is-overlay-open .marquee__row { animation-play-state: paused; }
 
 .review {
-  flex: none; width: min(78vw, 330px); margin: 0 var(--mq-gap) 0 0;
+  flex: none; width: min(calc(78 * var(--vw)), 330px); margin: 0 var(--mq-gap) 0 0;
   display: flex; flex-direction: column; gap: var(--s-3);
   padding: var(--s-4); background: var(--ink-900);
   border: 1px solid var(--line); border-radius: var(--r-md);
@@ -2624,9 +2662,9 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 /* Outlined like the clip cards (a 1px --line border), but rounded rather than cut: the one
    card frame that keeps soft corners, its own 12px since --r-md is square now. */
 .review-shot {
-  /* 78vw on a phone, so a card (stars to sticker) fits whole in the clear middle of the row,
+  /* calc(78 * var(--vw)) on a phone, so a card (stars to sticker) fits whole in the clear middle of the row,
      between its faded ends, for a moment as it drifts past: that is when it pops (main.js) */
-  position: relative; flex: none; width: min(78vw, 360px); margin: 0 var(--mq-gap) 0 0;
+  position: relative; flex: none; width: min(calc(78 * var(--vw)), 360px); margin: 0 var(--mq-gap) 0 0;
   container-type: inline-size;
   border: 1px solid var(--line); border-radius: 12px; background: #fff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
@@ -2697,7 +2735,7 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   background: linear-gradient(120deg, #6A2E9E, #B33AC6);
   /* sized to the card (cqi: 1% of its width), so a long quote never covers the stars on the
      product page's narrower cards: 11px on a 300px card, 13px at 360, 15px from about 420 */
-  color: #fff; font-size: clamp(.6875rem, 3.6cqi, .9375rem); font-weight: 800; letter-spacing: .01em; line-height: 1.3; white-space: nowrap;
+  color: #fff; font-size: clamp(.6875rem, calc(3.6 * var(--cqi)), .9375rem); font-weight: 800; letter-spacing: .01em; line-height: 1.3; white-space: nowrap;
   box-shadow: 0 6px 14px rgba(12, 3, 16, .35);
   backface-visibility: hidden;
   transform: scale(.4); opacity: 0;
@@ -2721,7 +2759,7 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
 .marquee.is-zoomed .marquee__row { animation-play-state: paused; }
 
 .review-zoom {
-  width: min(94vw, 1210px); max-width: none; max-height: 90vh; padding: 0; border: 0;
+  width: min(calc(94 * var(--vw)), 1210px); max-width: none; max-height: calc(90 * var(--vh)); padding: 0; border: 0;
   border-radius: var(--r-md); background: #fff; overflow: auto;
 }
 .review-zoom::backdrop { background: rgba(12, 3, 16, .8); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -2825,7 +2863,7 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
    over and trims the top instead of the page. */
 .cta-banner__media {
   aspect-ratio: 16 / 9;
-  max-height: calc(100svh - var(--header-h) - var(--bar-h, 0px));
+  max-height: calc(calc(100 * var(--svh)) - var(--header-h) - var(--bar-h, 0px));
 }
 /* The phone cut loses its top 60px (of 1545), dark sky above the heads; the box is shorter
    and the art, anchored to its foot, gives up its top. */
@@ -2926,7 +2964,7 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   transition: transform var(--t-drawer) var(--ease), visibility 0s linear var(--t-drawer);
 }
 .drawer.is-open { visibility: visible; transform: none; transition-delay: 0s; }
-.drawer--left { left: 0; transform: translateX(-100%); border-right: 1px solid var(--line); width: min(88vw, 360px); }
+.drawer--left { left: 0; transform: translateX(-100%); border-right: 1px solid var(--line); width: min(calc(88 * var(--vw)), 360px); }
 .drawer.is-open { box-shadow: 0 0 40px rgba(0, 0, 0, .6); }
 
 .drawer__head {
@@ -3157,7 +3195,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
   .cart-side { display: contents; }
   /* A short cart still fills the screen, so the footer starts below it: none of it shows until
      you scroll. */
-  [data-cartpage] { min-height: calc(100svh - var(--header-h) - var(--dock-h, 0px)); }
+  [data-cartpage] { min-height: calc(calc(100 * var(--svh)) - var(--header-h) - var(--dock-h, 0px)); }
   .cart-pay {
     position: fixed; inset: auto 0 0; z-index: 38;
     border-radius: 0; border-inline: 0; border-bottom: 0;
@@ -3434,7 +3472,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 
 /* Address dialog */
 .co-dialog {
-  width: min(100% - 2 * var(--s-4), 560px); max-height: min(100dvh - 2 * var(--s-4), 760px);
+  width: min(100% - 2 * var(--s-4), 560px); max-height: min(calc(100 * var(--dvh)) - 2 * var(--s-4), 760px);
   margin: auto; padding: 0; overflow: hidden;
   background: var(--ink-900); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, .6);
@@ -3512,7 +3550,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .co-map__search { position: relative; }
 .co-map__search .icon { position: absolute; left: var(--s-3); top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--faint); pointer-events: none; }
 .co-map__search .pdp-input { height: 44px; padding-left: 42px; }
-.co-map__stage { position: relative; height: clamp(240px, 46dvh, 400px); flex: none; }
+.co-map__stage { position: relative; height: clamp(240px, calc(46 * var(--dvh)), 400px); flex: none; }
 .co-map__canvas { position: absolute; inset: 0; background: var(--ink-950); }
 .co-map__pin {
   position: absolute; left: 50%; top: 50%; z-index: 500; width: 40px; height: 40px;
@@ -3716,7 +3754,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .about-head {
   position: relative; isolation: isolate; overflow: hidden;
   display: grid; place-items: center;
-  min-height: calc(100svh - var(--header-h));
+  min-height: calc(calc(100 * var(--svh)) - var(--header-h));
   padding-block: var(--s-8) !important;
   background: var(--ink-950);
 }
@@ -3738,10 +3776,10 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 }
 @keyframes about-rise { from { opacity: 0; translate: 0 20px; } }
 /* the home page's section headline size (.section-head .section-title) */
-.about-head__title { font-size: clamp(1.5rem, .75rem + 3.1vw, 3rem); }
+.about-head__title { font-size: clamp(1.5rem, .75rem + calc(3.1 * var(--vw)), 3rem); }
 /* Kept narrower than the headline above it at every width: "TENTANG KAMI" sets about 11.9x
    its font size wide, so the line is capped at 10x the same size. */
-.about-lead { max-width: min(75%, calc(clamp(1.5rem, .75rem + 3.1vw, 3rem) * 10)); font-size: 1rem; line-height: 1.6; color: var(--text-soft); }
+.about-lead { max-width: min(75%, calc(clamp(1.5rem, .75rem + calc(3.1 * var(--vw)), 3rem) * 10)); font-size: 1rem; line-height: 1.6; color: var(--text-soft); }
 /* a lighter blur on phones, in step with the narrower beams, so each stays a beam */
 @media (max-width: 767px) {
   .about-head__beams { filter: blur(18px); }
@@ -3752,7 +3790,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 
 .about-split__inner { display: grid; gap: var(--s-6); align-items: center; }
 .about-split__text { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: var(--s-4); color: var(--text-soft); line-height: 1.6; }
-.about-split__title { font-size: clamp(1.5rem, .9rem + 2.4vw, 2.75rem); transform-origin: left; }
+.about-split__title { font-size: clamp(1.5rem, .9rem + calc(2.4 * var(--vw)), 2.75rem); transform-origin: left; }
 /* Less air under each Tentang Kami headline than the column's gap gives: 10 under the split
    titles (gap 16), 6 under the centred ones (gap 12). */
 .about-split__title, .about-head__title { margin-bottom: -6px; }
@@ -3808,7 +3846,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 
 .about-social { text-align: center; }
 .about-social .container, .about-cta__inner { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: var(--s-3); }
-.about-social__title, .about-cta__title { font-size: clamp(1.5rem, .9rem + 2.4vw, 2.75rem); }
+.about-social__title, .about-cta__title { font-size: clamp(1.5rem, .9rem + calc(2.4 * var(--vw)), 2.75rem); }
 .about-social__sub, .about-cta__sub { max-width: 46ch; color: var(--mute); line-height: 1.6; }
 .about-social__list { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); margin: var(--s-3) 0 0; padding: 0; list-style: none; }
 .about-social__link { height: 48px; padding-inline: var(--s-5); }
@@ -3864,7 +3902,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 }
 .contact-head__inner { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: var(--s-3); }
 /* the home page's section headline size */
-.contact-head__title { font-size: clamp(1.5rem, .75rem + 3.1vw, 3rem); }
+.contact-head__title { font-size: clamp(1.5rem, .75rem + calc(3.1 * var(--vw)), 3rem); }
 /* Trimmed to its last baseline, as the headline is trimmed to its capitals, so the purple under
    the text measures the same as the purple over it. */
 .contact-head__sub { max-width: 42ch; font-size: 1rem; line-height: 1.6; color: #fff; text-box-trim: trim-end; text-box-edge: cap alphabetic; }
@@ -3875,7 +3913,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .contact-section:last-child { padding-bottom: calc(var(--section-y) * 1.5); }
 /* Centred by its own width, not auto margins: unsqueezed it can be wider than a phone's column,
    and auto margins can't pull an over-wide box back left, so it hung off to the right. */
-.contact-section__title { margin: 0 0 calc(var(--section-y) * .75) 50%; translate: -50% 0; font-size: clamp(1.25rem, .8rem + 1.8vw, 2rem); }
+.contact-section__title { margin: 0 0 calc(var(--section-y) * .75) 50%; translate: -50% 0; font-size: clamp(1.25rem, .8rem + calc(1.8 * var(--vw)), 2rem); }
 
 /* GameSir's partner card: a white icon tile, title and copy beside it, an outlined pill under. */
 .contact-cards { display: grid; gap: var(--s-4); margin: 0; padding: 0; list-style: none; }
@@ -3926,11 +3964,11 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .help-page__head { margin-bottom: calc((56px + var(--s-4)) / 2); text-align: center; }
 @media (min-width: 600px) { .help-page__head { margin-bottom: calc((64px + var(--s-5)) / 2); } }
 @media (min-width: 1024px) { .help-page__head { margin-bottom: calc((96px + var(--s-6)) / 2); } }
-/* Beranda's headline size; on a narrow phone it is capped at 11.5vw so "Frequently Asked" holds
+/* Beranda's headline size; on a narrow phone it is capped at calc(11.5 * var(--vw)) so "Frequently Asked" holds
    its line. */
 .help-page__title {
   margin: 0 0 0 50%; translate: -50% 0; white-space: nowrap;
-  font-size: min(clamp(1.5rem, .75rem + 3.1vw, 3rem), 6.9vw);
+  font-size: min(clamp(1.5rem, .75rem + calc(3.1 * var(--vw)), 3rem), calc(6.9 * var(--vw)));
 }
 .help-page__lead { margin: var(--s-3) auto 0; max-width: 48ch; color: var(--mute); text-wrap: balance; }
 /* On Apa Kata Streamers' texture (.section--textured). It starts right under the navbar, whose
@@ -4102,7 +4140,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 /* The top of each page's first block sits where checkout's headline does (see .paid). */
 .auth, .acc { padding-block: calc(var(--s-3) + var(--s-4)) var(--s-8); }
 /* Akun fills the first screen, so the footer waits below the fold. */
-.acc { min-height: calc(100vh - var(--header-h)); min-height: calc(100svh - var(--header-h)); }
+.acc { min-height: calc(calc(100 * var(--vh)) - var(--header-h)); min-height: calc(calc(100 * var(--svh)) - var(--header-h)); }
 @media (min-width: 600px) { .auth, .acc { padding-top: calc(var(--s-4) + var(--s-4)); } }
 @media (min-width: 900px) { .auth, .acc { padding-top: calc(var(--s-4) + var(--s-5)); } }
 @media (min-width: 1024px) { .auth, .acc { padding-top: calc(var(--s-5) + var(--s-6)); } }
@@ -4153,7 +4191,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
    banner's width. */
 .auth:has(.auth-banner) { justify-content: flex-start; padding-top: 0; }
 .auth-banner {
-  --ban-w: min(100vw, 560px);
+  --ban-w: min(calc(100 * var(--vw)), 560px);
   position: relative; z-index: 0; width: var(--ban-w); margin: 0 auto calc(var(--ban-w) * -519 / 1080);
   -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
   mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
@@ -4209,7 +4247,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .auth-card__title { align-self: center; margin-top: 0; text-align: center; transform-origin: center; font-size: 1.5rem; }
 .auth {
   display: flex; flex-direction: column; justify-content: center;
-  min-height: calc(100vh - var(--header-h)); min-height: calc(100svh - var(--header-h)); padding-block: var(--s-5);
+  min-height: calc(calc(100 * var(--vh)) - var(--header-h)); min-height: calc(calc(100 * var(--svh)) - var(--header-h)); padding-block: var(--s-5);
 }
 .auth-form { display: grid; gap: var(--s-4); margin-top: var(--s-5); }
 /* the floating labels cut the border against the card's ink-900 */
@@ -4308,7 +4346,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
     --side-gap: calc(var(--s-4) + var(--s-5));
     position: sticky; top: calc(var(--header-h) + var(--side-gap));
     display: flex; flex-direction: column;
-    height: calc(100vh - var(--header-h) - 2 * var(--side-gap)); height: calc(100svh - var(--header-h) - 2 * var(--side-gap));
+    height: calc(calc(100 * var(--vh)) - var(--header-h) - 2 * var(--side-gap)); height: calc(calc(100 * var(--svh)) - var(--header-h) - 2 * var(--side-gap));
     min-height: 480px; overflow-y: auto;
     padding: var(--s-4); background: var(--ink-900); border: 1px solid var(--line);
   }
@@ -4682,7 +4720,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 /* Scan QR: the screen under the header and nothing else, like a phone's camera. The
    viewfinder takes all the height there is, its frame a square in the middle; the status and
    Upload Foto QR sit at the foot. Edge to edge on a phone; wider, a column of up to 640px. */
-.scan { display: flex; flex-direction: column; height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h)); }
+.scan { display: flex; flex-direction: column; height: calc(calc(100 * var(--vh)) - var(--header-h)); height: calc(calc(100 * var(--dvh)) - var(--header-h)); }
 .scan__inner { flex: 1; min-height: 0; display: flex; flex-direction: column; width: min(100% - 2 * var(--gutter), 640px); padding-bottom: calc(var(--s-4) + env(safe-area-inset-bottom)); }
 .scan .sensi-scan__view { flex: 1; min-height: 0; aspect-ratio: auto; margin-inline: calc(-1 * var(--gutter)); border: 0; }
 .scan .sensi-scan__frame { inset: auto; left: 50%; top: 50%; translate: -50% -50%; aspect-ratio: 1; }
@@ -4727,7 +4765,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
    of small tools at the foot. */
 .scan-sheet {
   top: auto; left: 0; right: 0; bottom: 0;
-  max-height: calc(100vh - var(--s-5)); max-height: calc(100dvh - var(--s-5));
+  max-height: calc(calc(100 * var(--vh)) - var(--s-5)); max-height: calc(calc(100 * var(--dvh)) - var(--s-5));
   transform: translateY(100%);
   border-top: 1px solid var(--line);
   border-radius: 24px 24px 0 0; overflow: hidden auto;
@@ -4749,7 +4787,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 }
 .scan-sheet__lead { max-width: 34ch; margin-top: var(--s-3); font-size: var(--fs-sm); line-height: 1.5; color: #fff; }
 /* The finder: the camera in a rounded square, the brackets standing a little off it */
-.scan-sheet__finder { position: relative; width: min(78vw, 300px); aspect-ratio: 1; margin-top: var(--s-5); flex: none; padding: 14px; }
+.scan-sheet__finder { position: relative; width: min(calc(78 * var(--vw)), 300px); aspect-ratio: 1; margin-top: var(--s-5); flex: none; padding: 14px; }
 .scan-sheet__corners { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .scan-sheet__corners path { fill: none; stroke: url(#scan-sheet-grad); stroke-width: 5px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .scan-sheet__view { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 16px; background: var(--ink-950); }
@@ -4893,12 +4931,12 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 /* The card a pack opens: the portrait on top on a phone, beside the settings from 600px. A new
    one flips in out of the light; from Sensi Saya it just fades up. */
 .sensi-dialog {
-  width: min(100% - 2 * var(--s-4), 760px); max-height: calc(100dvh - 2 * var(--s-4));
+  width: min(100% - 2 * var(--s-4), 760px); max-height: calc(calc(100 * var(--dvh)) - 2 * var(--s-4));
   margin: auto; padding: 0; border: 0; background: none; color: var(--text); overflow: visible;
 }
 .sensi-dialog::backdrop { background: rgba(6, 1, 9, .78); backdrop-filter: blur(6px); }
 .sensi-card {
-  position: relative; display: grid; max-height: calc(100dvh - 2 * var(--s-4)); overflow-y: auto; overscroll-behavior: contain;
+  position: relative; display: grid; max-height: calc(calc(100 * var(--dvh)) - 2 * var(--s-4)); overflow-y: auto; overscroll-behavior: contain;
   background: var(--ink-900); border: 1px solid var(--line-strong);
   box-shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 0 60px -10px rgba(179, 58, 198, .45);
   animation: sensi-up 260ms var(--ease-out) both;
@@ -4931,7 +4969,7 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
   .sensi-card__body { padding: var(--s-6) var(--s-6) var(--s-5); }
 }
 .sensi-card__eyebrow { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--lilac-300); }
-.sensi-card__name { margin-top: var(--s-2); font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); font-weight: 800; line-height: 1.15; }
+.sensi-card__name { margin-top: var(--s-2); font-size: clamp(1.5rem, 1.2rem + calc(1.2 * var(--vw)), 2rem); font-weight: 800; line-height: 1.15; }
 .sensi-card__role { margin-top: var(--s-1); font-size: var(--fs-sm); color: var(--mute); }
 .sensi-card__rows { display: grid; margin: var(--s-4) 0 0; border-top: 1px solid var(--line); }
 .sensi-card__rows div { display: flex; justify-content: space-between; gap: var(--s-4); padding: 10px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-sm); }
@@ -5098,9 +5136,9 @@ a.cmp__media:hover { --cut-line: #584066; }
 .font-preview .section-head .section-title:not(.section-title--sub) { margin-bottom: 0; }
 .font-preview .cat-card__label, .font-preview .shop-banner__title { font-family: "Tungsten", "Anton", var(--font); }
 /* Beranda's section headlines, about double in Tungsten (the sub-heads about 90% up). On a phone
-   13.4cqi keeps the longest, "Apa Kata Streamers" (6.66em in Tungsten Bold, so 15cqi at most),
+   calc(13.4 * var(--cqi)) keeps the longest, "Apa Kata Streamers" (6.66em in Tungsten Bold, so calc(15 * var(--cqi)) at most),
    on one line. Draco's sizes were set for a face drawn squeezed to 63%, so Tungsten read small. */
-.font-preview .home .section-head .section-title { font-size: clamp(3.125rem, 9.2cqi, 7rem); line-height: 1; }
-@media (max-width: 599px) { .font-preview .home .section-head .section-title { font-size: 13.4cqi; } }
-.font-preview .home .section-head .section-title--sub { font-size: clamp(1.75rem, 9.2vw - 4.4px, 3.25rem); }
-@media (min-width: 1024px) { .font-preview .home .section-head .section-title--sub { font-size: clamp(3.25rem, 1.9rem + 2.85vw, 4rem); } }
+.font-preview .home .section-head .section-title { font-size: clamp(3.125rem, calc(9.2 * var(--cqi)), 7rem); line-height: 1; }
+@media (max-width: 599px) { .font-preview .home .section-head .section-title { font-size: calc(13.4 * var(--cqi)); } }
+.font-preview .home .section-head .section-title--sub { font-size: clamp(1.75rem, calc(9.2 * var(--vw)) - 4.4px, 3.25rem); }
+@media (min-width: 1024px) { .font-preview .home .section-head .section-title--sub { font-size: clamp(3.25rem, 1.9rem + calc(2.85 * var(--vw)), 4rem); } }

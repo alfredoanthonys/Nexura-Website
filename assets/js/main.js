@@ -6,6 +6,26 @@
   // A second local preview (python3 -m http.server 8001) shows the site with Tungsten in place
   // of Draco and Anton; see .font-preview in styles.css. Nowhere else matches, so this is inert.
   if (location.port === '8001') document.documentElement.classList.add('font-preview');
+
+  // Big screens are zoomed to 75% (styles.css). Safari then shrinks container units by the zoom
+  // a second time, so a box measures 100cqw of itself and, if that falls short of its own width,
+  // the CSS gets the factor that makes up the difference (--cq-fix). Re-measured whenever the
+  // zoom switches on or off.
+  const fixContainerUnits = () => {
+    const root = document.documentElement;
+    root.style.removeProperty('--cq-fix');
+    const box = document.createElement('div');
+    box.style.cssText = 'position:absolute;visibility:hidden;width:400px;height:0;container-type:inline-size';
+    const inner = document.createElement('div');
+    inner.style.cssText = 'width:100cqw;height:0';
+    box.appendChild(inner);
+    document.body.appendChild(box);
+    const ratio = inner.getBoundingClientRect().width / box.getBoundingClientRect().width;
+    box.remove();
+    if (ratio > 0 && Math.abs(ratio - 1) > 0.01) root.style.setProperty('--cq-fix', String(1 / ratio));
+  };
+  fixContainerUnits();
+  window.matchMedia('(min-width: 1440px)').addEventListener('change', fixContainerUnits);
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
