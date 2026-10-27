@@ -25,7 +25,7 @@
     if (ratio > 0 && Math.abs(ratio - 1) > 0.01) root.style.setProperty('--cq-fix', String(1 / ratio));
   };
   fixContainerUnits();
-  window.matchMedia('(min-width: 1440px)').addEventListener('change', fixContainerUnits);
+  window.matchMedia('(min-width: 1800px)').addEventListener('change', fixContainerUnits);
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
