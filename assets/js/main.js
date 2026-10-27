@@ -618,7 +618,7 @@
 
   /* ------------------------------------------------------------------
      Header retracts on scroll down, returns on scroll up, on every page. On the product page
-     the product bar stays, sliding up into the navbar's place.
+     the tab bar stays, sliding up into the navbar's place.
      ------------------------------------------------------------------ */
   {
     const THRESHOLD = 6; // ignore sub-pixel jitter and trackpad noise
@@ -1849,7 +1849,7 @@
     function renderPayments() {
       payList.innerHTML = cfg.payments.map((m) => `
           <label class="co-option co-pm">
-            <span class="co-pm__logo"><img src="${ASSETS}img/pay/${m.logo}" alt="" width="${m.w}" height="${m.h}" loading="lazy" decoding="async"></span>
+            <span class="co-pm__logo${m.bare ? ' co-pm__logo--bare' : ''}"><img src="${ASSETS}img/pay/${m.logo}" alt="" width="${m.w}" height="${m.h}" loading="lazy" decoding="async"></span>
             <span class="co-option__text">
               <span class="co-option__name">${escapeHtml(m.label)}</span>
               ${m.note ? `<span class="co-option__note">${escapeHtml(m.note)}</span>` : ''}
@@ -2148,10 +2148,6 @@
     document.title = `${p.short} — Nexura | #GearYourAura`;
     if (p.description) $('meta[name="description"]')?.setAttribute('content', p.description[0]);
     $('[data-pdp-name]', pdp).textContent = p.name;
-    // The bar says what the thing is ("Fan Cooler IceGlow"), unless the name already does
-    // ("Hydrogel Matte").
-    const kind = categories[p.category] || '';
-    $('[data-pdp-bar-name]', pdp).textContent = kind && !p.short.startsWith(kind) ? `${kind} ${p.short}` : p.short;
     // Stock speaks only when it is news (low, out): a badge by the name and a line by the
     // quantity, since that is where the question comes up.
     const STOCK = {
@@ -2367,6 +2363,11 @@
       if (sheetOpen()) hideDrawer(buyBox);
     };
 
+    // The buy panel's height, for its sticky top on wide screens (see .pdp-info in styles.css):
+    // variants, the phone field and its hint all change it.
+    const info = $('.pdp-info', pdp);
+    new ResizeObserver(() => info.style.setProperty('--panel-h', `${info.offsetHeight}px`)).observe(info);
+
     /* Phones: the buy card is a bottom sheet. The dock's two buttons open it, each setting
        which of the card's buttons finishes the order (data-mode); it rides the drawer
        machinery, so backdrop, scroll lock, focus trap and Escape all come along. */
@@ -2393,20 +2394,6 @@
       showDrawer(buyBox, b);
     }));
     $('[data-sheet-close]', pdp).addEventListener('click', () => hideDrawer(buyBox));
-    // The product bar's Beli: on a phone it opens the sheet as Beli Sekarang does; wider, the
-    // buy card is on the page, so it brings that into view and hands it focus.
-    const barBuy = $('[data-bar-buy]', pdp);
-    if (out) barBuy.hidden = true;
-    else barBuy.addEventListener('click', () => {
-      if (phoneMq.matches) {
-        sheetTrigger = barBuy;
-        buyBox.dataset.mode = 'buy';
-        showDrawer(buyBox, barBuy);
-        return;
-      }
-      buyBox.scrollIntoView({ behavior: behavior(), block: 'nearest' });
-      $('[data-buy-now]', buyBox)?.focus({ preventScroll: true });
-    });
     $$('[data-add-cart]', pdp).forEach((b) => b.addEventListener('click', () => addToCart()));
     // Beli Sekarang adds the item and goes straight on to checkout.
     $$('[data-buy-now]', pdp).forEach((b) => b.addEventListener('click', () => addToCart(CHECKOUT_PAGE)));
@@ -3356,11 +3343,16 @@
     const startBtn = $('[data-scan-start]', root);
     const status = $('[data-scan-status]', root);
     const fileInput = $('[data-scan-file]', root);
+    const torchBtn = $('[data-scan-torch]', root);
+    const flipBtn = $('[data-scan-flip]', root);
     const DRIVE_HOSTS = ['drive.google.com', 'docs.google.com'];
     let stream = null;
     let timer = 0;
     let decode = null;
     let lastBad = '';
+    // the back camera first; Ganti kamera swaps to the front and back again
+    let facing = 'environment';
+    let torchOn = false;
 
     const say = (text, bad = false) => {
       status.textContent = text;
@@ -3445,7 +3437,7 @@
       say('Membuka kamera…');
       startBtn.disabled = true;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing } }, audio: false });
       } catch (err) {
         startBtn.disabled = false;
         // refused, the page stays quiet: the photo and Upload Foto QR are there, and a tap retries
@@ -3456,8 +3448,10 @@
       video.srcObject = stream;
       try { await video.play(); } catch { /* autoplay of a muted inline video is allowed */ }
       view.classList.add('is-live');
+      view.classList.toggle('is-front', facing === 'user');
       startBtn.disabled = false;
       lastBad = '';
+      tools();
       try { await decoder(); } catch { stop(); say('Pemindai QR gagal dimuat. Cek koneksi, lalu coba lagi.', true); return; }
       say('Arahkan kamera ke QR di kemasan.');
       tick();
@@ -3469,7 +3463,38 @@
       stream = null;
       video.srcObject = null;
       view.classList.remove('is-live');
+      setTorch(false);
     }
+
+    // Senter only where the camera has a light it lets the page drive (Chrome on Android; not
+    // iPhone Safari), Ganti kamera only with a second camera. Both are asked once the camera is
+    // on, since the browser names its cameras only after the visitor has allowed one.
+    async function tools() {
+      const track = stream?.getVideoTracks()[0];
+      torchBtn.hidden = !track?.getCapabilities?.().torch;
+      try {
+        const cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+        flipBtn.hidden = cams.length < 2;
+      } catch { flipBtn.hidden = true; }
+    }
+    function setTorch(on) {
+      torchOn = on;
+      torchBtn.setAttribute('aria-pressed', String(on));
+      $('use', torchBtn).setAttribute('href', on ? '#i-flashlight' : '#i-flashlight-off');
+    }
+    torchBtn.addEventListener('click', async () => {
+      const track = stream?.getVideoTracks()[0];
+      if (!track) return;
+      try {
+        await track.applyConstraints({ advanced: [{ torch: !torchOn }] });
+        setTorch(!torchOn);
+      } catch { torchBtn.hidden = true; }
+    });
+    flipBtn.addEventListener('click', () => {
+      facing = facing === 'environment' ? 'user' : 'environment';
+      stop();
+      start();
+    });
 
     // Nothing asks for the camera until the visitor does: a tap on the viewfinder.
     // Once on, its light goes off while the page is hidden and comes back with it.
@@ -3521,7 +3546,10 @@
         $$('.menu-acc__avatar').forEach((el) => { el.innerHTML = avatarOf(user); });
         // word by word, as the page-load pass does for every .section-title
         const name = $('[data-acc-name]', accPage);
-        name.innerHTML = user.name.trim().split(/\s+/).map((w) => `<span class="section-title__w">${escapeHtml(w)}</span>`).join(' ');
+        // A name of three words or more puts the last on a line of its own (Alfredo Anthony /
+        // Setiawan), so the headline stacks instead of running the width of the page.
+        const words = user.name.trim().split(/\s+/).map((w) => `<span class="section-title__w">${escapeHtml(w)}</span>`);
+        name.innerHTML = words.length > 2 ? `${words.slice(0, -1).join(' ')}<br>${words.at(-1)}` : words.join(' ');
         name.classList.add('is-worded');
         $('[data-acc-email]', accPage).textContent = user.email;
         $('[data-acc-side-name]', accPage).textContent = user.name;
@@ -4069,26 +4097,35 @@
       sheet.setAttribute('aria-modal', 'true');
       sheet.setAttribute('aria-labelledby', 'scan-sheet-title');
       sheet.inert = true;
+      // Laid out as a phone's own QR sheet: the name and a line of advice, a square
+      // finder with rounded corner brackets and the laser across it, the status, the small
+      // tools (flashlight, camera switch) and Upload Foto QR at the foot. The camera opens with the sheet; until it is
+      // live, or if it is refused, the finder shows a pack held up, and a tap on it tries again.
       sheet.innerHTML = `
-        <div class="scan">
-          <div class="container scan__inner">
-            <div class="scan__head">
-              <button class="scan__close" type="button" aria-label="Tutup Scan QR" data-drawer-close>${icon('x')}</button>
-              <h2 class="section-title scan__title" id="scan-sheet-title">Scan QR</h2>
-            </div>
-            <div class="sensi-scan__view" data-scan-view>
+        <div class="scan-sheet__body">
+          <button class="scan-sheet__close" type="button" aria-label="Tutup Scan QR" data-drawer-close>${icon('x')}</button>
+          <h2 class="scan-sheet__title" id="scan-sheet-title">Scan QR</h2>
+          <p class="scan-sheet__lead">Taruh QR di kemasan di dalam kotak, tahan HP-nya biar nggak goyang supaya cepet kebaca.</p>
+          <div class="scan-sheet__finder">
+            <svg class="scan-sheet__corners" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="scan-sheet-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9D5CF0"/><stop offset="1" stop-color="#E46BF2"/></linearGradient></defs>
+              <path d="M2 20V10a8 8 0 0 1 8-8h10M80 2h10a8 8 0 0 1 8 8v10M98 80v10a8 8 0 0 1-8 8H80M20 98H10a8 8 0 0 1-8-8V80"/>
+            </svg>
+            <div class="scan-sheet__view" data-scan-view>
               <video muted playsinline aria-hidden="true"></video>
-              <button class="sensi-scan__idle" type="button" aria-label="Buka kamera" data-scan-start></button>
-              <span class="sensi-scan__frame" aria-hidden="true"><span class="sensi-scan__laser"></span></span>
+              <button class="scan-sheet__idle" type="button" aria-label="Buka kamera" data-scan-start></button>
             </div>
-            <p class="sensi-scan__status" role="status" data-scan-status></p>
-            <div class="sensi-scan__actions">
-              <label class="btn btn--primary sensi-scan__upload">
-                <input class="sr-only" type="file" accept="image/*" data-scan-file>
-                ${icon('image', 'icon icon--sm')}Upload Foto QR
-              </label>
-            </div>
+            <span class="scan-sheet__laser" aria-hidden="true"></span>
           </div>
+          <p class="scan-sheet__status" role="status" data-scan-status></p>
+          <div class="scan-sheet__tools">
+            <button class="scan-sheet__tool" type="button" aria-label="Senter" aria-pressed="false" data-scan-torch hidden>${icon('flashlight-off')}</button>
+            <button class="scan-sheet__tool" type="button" aria-label="Ganti kamera" data-scan-flip hidden>${icon('switch-camera')}</button>
+          </div>
+          <label class="btn btn--primary scan-sheet__cta">
+            <input class="sr-only" type="file" accept="image/*" data-scan-file>
+            ${icon('image', 'icon icon--sm')}Upload Foto QR
+          </label>
         </div>`;
       document.body.appendChild(sheet);
       $('[data-drawer-close]', sheet).addEventListener('click', () => hideDrawer());
@@ -4132,6 +4169,8 @@
         if (!sheet) buildSheet();
         // from the menu drawer, focus comes back to the menu button rather than the shut drawer
         showDrawer(sheet, a.closest('.drawer') ? $('[aria-controls="menu-drawer"]') : a);
+        // the camera straight away, still inside the tap that opened the sheet
+        $('[data-scan-start]', sheet).click();
       }
     });
   }

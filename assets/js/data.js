@@ -819,7 +819,7 @@ window.NEXURA = {
     // TODO: match the expiry set at the payment gateway.
     qrisMinutes: 15,
     payments: [
-      { id: 'qris', label: 'QRIS', logo: 'qr.png', w: 150, h: 150, note: 'Scan dari aplikasi mana pun' },
+      { id: 'qris', label: 'QRIS', logo: 'qris.svg', w: 24, h: 24, bare: true, note: 'Scan dari aplikasi mana pun' },
       { id: 'gopay', label: 'GoPay', logo: 'gopay.svg', w: 63, h: 16 },
       { id: 'ovo', label: 'OVO', logo: 'ovo.svg', w: 77, h: 24 },
       { id: 'dana', label: 'DANA', logo: 'dana.png', w: 260, h: 76 },

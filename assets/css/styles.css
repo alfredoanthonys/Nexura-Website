@@ -238,9 +238,7 @@ s { text-decoration-thickness: 1px; }
 /* ---------- Navbar ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 40;
-  background: rgba(26, 11, 38, .94); /* --ink-925, a touch see-through for the blur */
-  -webkit-backdrop-filter: saturate(150%) blur(32px);
-  backdrop-filter: saturate(150%) blur(32px);
+  background: #000;
   transition: transform 440ms var(--ease-nav);
 }
 /* A purple-to-pink rule, no glow, from the category chips' family. The chips' hover-border
@@ -282,7 +280,7 @@ s { text-decoration-thickness: 1px; }
   display: grid; place-items: center;
   /* the navbar underline's purple-to-pink */
   background: linear-gradient(120deg, #8E48C4, #DB4DFF); color: #fff; font-size: 11px; font-weight: 700; line-height: 1;
-  box-shadow: 0 0 0 2px var(--ink-950);
+  box-shadow: 0 0 0 2px #000; /* the bar's black */
   font-variant-numeric: tabular-nums;
 }
 .cart-badge.is-bump { animation: bump 300ms var(--ease); }
@@ -471,46 +469,44 @@ html:has(.search-dialog[open]) { overflow: hidden; }
    Slide 2: between "FROSTSPIRE" and the cap, 29% down, so 41.4cqw.
    Slide 3: between "Sekarang" and the fans, 38.4% down, so 54.8cqw.
    The closing CTA banner borrows the same button on phones: it is not in the hero (no cqw
-   there), but its box is its art's own shape, so the spot is a share of its height, 87% down,
-   between "Dapatkan sensi pro player" and the foot (from 768 up, under it on the wide art; see
-   the end of this block). From 768 up, all three slides too, where the wide art shows at full width: a
+   there), but its box is its art's own shape, so the spot is a share of its height, 88% down,
+   centred between "Dapatkan sensi pro player" (ends 80.9%) and the dark foot strip (95.3%)
+   of the top-trimmed box
+   (from 768 up, under it on the wide art; see the end of this block). From 768 up, all three slides too, where the wide art shows at full width: a
    spot on it is a fixed share of the width (cqw), --cta-x across and --cta-y down a 16:9
    picture (56.25cqw tall). When the fold caps the box, the art loses max(0, 56.25cqw - box
    height) and the slide's object-position Y (--cta-trim) says how much of that comes off the
    top, so the button moves up by as much.
-   Slide 1: centred in the empty band under "Gaming Gear", 57% down, art pinned to the top.
+   Slide 1: centred in the empty band under "Gaming Gear" (48.4% to 64.3% down), so 56.3% down,
+   art pinned to the foot.
    Slide 2: centred under "FROSTSPIRE" (65.6% across, 68% down, a clear gap under the word), art
    trimmed 75% from the top.
-   Slide 3: centred under "Sekarang" (69.8% across, 80% down), art pinned to the top.
+   Slide 3: centred under "Sekarang" (69.8% across, 72.6% down), art pinned to the top.
    600-767 shows the wide art too small for one, so none there. */
 .hero__cta {
   display: none; position: absolute; z-index: 2; translate: -50% -50%;
-  /* the primary button's 120deg gradient, in light pink to white, with dark text since white
-     text on it would be under 2:1 */
-  background: linear-gradient(120deg, #FF89FD, #FFFFFF); color: var(--ink-950); border: 0;
+  /* the primary button's own 120deg purple-to-pink sweep (Beli Sekarang), white text */
+  background: linear-gradient(120deg, #6A2E9E, #B33AC6); color: #fff; border: 0;
 }
-/* The primary button's hover and press, in this pink: a 1px lift with a drop shadow and a pink
-   glow on hover, a deeper pink and an inset shadow on press. The lift stays on top of the
-   centring translate. */
+/* The primary button's hover and press: a 1px lift with a drop shadow and a purple glow on
+   hover, a deeper sweep and an inset shadow on press. The lift stays on top of the centring
+   translate. */
 .hero__cta:hover {
   translate: -50% calc(-50% - 1px);
-  box-shadow: 0 12px 26px -10px rgba(0, 0, 0, .6), 0 0 32px -4px rgba(255, 137, 253, .85);
+  box-shadow: 0 12px 26px -10px rgba(0, 0, 0, .6), 0 0 32px -4px rgba(142, 72, 196, .85);
 }
 .hero__cta:active {
-  translate: -50% -50%; background: linear-gradient(120deg, #E46FE2, #F2D9F2);
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .3);
+  translate: -50% -50%; background: linear-gradient(120deg, #5A2787, #9A32AB);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, .4);
 }
-.hero__slide { --cta-x: 50%; --cta-y: 32cqw; --cta-trim: 0; --cta-m-y: 44.9cqw; --zoom: 1; --zoom-x: 50%; }
+.hero__slide { --cta-x: 50%; --cta-y: 31.7cqw; --cta-trim: 0; --cta-m-y: 44.9cqw; --zoom: 1; --zoom-x: 50%; }
+.hero__slide:first-child { --cta-trim: 1; }
 .hero__slide--frostspire { --cta-x: 65.6%; --cta-y: 38.5cqw; --cta-trim: .75; --cta-m-y: 41.4cqw; }
-.hero__slide--iceglow { --cta-x: 69.8%; --cta-y: 45cqw; --cta-m-y: 54.8cqw; }
-.cta-banner { --cta-m-y: 87%; }
+.hero__slide--iceglow { --cta-x: 69.8%; --cta-y: 40.8cqw; --cta-m-y: 54.8cqw; }
+.cta-banner { --cta-m-y: 88%; }
 /* Wide art cropped off the top: zoomed (--zoom) about a point on its bottom edge (--zoom-x
-   across), so the foot stays put, the top is cut and everything rises toward it. Slide 1 by 6%
-   about the middle. IceGlow by 16% about a point near its right edge (90%), so the end of
-   "ICEGLOW" (95.7% across) keeps a margin, landing at 96.6%, and the extra width all comes off
-   the fans' side. */
-.hero__slide:first-child { --zoom: 1.06; }
-.hero__slide--iceglow { --zoom: 1.16; --zoom-x: 90%; }
+   across), so the foot stays put, the top is cut and everything rises toward it. None zoom at
+   the moment: slide 1 and IceGlow show whole. */
 @media (min-width: 600px) {
   .hero__media img { scale: var(--zoom); transform-origin: var(--zoom-x) 100%; }
 }
@@ -521,18 +517,18 @@ html:has(.search-dialog[open]) { overflow: hidden; }
    zoom-x + zoom x (x - zoom-x) across and Hb - zoom x (Hb - y) down, Hb being the art's
    56.25cqw or less where the fold caps it (y already moved up by any top trim). */
 @media (min-width: 768px) {
-  .hero__slide { --hb: min(56.25cqw, calc(100svh - var(--header-h))); }
+  .hero__slide { --hb: min(56.25cqw, calc(100svh - var(--header-h) - var(--bar-h, 0px))); }
   .hero__cta {
     display: inline-flex;
     left: calc(var(--zoom-x) + var(--zoom) * (var(--cta-x) - var(--zoom-x)));
-    top: calc(var(--hb) - var(--zoom) * (var(--hb) - (var(--cta-y) - var(--cta-trim) * max(0px, 56.25cqw - (100svh - var(--header-h))))));
+    top: calc(var(--hb) - var(--zoom) * (var(--hb) - (var(--cta-y) - var(--cta-trim) * max(0px, 56.25cqw - (100svh - var(--header-h) - var(--bar-h, 0px))))));
     --btn-h: clamp(52px, 4.6cqw, 76px); padding-inline: clamp(28px, 3.2cqw, 52px);
     font-size: clamp(1.0625rem, 1.45cqw, 1.5rem);
   }
-  /* The closing CTA's wide art: the button centred under "Dapatkan sensi pro player", 73.75%
-     across and 87% down. The art is pinned to its foot (a short screen loses its top), so the
-     spot is measured up from the bottom: 13.2% of the art's 56.25cqw height, 7.43cqw. */
-  .cta-banner .hero__cta { left: 73.75%; top: calc(100% - 7.43cqw); }
+  /* The closing CTA's wide art: the button centred under "Dapatkan sensi pro player", in the
+     middle and 115px (of 1080) up from the foot. The art is pinned to its foot (a short screen
+     loses its top), so the spot is measured up from the bottom: 115 / 1920 of the width, 6cqw. */
+  .cta-banner .hero__cta { left: 50%; top: calc(100% - 6cqw); }
 }
 
 .hero__arrow {
@@ -679,11 +675,14 @@ body.is-overlay-open .hero__dots button[aria-current="true"] .hero__dot-fill { a
 @media (min-width: 768px) {
   /* Ends at the fold. On a screen shorter than 16/9 allows, the art keeps the full width and is
      pinned to the top, so only its bottom (the product floor) is trimmed, never the headline. */
-  .hero__media { aspect-ratio: 16 / 9; max-height: calc(100svh - var(--header-h)); }
+  .hero__media { aspect-ratio: 16 / 9; max-height: calc(100svh - var(--header-h) - var(--bar-h, 0px)); }
   .hero__media img { object-position: 50% 0%; }
   /* FrostSpire's quote bubble sits low (to ~93% down its art), so this slide trims mostly off the
      top instead: at 75% a 1280 x 650 screen still shows the bubble whole; the logo goes first. */
   .hero__slide--frostspire .hero__media img { object-position: 50% 75%; }
+  /* Slide 1 trims entirely off the top: the headline has room above it, the products run off
+     the art's foot. */
+  .hero__slide:first-child .hero__media img { object-position: 50% 100%; }
   .hero__media::after { display: none; }
   /* Copy column. --hero-left is the indent; --hero-copy-end is a hard right boundary the text
      can never cross. Slide 1's first feature callout starts about 45% across and slide 2's
@@ -1216,8 +1215,8 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
 }
 .cat-card__art {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  /* the starfield over the neon grid, the horizon a little under the middle */
-  background: #1C0B3A url("../img/cat-card-grid.jpg?v=4") center 50% / cover no-repeat;
+  /* the aurora over the ice (the reviews section's backdrop), the lights kept in frame */
+  background: #1C0B3A url("../img/cat-card-aurora.jpg") center 30% / cover no-repeat;
   transition: transform 400ms var(--ease), filter var(--t-fast) ease-out;
 }
 /* The product, cut out, over the room's right side and bled off the card's edge; each is
@@ -1228,46 +1227,40 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
   transition: transform 400ms var(--ease), filter var(--t-fast) ease-out;
 }
 .cat-card[data-cat="fan-cooler"] .cat-card__product { height: 150%; right: -22%; top: -18%; }
-.cat-card[data-cat="sarung-jempol"] .cat-card__product { height: 128%; right: -4%; top: -14%; }
-.cat-card[data-cat="hydrogel"] .cat-card__product { height: 240%; left: 64%; right: auto; top: -32%; rotate: -15deg; }
+.cat-card[data-cat="sarung-jempol"] .cat-card__product { height: 100%; right: 2%; top: 2%; }
+/* three packs fanned, the variants' colours (Clear HD, Privacy, Matte) */
+.cat-card[data-cat="hydrogel"] .cat-card__product { height: 220%; left: 50%; right: auto; top: -24%; rotate: -10deg; }
 /* The name in Anton, centred in the free space between the card's left edge and the
    product's (--free, where each product starts, measured by eye on the 5:2 card). */
 .cat-card { --free: 60%; }
 .cat-card[data-cat="fan-cooler"] { --free: 64%; }
 .cat-card[data-cat="sarung-jempol"] { --free: 59%; }
-.cat-card[data-cat="hydrogel"] { --free: 57%; }
+.cat-card[data-cat="hydrogel"] { --free: 52%; }
 .cat-card__label {
   position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; height: 100%;
   width: var(--free); padding-inline: 4%;
-  font-family: "Tungsten", "Anton", var(--font); font-weight: 400; font-size: 10cqi;
+  font-family: "Tungsten", "Anton", var(--font); font-weight: 400; font-size: 13cqi;
   line-height: .95; letter-spacing: .02em; text-transform: uppercase; text-align: center; color: #fff;
   text-shadow: 0 2px 12px rgba(20, 4, 36, .6);
   /* tilted up and leaning forward, the esports-title angle; rises like the Hydrogel pack */
   transform: rotate(-6deg) skewX(-10deg);
 }
-/* A worn, printed texture in the letters: grain and scuffs knocked out of a white-to-lilac
-   fill, clipped to the text. The shadow moves to a drop-shadow, since a text-shadow would
-   show through the clipped glyphs. Only where background-clip: text is supported. */
+/* The hero headline's white into pink (#FC86F8), top left to bottom right, clipped to the
+   text. The shadow moves to a drop-shadow, since a text-shadow would show through the clipped
+   glyphs. Only where background-clip: text is supported. */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .cat-card__label {
-    background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .06 0 0 0 0 .26 4.5 0 0 0 -2.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='140' viewBox='0 0 420 140'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .35' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .08 0 0 0 0 .3 6 0 0 0 -4.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E"),
-      linear-gradient(180deg, #fff 30%, #E6D4F7);
-    /* the grain and scuffs scale with the card (180 and 420px at the 392px desktop card), so a
-       phone's shrunk card shows the same wear instead of full-size streaks across tiny letters */
-    background-size: 46cqi 46cqi, 107cqi 36cqi, 100% 100%;
+    background: linear-gradient(135deg, #fff 25%, #FC86F8 75%);
     -webkit-background-clip: text; background-clip: text;
     color: transparent; text-shadow: none;
     filter: drop-shadow(0 2px 10px rgba(20, 4, 36, .65));
   }
 }
 /* Phones: the desktop card shrunk, a third of the screen each. The corner cut gets smaller,
-   so it doesn't eat the little card, and the name bigger (13cqi, about 14px on a 375px
-   phone), so it still reads at that size. */
+   so it doesn't eat the little card. */
 @media (max-width: 599px) {
   .cat-card { --cut: 8px; }
-  .cat-card__label { font-size: 13cqi; }
+  .cat-card[data-cat="hydrogel"] .cat-card__product { left: 56%; } /* clear of the name */
 }
 .cat-card[aria-pressed="false"] .cat-card__art { filter: saturate(.8) brightness(.85); }
 .cat-card[aria-pressed="false"] .cat-card__product { filter: drop-shadow(0 10px 22px rgba(20, 4, 36, .55)) saturate(.85) brightness(.88); }
@@ -1444,9 +1437,9 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
 /* ---------- Products page banner ---------- */
 /* After gamesir.com/products' "All Products" card, measured off it: from 768 up one rounded
    card (12px corners, a 1px rule), 362px tall, the copy in the left 36% inset 56px from the
-   card's edge and the picture filling the right 64%. On a phone, as GameSir does there: the
-   picture is the card's background, 356 x 320 at 390, cropped toward its right side (72%)
-   where the products sit, with the copy over it on the left. */
+   card's edge. At every width the picture is the card's background, the copy over its open
+   sky on the left; on a phone, as GameSir does there, 356 x 320 at 390, cropped toward its
+   right side (72%) where the products sit. */
 .shop-banner { padding-top: var(--s-4); }
 .shop-banner__card {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; isolation: isolate;
@@ -1487,10 +1480,10 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
   .shop-banner__text { padding: var(--s-5) 40px; }
   .shop-banner__title { font-size: min(2.75rem, 15cqi); }
   .shop-banner__lead { margin-top: var(--s-4); font-size: 1.125rem; line-height: 1.55; }
-  .shop-banner__media { position: relative; inset: auto; z-index: auto; }
-  .shop-banner__media::after { content: none; }
-  /* out of the flow, so the copy and the min-height set the card's height and the picture covers it */
-  .shop-banner__media img { position: absolute; inset: 0; object-position: 50% 50%; }
+  /* still the card's background under the phone's shade, held to its right side where the
+     products sit */
+  /* grown a little from the right edge, so the products reach in toward the copy */
+  .shop-banner__media img { object-position: 100% 50%; transform: scale(1.08); transform-origin: 100% 50%; }
 }
 @media (min-width: 1024px) {
   .shop-banner { padding-top: var(--s-6); }
@@ -1505,22 +1498,16 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
 @media (min-width: 768px) { .has-tungsten .shop-banner__title { font-size: min(3.5rem, 19cqi); } }
 @media (min-width: 1024px) { .has-tungsten .shop-banner__title { font-size: min(4.25rem, 19cqi); } }
 
-/* ---------- Product detail page ---------- */
-/* The tab bar (plus the buy panel on wide screens) sticks under the navbar and the product bar.
-   When the navbar retracts on the way down, they close the gap with it, on its own timing, so
-   the stack never shows a hole. --nav-offset is the height of both bars, or of the product bar
-   alone while the navbar is hidden. --bar-h, the product bar's height, sits on the root so the
-   scroll padding can see it too. */
-html:has(.pdp) { --bar-h: 48px; scroll-padding-top: calc(var(--header-h) + var(--bar-h) + 52px); }
-@media (min-width: 768px) { html:has(.pdp) { --bar-h: 52px; } }
-@media (min-width: 1280px) { html:has(.pdp) { --bar-h: 56px; } }
-.pdp { --nav-offset: calc(var(--header-h) + var(--bar-h)); }
-body:has(.site-header.is-hidden) .pdp { --nav-offset: var(--bar-h); }
-
-/* The product's bar, after gamesir.com's: 48px on a phone (52, then 56 wider), the short name
-   in small semibold type on the left and a compact Beli on the right, in the site's own primary
-   button. It sticks under the navbar, and the tabs and buy panel stick under it. */
-.pdp-bar {
+/* ---------- Sub-bar ---------- */
+/* A slim bar stuck under the navbar, after gamesir.com's product bar: 48px on a phone (52 from
+   768), a short line in small semibold type on the left and a compact button on the right,
+   in the site's own primary button. When the navbar retracts it slides up into its place.
+   Phones and tablets only: from 1024 up it is gone and --bar-h drops to 0. --bar-h sits on
+   the root so the scroll padding and the hero's fold can see it too. */
+html:has(.sub-bar) { --bar-h: 48px; scroll-padding-top: calc(var(--header-h) + var(--bar-h)); }
+@media (min-width: 768px) { html:has(.sub-bar) { --bar-h: 52px; } }
+@media (min-width: 1024px) { html:has(.sub-bar) { --bar-h: 0px; } }
+.sub-bar {
   position: sticky; top: var(--header-h); z-index: 30;
   background: rgba(12, 3, 16, .94); /* --ink-950, a touch see-through for the blur */
   -webkit-backdrop-filter: saturate(150%) blur(32px);
@@ -1528,38 +1515,46 @@ body:has(.site-header.is-hidden) .pdp { --nav-offset: var(--bar-h); }
   transition: top 440ms var(--ease-nav);
 }
 /* a plain hairline in the dividers' colour, drawn over the button's foot too */
-.pdp-bar::after {
+.sub-bar::after {
   content: ""; position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; height: 1px;
   pointer-events: none; background: var(--line);
 }
-body:has(.site-header.is-hidden) .pdp-bar { top: 0; }
-.pdp-bar__inner {
+body:has(.site-header.is-hidden) .sub-bar { top: 0; }
+.sub-bar__inner {
   display: flex; align-items: stretch; justify-content: space-between; gap: var(--s-4);
   height: var(--bar-h);
-  /* the name lines up with the page's content column; the button runs to the screen's edge */
+  /* the text lines up with the page's content column; the button runs to the screen's edge */
   padding-left: max(var(--gutter), (100% - var(--container)) / 2);
 }
-.pdp-bar__name {
+.sub-bar__text {
   align-self: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   font-size: .75rem; font-weight: 600; color: var(--text);
 }
-/* Beli Sekarang fills the bar's height, square, with its left side sliced on a slant. The
-   clip would cut off the lift and glow, so it presses in place instead. The left padding
-   counts from the slant's midpoint, so the label sits centred in the shape. */
-.pdp-bar__buy.btn {
+/* The button fills the bar's height, square, with its left side sliced on a slant. The clip
+   would cut off the lift and glow, so it presses in place instead. The left padding counts
+   from the slant's midpoint, so the label sits centred in the shape. */
+.sub-bar__btn.btn {
   --slice: 14px;
   --btn-h: 100%; flex: none; height: 100%;
   padding: 0 var(--gutter) 0 calc(var(--slice) / 2 + var(--gutter));
   border: 0; border-radius: 0;
   clip-path: polygon(var(--slice) 0, 100% 0, 100% 100%, 0 100%);
 }
-.pdp-bar__buy.btn:hover { translate: 0 0; box-shadow: none; background: linear-gradient(120deg, #7C3AB4, #C24AD4); }
-.pdp-bar__buy.btn:active { transform: none; box-shadow: none; }
+.sub-bar__btn.btn:hover { translate: 0 0; box-shadow: none; background: linear-gradient(120deg, #7C3AB4, #C24AD4); }
+.sub-bar__btn.btn:active { transform: none; box-shadow: none; }
 @media (min-width: 768px) {
-  .pdp-bar__name { font-size: var(--fs-sm); }
-  .pdp-bar__buy.btn { --slice: 16px; }
+  .sub-bar__text { font-size: var(--fs-sm); }
+  .sub-bar__btn.btn { --slice: 16px; }
 }
-@media (min-width: 1280px) { .pdp-bar__name { font-size: var(--fs-body); } }
+@media (min-width: 1024px) { .sub-bar { display: none; } }
+
+/* ---------- Product detail page ---------- */
+/* The tab bar (plus the buy panel on wide screens) sticks under the navbar. When the navbar
+   retracts on the way down, they close the gap with it, on its own timing, so the stack never
+   shows a hole. --nav-offset is the navbar's height, or 0 while it is hidden. */
+html:has(.pdp) { scroll-padding-top: calc(var(--header-h) + 52px); }
+.pdp { --nav-offset: var(--header-h); }
+body:has(.site-header.is-hidden) .pdp { --nav-offset: 0px; }
 
 .pdp-layout { padding-top: var(--s-5); }
 /* Below 900px the photo starts right under the navbar. */
@@ -2095,11 +2090,14 @@ a.cmp__media:focus-visible { outline-offset: 3px; }
   /* grows rightward, so its first letter stays on the column edge */
   .tab:first-child .tab__label { transform-origin: left; }
 }
-/* Sticks only where the whole panel fits under the bars, or its bottom would be unreachable
-   until the end of the page. */
-@media (min-width: 900px) and (min-height: 784px) {
+/* Sticks at every window height. Where the whole panel fits under the navbar it sticks by its
+   top; where it doesn't (a short window, Chrome's taller toolbars), it scrolls on until its
+   foot is 48px off the screen's bottom and sticks there, so the end of it is never out of
+   reach. --panel-h is the panel's height, kept by main.js. */
+@media (min-width: 900px) {
   .pdp-info {
-    position: sticky; top: calc(var(--nav-offset) + var(--s-7));
+    position: sticky;
+    top: min(calc(var(--nav-offset) + var(--s-7)), calc(100vh - var(--panel-h, 0px) - var(--s-7)));
     transition: top 440ms var(--ease-nav);
   }
 }
@@ -2766,6 +2764,22 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
 }
+/* Tokopedia's rating panel heads the frame, flush with its top and sides (the outline ring
+   draws over its edge), with a faint caption under it. The first row's 26px of sticker room
+   sits below the caption. */
+.rating-shot { margin: 0; }
+.rating-shot img { display: block; width: 100%; height: auto; background: #fff; }
+.rating-shot__caption {
+  padding-top: var(--s-4); text-align: center;
+  font-size: var(--fs-xs); color: var(--faint);
+}
+/* On a phone the panel's empty right third goes (everything ends by 70% across), so what is
+   left draws about half as small again. */
+@media (max-width: 599px) {
+  .rating-shot img { aspect-ratio: 1449 / 308; object-fit: cover; object-position: left center; }
+}
+@media (min-width: 600px) { .rating-shot__caption { font-size: var(--fs-sm); } }
+
 /* With the stats strip back between the head and the frame, the frame takes its own gap
    under the strip instead of sitting flush against it. */
 #ulasan .stats-band + .marquee { margin-top: var(--s-5); }
@@ -2811,9 +2825,11 @@ body.is-overlay-open .marquee__row { animation-play-state: paused; }
    over and trims the top instead of the page. */
 .cta-banner__media {
   aspect-ratio: 16 / 9;
-  max-height: calc(100svh - var(--header-h));
+  max-height: calc(100svh - var(--header-h) - var(--bar-h, 0px));
 }
-@media (max-width: 599px) { .cta-banner__media { aspect-ratio: 1050 / 1498; } }
+/* The phone cut loses its top 60px (of 1545), dark sky above the heads; the box is shorter
+   and the art, anchored to its foot, gives up its top. */
+@media (max-width: 599px) { .cta-banner__media { aspect-ratio: 1080 / 1485; } }
 
 /* ---------- Banner placeholders ---------- */
 /* Stand-ins for banner art not made yet (assets/img/placeholder). The dashed frame is drawn
@@ -3378,6 +3394,9 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
   border-radius: 6px; background: #fff;
 }
 .co-pm__logo img { max-width: 100%; max-height: 26px; width: auto; height: auto; }
+/* A mark drawn for the dark ground (QRIS) goes without the tile. */
+.co-pm__logo--bare { height: auto; background: none; padding: 0; }
+.co-pm__logo--bare img { width: 40px; height: 40px; max-width: none; max-height: none; }
 
 .co-promo { display: grid; gap: var(--s-3); padding-block: var(--s-2); }
 /* The row is a 44px button centred in an even 8px inset; an open form gets the card's usual
@@ -4702,16 +4721,75 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 .scan__close:hover { color: var(--violet-400); }
 .scan__close:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
 /* Scan QR as a sheet over the page (phones and tablets; main.js): it rises from below the
-   screen and stops two thirds of the way up, its foot on the screen's foot, the same page
-   inside, filling it. Its top corners rounded, as a phone's own sheets are. */
+   screen, as tall as what it holds, its top corners rounded as a phone's own sheets are. Laid
+   out as a phone's QR sheet: the name and a line of advice centred, a square finder
+   with rounded gradient brackets round the camera and the laser across it, the status, a row
+   of small tools at the foot. */
 .scan-sheet {
   top: auto; left: 0; right: 0; bottom: 0;
-  height: calc(100vh * 2 / 3); height: calc(100dvh * 2 / 3);
+  max-height: calc(100vh - var(--s-5)); max-height: calc(100dvh - var(--s-5));
   transform: translateY(100%);
   border-top: 1px solid var(--line);
-  border-radius: 20px 20px 0 0; overflow: hidden;
+  border-radius: 24px 24px 0 0; overflow: hidden auto;
 }
-.scan-sheet .scan { height: 100%; }
+.scan-sheet__body {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  width: min(100% - 2 * var(--gutter), 440px); margin-inline: auto;
+  padding: var(--s-5) 0 calc(var(--s-5) + env(safe-area-inset-bottom)); text-align: center;
+}
+.scan-sheet__close {
+  position: absolute; top: 20px; right: -8px; display: grid; place-items: center; width: 40px; height: 40px;
+  color: var(--mute); transition: color var(--t-fast) ease-out;
+}
+.scan-sheet__close:hover { color: var(--violet-400); }
+.scan-sheet__close:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+.scan-sheet__title {
+  margin: var(--s-2) 0 0; font-family: "Tungsten", "Anton", var(--font); font-size: 2.5rem; font-weight: 400;
+  line-height: 1; letter-spacing: .02em; text-transform: uppercase; color: var(--text);
+}
+.scan-sheet__lead { max-width: 34ch; margin-top: var(--s-3); font-size: var(--fs-sm); line-height: 1.5; color: #fff; }
+/* The finder: the camera in a rounded square, the brackets standing a little off it */
+.scan-sheet__finder { position: relative; width: min(78vw, 300px); aspect-ratio: 1; margin-top: var(--s-5); flex: none; padding: 14px; }
+.scan-sheet__corners { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.scan-sheet__corners path { fill: none; stroke: url(#scan-sheet-grad); stroke-width: 5px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.scan-sheet__view { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 16px; background: var(--ink-950); }
+.scan-sheet__view video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 300ms ease-out; }
+.scan-sheet__view.is-live video { opacity: 1; }
+.scan-sheet__view.is-front video { transform: scaleX(-1); }
+.scan-sheet__idle {
+  position: absolute; inset: 0; display: grid; place-items: center; width: 100%; cursor: pointer;
+  transition: opacity 200ms ease-out; -webkit-tap-highlight-color: transparent;
+}
+/* until the camera is live, a photo of what to scan: a pack held up, its QR in view */
+.scan-sheet__idle { background: url("../img/scan-contoh.jpg") center 62% / cover no-repeat; }
+.scan-sheet__idle:focus-visible { outline: 2px solid var(--violet-400); outline-offset: -4px; }
+.scan-sheet__view.is-live .scan-sheet__idle { opacity: 0; pointer-events: none; }
+/* the laser runs past the brackets, as in the sheet it follows; while the camera is on it sweeps */
+.scan-sheet__laser {
+  position: absolute; left: -6%; right: -6%; top: 50%; height: 3px; border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #E46BF2 12%, #E46BF2 88%, transparent);
+  box-shadow: 0 0 14px 2px rgba(228, 107, 242, .55);
+}
+.scan-sheet__finder:has(.is-live) .scan-sheet__laser { animation: scan-sheet-laser 2.2s ease-in-out infinite alternate; }
+@keyframes scan-sheet-laser { from { top: 10%; } to { top: 90%; } }
+@media (prefers-reduced-motion: reduce) { .scan-sheet__finder:has(.is-live) .scan-sheet__laser { animation: none; } }
+.scan-sheet__status { min-height: 1.5em; margin-top: var(--s-4); font-size: var(--fs-sm); color: var(--mute); }
+.scan-sheet__status:empty { display: none; }
+.scan-sheet__status.is-error { color: var(--err); font-weight: 600; }
+.scan-sheet__tools { display: flex; justify-content: center; gap: var(--s-5); min-height: 44px; margin-top: var(--s-2); }
+.scan-sheet__tool {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  color: #fff; transition: color var(--t-fast) ease-out, background-color var(--t-fast) ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+/* always in the row, as in a phone's scanner; dimmed where the camera has no light or no second lens */
+.scan-sheet__tool[hidden] { display: grid !important; opacity: .6; pointer-events: none; }
+.scan-sheet__tool:hover { color: var(--text); background: var(--ink-800); }
+.scan-sheet__tool[aria-pressed="true"] { color: #fff; background: linear-gradient(120deg, #6A2E9E, #B33AC6); }
+.scan-sheet__cta { align-self: stretch; margin-top: var(--s-3); cursor: pointer; }
+.scan-sheet__cta:has(input:focus-visible) { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+.scan-sheet__tool:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+
 
 /* The viewfinder: square, the camera feed filling it, a frame with corner brackets in the
    middle and a laser sweeping it while live. Idle, it says what the button below does. */
@@ -4754,6 +4832,31 @@ body:has([data-pay-dock]) { padding-bottom: var(--dock-h, 0px); }
 }
 @keyframes sensi-laser { from { top: 4%; } to { top: 96%; } }
 @media (prefers-reduced-motion: reduce) { .sensi-scan__laser { animation: none; top: 50%; } }
+/* Senter and Ganti kamera, in the viewfinder's bottom corners once the camera is on: round,
+   dark and see-through so the picture reads behind them, the flashlight lit in pink while on. */
+.sensi-scan__tools {
+  position: absolute; z-index: 2; left: var(--s-4); right: var(--s-4); bottom: var(--s-4);
+  display: flex; justify-content: space-between; pointer-events: none;
+  opacity: 0; transition: opacity 200ms ease-out;
+}
+.sensi-scan__view.is-live .sensi-scan__tools { opacity: 1; }
+.sensi-scan__view:not(.is-live) .sensi-scan__tool { visibility: hidden; }
+.sensi-scan__tool {
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(12, 3, 16, .55); color: #fff; pointer-events: auto;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  transition: background-color var(--t-fast) ease-out, color var(--t-fast) ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.sensi-scan__tool[hidden] { display: none; }
+/* alone, the switch still keeps to the right */
+.sensi-scan__tool[data-scan-flip] { margin-left: auto; }
+.sensi-scan__tool:hover { background: rgba(12, 3, 16, .75); }
+.sensi-scan__tool[aria-pressed="true"] { background: #fff; color: #B33AC6; }
+.sensi-scan__tool:focus-visible { outline: 2px solid var(--violet-400); outline-offset: 2px; }
+/* the front camera shows as a mirror, the way a selfie camera is expected to */
+.sensi-scan__view.is-front video { transform: scaleX(-1); }
+
 .sensi-scan__status { min-height: 1.5em; margin-top: var(--s-3); font-size: var(--fs-sm); color: var(--mute); }
 .sensi-scan__status.is-error { color: var(--err); font-weight: 600; }
 .sensi-scan__actions { display: grid; gap: var(--s-2); margin-top: var(--s-2); max-width: 520px; }
@@ -4964,6 +5067,25 @@ a.cmp__media:hover { --cut-line: #584066; }
   .search-dialog, .co-dialog, .review-zoom, .sensi-dialog { --pop-y: 0px; --pop-scale: 1; }
 }
 
+/* ---------- Masuk, Daftar, Akun and Scan QR in Tungsten ---------- */
+/* These headlines (Masuk and Daftar's card title, Akun's name and tab titles, and Scan QR's,
+   on its page and the sheet every page opens) are
+   Tungsten everywhere, not Draco: no squeeze or unslant, and no .287em taken back for Draco's
+   deep baseline. Tungsten is git-ignored until licensed, so the published site shows Anton.
+   At Draco's sizes they read small, so they go up. */
+.auth .section-title, .acc .section-title, .scan .scan__title {
+  --squeeze: 1; --unslant: 0deg;
+  font-family: "Tungsten", "Anton", var(--font); letter-spacing: .02em;
+}
+.acc .acc-head__name, .acc .acc-back .page-title { margin-bottom: 0; }
+.auth .auth-card__title { font-size: 2.5rem; }
+@media (min-width: 600px) { .auth .auth-card__title { font-size: 3.25rem; } }
+.acc .acc-head__name, .acc .acc-back .page-title { font-size: 2.25rem; }
+@media (min-width: 900px) { .acc .acc-head__name, .acc .acc-back .page-title { font-size: 3rem; } }
+/* Tungsten has no deep baseline to take back out, but its box still runs down to the
+   descenders; trimmed to the baseline as well, so the capitals centre on the close button. */
+.scan .scan__head .scan__title { margin-bottom: 0; text-box-trim: trim-both; font-size: 2.5rem; }
+
 /* ---------- Font preview (localhost:8001 only) ---------- */
 /* main.js tags the root .font-preview when the site is opened on port 8001, the second local
    server, and everything set in Draco or Anton switches to Tungsten there. Draco's section
@@ -4973,12 +5095,7 @@ a.cmp__media:hover { --cut-line: #584066; }
   --squeeze: 1; --unslant: 0deg;
   font-family: "Tungsten", "Anton", var(--font); letter-spacing: .02em;
 }
-.font-preview .section-head .section-title:not(.section-title--sub),
-.font-preview .acc-head__name, .font-preview .acc-back .page-title { margin-bottom: 0; }
-.font-preview .scan__title { margin-bottom: var(--s-5); }
-/* Tungsten has no deep baseline to take back out, but its box still runs down to the
-   descenders; trimmed to the baseline as well, so the capitals centre on the close button. */
-.font-preview .scan__head .scan__title { margin-bottom: 0; text-box-trim: trim-both; font-size: 2.5rem; }
+.font-preview .section-head .section-title:not(.section-title--sub) { margin-bottom: 0; }
 .font-preview .cat-card__label, .font-preview .shop-banner__title { font-family: "Tungsten", "Anton", var(--font); }
 /* Beranda's section headlines, about double in Tungsten (the sub-heads about 90% up). On a phone
    13.4cqi keeps the longest, "Apa Kata Streamers" (6.66em in Tungsten Bold, so 15cqi at most),
@@ -4987,9 +5104,3 @@ a.cmp__media:hover { --cut-line: #584066; }
 @media (max-width: 599px) { .font-preview .home .section-head .section-title { font-size: 13.4cqi; } }
 .font-preview .home .section-head .section-title--sub { font-size: clamp(1.75rem, 9.2vw - 4.4px, 3.25rem); }
 @media (min-width: 1024px) { .font-preview .home .section-head .section-title--sub { font-size: clamp(3.25rem, 1.9rem + 2.85vw, 4rem); } }
-/* Masuk and Daftar's headline, and Akun's name and tab titles, read small in Tungsten at
-   Draco's sizes too, so they go up as well. */
-.font-preview .auth-card__title { font-size: 2.5rem; }
-@media (min-width: 600px) { .font-preview .auth-card__title { font-size: 3.25rem; } }
-.font-preview .acc-head__name, .font-preview .acc-back .page-title { font-size: 2.25rem; }
-@media (min-width: 900px) { .font-preview .acc-head__name, .font-preview .acc .acc-back .page-title { font-size: 3rem; } }
