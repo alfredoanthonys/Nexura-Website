@@ -13,7 +13,7 @@
 }
 
 /* Tungsten Bold (Hoefler&Co, commercial: needs a licence), for the condensed display lines
-   that were Anton: the category card names and the products banner title. The family sits in
+   that were Anton: the category card names. The family sits in
    assets/img/Tungsten-Font, which is git-ignored until it is licensed, so the published site
    falls back to Anton (loaded from Google Fonts) and only local copies show Tungsten. */
 @font-face {
@@ -1467,68 +1467,79 @@ body.is-overlay-open .shooting-stars span { animation-play-state: paused; }
 .page-head[data-cat] .page-head__lead { display: none; }
 
 /* ---------- Products page banner ---------- */
-/* After gamesir.com/products' "All Products" card, measured off it: from 768 up one rounded
-   card (12px corners, a 1px rule), 362px tall, the copy in the left 36% inset 56px from the
-   card's edge. At every width the picture is the card's background, the copy over its open
-   sky on the left; on a phone, as GameSir does there, 356 x 320 at 390, cropped toward its
-   right side (72%) where the products sit. */
+/* The #GearYourAura card. From 1024 up it is the art alone, a little shorter than the art
+   (2022 x 778, cut to 2022 x 700 off its foot, under the steps, and a sliver of the sky over
+   the heads), and the copy is only read out. Under 1024 the steps drawn
+   into the art would be too small to read, so the card is the players alone, blurred and
+   shaded, with the headline and the steps set over them, centred, in the art's faces. */
 .shop-banner { padding-top: var(--s-4); }
 .shop-banner__card {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; isolation: isolate;
   background: var(--ink-900); border: 1px solid var(--line); border-radius: var(--r-md);
 }
 .shop-banner__text {
-  display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; align-content: center;
-  min-width: 0; padding: var(--s-5);
+  display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center;
+  gap: var(--s-5); min-width: 0; padding: var(--s-6) var(--s-4);
   container-type: inline-size;
 }
-/* Anton, at its own width: the Draco squeeze and unslant switched off. Always one line: each
-   breakpoint's size is capped at calc(15 * var(--cqi)), about what "Gear Your Aura" (some 6.4em wide in Anton)
-   needs to fit the copy column, so a narrow column shrinks it rather than wrapping it. */
+/* The art's headline: Anton leaned 11deg, white running down into pink. Always one line,
+   sized to the column (it is about 6.6em wide). drop-shadow, as a text-shadow would paint over
+   the clipped fill. */
 .shop-banner__title {
-  --squeeze: 1; --unslant: 0deg;
-  font-family: "Tungsten", "Anton", var(--font); letter-spacing: .02em; white-space: nowrap;
-  font-size: min(2.125rem, calc(15 * var(--cqi))); line-height: 1; text-align: left;
-  margin: 0; transform-origin: 0 50%;
+  font-family: "Anton", var(--font); font-weight: 400; text-transform: uppercase;
+  letter-spacing: .01em; white-space: nowrap;
+  font-size: min(calc(13 * var(--cqi)), 5rem); line-height: 1.1;
+  text-box-trim: trim-both; text-box-edge: cap alphabetic;
+  margin: 0; transform: skewX(-11deg);
+  background: linear-gradient(180deg, #fff 20%, #F4C6F6 55%, #DE86EA);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 12px rgba(12, 3, 16, .7));
 }
-.shop-banner__lead { margin: var(--s-3) 0 0; max-width: 40ch; font-family: var(--font); font-weight: 400; font-size: .9375rem; line-height: 1.55; letter-spacing: 0; color: #fff; }
-/* phone: the picture is the card, darkened on the left where the copy sits */
+/* The art's bubbles: plum lit from above in a silver rim, the wide Krona One inside, the
+   list's own numbers ("1. ") leading each. Wrapped and centred, so a phone stacks all three and
+   a tablet lays them out as the art does, two over one. Sized to the column, so the longest
+   still holds one line at 320. */
+.shop-banner__steps {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2) var(--s-3);
+  margin: 0; padding: 0; list-style: decimal inside;
+}
+.shop-banner__steps li {
+  padding: .75em 1.1em; border: 2px solid #E6DEEA; border-radius: var(--r-sm);
+  background: linear-gradient(180deg, rgba(76, 44, 90, .92), rgba(30, 13, 38, .92));
+  box-shadow: inset 0 0 0 1px rgba(12, 3, 16, .6), 0 4px 16px rgba(12, 3, 16, .5);
+  font-family: "Krona One", var(--font); font-size: min(calc(3.1 * var(--cqi)), .9375rem);
+  text-transform: uppercase; letter-spacing: .03em; line-height: 1.2; color: #fff; white-space: nowrap;
+}
+/* The players, blurred (grown so the blur's soft edge stays off the card) under a shade that
+   is deepest in the middle, behind the copy. */
 .shop-banner__media { position: absolute; inset: 0; z-index: -1; }
 .shop-banner__media::after {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(12, 3, 16, .82), rgba(12, 3, 16, .45) 60%, rgba(12, 3, 16, .2));
+  background: radial-gradient(closest-side, rgba(12, 3, 16, .6), rgba(12, 3, 16, .35));
 }
-.shop-banner__media img { width: 100%; height: 100%; object-fit: cover; object-position: 72% 50%; }
+.shop-banner__media img {
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%;
+  filter: blur(7px); scale: 1.12;
+}
 @media (max-width: 767px) {
-  /* GameSir's phone card, measured on gamesir.com/products at 390px: 16px from the screen's
-     edges (wider than our gutter, so the card reaches past the container) and 322px tall with
-     its border, as a floor so longer copy can still grow it */
-  .shop-banner__card { margin-inline: calc(16px - var(--gutter)); min-height: 322px; }
-  .shop-banner__text { max-width: 76%; }
+  /* 16px from the screen's edges (wider than our gutter, so the card reaches past the
+     container) and at least 290px tall */
+  .shop-banner__card { margin-inline: calc(16px - var(--gutter)); min-height: 290px; }
 }
 @media (min-width: 768px) {
   .shop-banner { padding-top: var(--s-5); }
-  .shop-banner__card { grid-template-columns: minmax(0, 36fr) minmax(0, 64fr); min-height: 382px; }
-  .shop-banner__text { padding: var(--s-5) 40px; }
-  .shop-banner__title { font-size: min(2.75rem, calc(15 * var(--cqi))); }
-  .shop-banner__lead { margin-top: var(--s-4); font-size: 1.125rem; line-height: 1.55; }
-  /* still the card's background under the phone's shade, held to its right side where the
-     products sit */
-  /* grown a little from the right edge, so the products reach in toward the copy */
-  .shop-banner__media img { object-position: 100% 50%; transform: scale(1.08); transform-origin: 100% 50%; }
+  .shop-banner__card { min-height: 300px; }
 }
 @media (min-width: 1024px) {
   .shop-banner { padding-top: var(--s-6); }
-  .shop-banner__card { min-height: 362px; }
-  .shop-banner__text { padding-inline: 56px; }
-  .shop-banner__title { font-size: min(3.375rem, calc(15 * var(--cqi))); }
+  .shop-banner__card { min-height: 0; aspect-ratio: 2022 / 700; }
+  .shop-banner__text {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .shop-banner__media::after { content: none; }
+  .shop-banner__media img { object-position: 50% 30%; filter: none; scale: none; }
 }
-/* Tungsten sets "Gear Your Aura" about 5.1em wide against Anton's 6.4em, so once it has loaded
-   (main.js tags the root .has-tungsten) the title runs about a quarter bigger, with the cap
-   raised to match (calc(19 * var(--cqi)) still fits the column). Anton, the fallback, keeps the sizes above. */
-.has-tungsten .shop-banner__title { font-size: min(2.75rem, calc(19 * var(--cqi))); }
-@media (min-width: 768px) { .has-tungsten .shop-banner__title { font-size: min(3.5rem, calc(19 * var(--cqi))); } }
-@media (min-width: 1024px) { .has-tungsten .shop-banner__title { font-size: min(4.25rem, calc(19 * var(--cqi))); } }
 
 /* ---------- Sub-bar ---------- */
 /* A slim bar stuck under the navbar, after gamesir.com's product bar: 48px on a phone (52 from
@@ -5134,7 +5145,7 @@ a.cmp__media:hover { --cut-line: #584066; }
   font-family: "Tungsten", "Anton", var(--font); letter-spacing: .02em;
 }
 .font-preview .section-head .section-title:not(.section-title--sub) { margin-bottom: 0; }
-.font-preview .cat-card__label, .font-preview .shop-banner__title { font-family: "Tungsten", "Anton", var(--font); }
+.font-preview .cat-card__label { font-family: "Tungsten", "Anton", var(--font); }
 /* Beranda's section headlines, about double in Tungsten (the sub-heads about 90% up). On a phone
    calc(13.4 * var(--cqi)) keeps the longest, "Apa Kata Streamers" (6.66em in Tungsten Bold, so calc(15 * var(--cqi)) at most),
    on one line. Draco's sizes were set for a face drawn squeezed to 63%, so Tungsten read small. */

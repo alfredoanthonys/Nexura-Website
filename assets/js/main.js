@@ -4084,17 +4084,6 @@
   }
 
   /* ------------------------------------------------------------------
-     Tungsten is only present where its files are (see the @font-face in styles.css); when it
-     loads, the root is tagged so the lines set in it can size up to its narrower width. A face
-     that fails to load rejects, and the Anton sizes stay.
-     ------------------------------------------------------------------ */
-  if (document.fonts && $('.shop-banner__title')) {
-    document.fonts.load('1em "Tungsten"')
-      .then((faces) => { if (faces.length) document.documentElement.classList.add('has-tungsten'); })
-      .catch(() => {});
-  }
-
-  /* ------------------------------------------------------------------
      Scan QR on a computer: the QR is on the pack and the camera that reads it is the phone's,
      so on a mouse-and-keyboard device (hover + fine pointer, not just a narrow window) any
      link to the scan page opens a note to use it on a phone instead.

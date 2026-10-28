@@ -19,8 +19,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:opsz,wght@14..32,400..800&display=swap">
-  <link rel="stylesheet" href="../assets/css/styles.css?v=20261027200000">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:opsz,wght@14..32,400..800&family=Krona+One&display=swap">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20261028160000">
 </head>
 <body>
   <!-- Icon sprite. Every UI icon is Lucide v1 (ISC licence), the set shadcn/ui ships with; paths
@@ -181,20 +181,25 @@
     </header>
 
     <!-- ============ BANNER ============ -->
-    <!-- After gamesir.com/products: one rounded card, copy on the left, the picture filling the
-         right; on a phone the picture is the card's background, the copy over it. The picture is
-         13:5 (2080 x 800, GameSir's shape). -->
+    <!-- The #GearYourAura art (2022 x 778), headline and the three steps drawn into it. From
+         1024 up the art is the whole card and the copy below is only read out; under 1024 the
+         card takes the players alone (shop-banner-m), blurred, with the copy set over them. -->
     <section class="shop-banner" aria-labelledby="shop-banner-title">
       <div class="container">
         <div class="shop-banner__card">
           <div class="shop-banner__text">
-            <h2 class="section-title shop-banner__title" id="shop-banner-title">Gear Your Aura</h2>
-            <p class="shop-banner__lead">HP tetap dingin, jempol tetap presisi, layar tetap aman. Semua yang kamu butuh buat main lebih lama dan push rank lebih jauh.</p>
+            <h2 class="shop-banner__title" id="shop-banner-title">#GearYourAura</h2>
+            <ol class="shop-banner__steps">
+              <li>Pilih barang</li>
+              <li>Masukan alamat</li>
+              <li>Bayar &amp; tunggu barang sampai</li>
+            </ol>
           </div>
           <picture class="shop-banner__media">
-            <img src="../assets/img/shop-banner.jpg?v=4" srcset="../assets/img/shop-banner-1280.jpg?v=4 1280w, ../assets/img/shop-banner.jpg?v=4 2080w"
-                 sizes="(min-width: 1320px) 1200px, 100vw" width="2080" height="798" fetchpriority="high" decoding="async"
-                 alt="Fan cooler, sarung jempol, dan hydrogel Nexura berjajar">
+            <source media="(max-width: 1023px)" srcset="../assets/img/shop-banner-m.jpg?v=5" width="720" height="478">
+            <img src="../assets/img/shop-banner.jpg?v=5" srcset="../assets/img/shop-banner-1280.jpg?v=5 1280w, ../assets/img/shop-banner.jpg?v=5 2022w"
+                 sizes="(min-width: 1320px) 1200px, 100vw" width="2022" height="778" fetchpriority="high" decoding="async"
+                 alt="Enam pemain berdiri berjajar dan bersedekap">
           </picture>
         </div>
       </div>
@@ -414,6 +419,6 @@
   <div class="sr-only" aria-live="polite" data-live></div>
 
   <script src="../assets/js/data.js?v=20261027160000"></script>
-  <script src="../assets/js/main.js?v=20261027200000"></script>
+  <script src="../assets/js/main.js?v=20261028160000"></script>
 </body>
 </html>
